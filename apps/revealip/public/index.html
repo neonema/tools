@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RevealIP - by NeoNema</title>
+    <meta
+      name="description"
+      content="Instantly reveal your public IPv4 and IPv6 address. No tracking location API, just your IP."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="./RevealIP-NeoNema.png" />
+    <link rel="stylesheet" href="./styles.css?v=9" />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7032115236198174"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <img
+            src="./RevealIP-NeoNema.png"
+            alt="RevealIP"
+            class="brand-main"
+          />
+          <span class="divider" aria-hidden="true"></span>
+          <div class="brand-parent">
+            <span class="brand-attribution">
+              A product of
+              <img
+                src="./NeoNema.png"
+                alt="NeoNema"
+                class="brand-sub"
+              />
+            </span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="ip-block">
+        <p id="ip-label" class="ip-label">Detecting IP...</p>
+        <div class="ip-row">
+          <h1 id="primary-ip" class="ip-main">Detecting...</h1>
+          <button id="copy-btn" class="copy-btn" aria-label="Copy IP">Copy</button>
+        </div>
+        <p id="copy-status" class="copy-status"></p>
+      </section>
+
+      <section id="secondary-wrap" class="secondary hidden">
+        <p id="secondary-label" class="secondary-label"></p>
+        <p id="secondary-ip" class="secondary-ip"></p>
+      </section>
+
+      <section id="error-box" class="error-box hidden">
+        <h2>Unable to detect IP address</h2>
+        <p>We could not find your IPv4 or IPv6 address.</p>
+      </section>
+
+      <section class="ad-wrap">
+        <p class="ad-note">Advertisement space</p>
+        <ins
+          class="adsbygoogle"
+          style="display: block"
+          data-ad-client="ca-pub-7032115236198174"
+          data-ad-slot="5347862929"
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        ></ins>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a href="/privacy-policy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

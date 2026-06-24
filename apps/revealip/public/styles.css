@@ -1,0 +1,280 @@
+@import url("./brand-tokens.css");
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Outfit", system-ui, -apple-system, sans-serif;
+}
+
+/* BRAND_LOCK_START: Keep this section identical across all NeoNema properties. */
+.header {
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--header-bg) 84%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 4px 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand img {
+  display: block;
+  width: auto;
+  max-width: none;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.brand img.brand-main {
+  height: 50px;
+}
+
+.brand img.brand-sub {
+  height: 36px;
+  opacity: 0.9;
+}
+
+.brand-parent {
+  display: flex;
+  align-items: center;
+}
+
+.brand-attribution {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.divider {
+  width: 1px;
+  height: 48px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 4px 12px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand-attribution {
+    font-size: 0.75rem;
+    gap: 6px;
+  }
+
+  .brand img.brand-main {
+    height: 40px;
+  }
+
+  .brand img.brand-sub {
+    height: 28px;
+  }
+
+  .divider {
+    height: 38px;
+  }
+}
+/* BRAND_LOCK_END */
+
+.container {
+  min-height: calc(100vh - 130px);
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 48px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ip-block {
+  text-align: center;
+}
+
+.ip-label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.ip-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.ip-main {
+  margin: 0;
+  font-size: clamp(2.2rem, 8vw, 5rem);
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  line-height: 1.1;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.copy-btn {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  border-radius: 14px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  border-color: var(--primary);
+}
+
+.copy-status {
+  min-height: 18px;
+  color: var(--primary);
+}
+
+.secondary {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.secondary-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.secondary-ip {
+  margin: 6px 0 0;
+  font-size: clamp(1rem, 3vw, 2rem);
+  font-weight: 700;
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.error-box {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid #5f2e2e;
+  border-radius: 16px;
+  background: rgba(160, 45, 45, 0.15);
+  text-align: center;
+}
+
+.ad-wrap {
+  margin-top: 56px;
+  width: min(100%, 860px);
+  min-height: 120px;
+  overflow: hidden;
+}
+
+.ad-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 24px 16px;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.footer a,
+.policy a {
+  color: var(--muted);
+}
+
+.footer a:hover,
+.policy a:hover {
+  color: var(--foreground);
+}
+
+.policy {
+  max-width: 760px;
+  margin: 48px auto;
+  padding: 0 16px;
+  line-height: 1.65;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .container {
+    min-height: calc(100vh - 112px);
+    padding: 30px 12px;
+    justify-content: flex-start;
+  }
+
+  .ip-label {
+    font-size: 0.8rem;
+  }
+
+  .ip-row {
+    gap: 10px;
+  }
+
+  .copy-btn {
+    width: 100%;
+    max-width: 220px;
+    padding: 11px 14px;
+  }
+
+  .secondary {
+    width: 100%;
+  }
+
+  .secondary-ip {
+    font-size: clamp(1rem, 5vw, 1.5rem);
+  }
+
+  .error-box {
+    width: 100%;
+    margin-top: 18px;
+    padding: 16px;
+  }
+
+  .ad-wrap {
+    margin-top: 36px;
+    min-height: 90px;
+  }
+
+  .footer {
+    gap: 14px;
+    padding: 20px 12px;
+  }
+}

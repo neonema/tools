@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JSON Utility Toolkit - by NeoNema</title>
+    <meta
+      name="description"
+      content="Validate, format, and lint JSON in one focused tab. Private, browser-only, and simple."
+    />
+    <link rel="icon" type="image/png" href="./Product.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7032115236198174"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <img
+            src="./Product.png"
+            alt="ProductName"
+            class="brand-main"
+          />
+          <span class="divider" aria-hidden="true"></span>
+          <div class="brand-parent">
+            <span class="brand-attribution">
+              A product of
+              <img
+                src="./NeoNema.png"
+                alt="NeoNema"
+                class="brand-sub"
+              />
+            </span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="main-content">
+        <section class="hero">
+          <p class="kicker">Fast. Private. Useful.</p>
+          <h1>JSON Utility Toolkit</h1>
+        </section>
+
+        <section class="tool-card" aria-labelledby="tool-title">
+          <h2 id="tool-title" class="visually-hidden">JSON Tools</h2>
+
+          <div class="tool-switcher" role="tablist" aria-label="JSON utility tools">
+            <button class="tool-tab active" type="button" data-tool="vfl" role="tab" aria-selected="true">
+              Validate/Format/Lint
+            </button>
+            <button class="tool-tab" type="button" data-tool="typegen" role="tab" aria-selected="false">
+              Type Generator
+            </button>
+            <button class="tool-tab" type="button" data-tool="diff" role="tab" aria-selected="false">
+              Diff Finder
+            </button>
+            <button class="tool-tab" type="button" data-tool="jsonpath" role="tab" aria-selected="false">
+              Selector
+            </button>
+            <button class="tool-tab" type="button" data-tool="convert" role="tab" aria-selected="false">
+              Converters
+            </button>
+          </div>
+
+          <label for="source-input" id="source-label" class="primary-label">JSON input</label>
+          <textarea id="source-input" placeholder="Paste JSON here, or drop a .json file"></textarea>
+
+          <div id="converter-panel" class="tool-options converter-panel" hidden>
+            <div class="converter-grid">
+              <div class="converter-field">
+                <label for="convert-from">From</label>
+                <select id="convert-from" aria-label="Convert from format"></select>
+              </div>
+              <button id="convert-swap-btn" type="button" class="ghost-btn converter-swap-btn" aria-label="Swap formats">
+                Swap
+              </button>
+              <div class="converter-field">
+                <label for="convert-to">To</label>
+                <select id="convert-to" aria-label="Convert to format"></select>
+              </div>
+            </div>
+            <p id="converter-hint" class="field-hint"></p>
+          </div>
+
+          <div id="compare-panel" class="compare-panel" hidden>
+            <label for="compare-input">JSON B (diff against JSON A)</label>
+            <textarea
+              id="compare-input"
+              class="compare-input"
+              placeholder="Paste the second JSON document here"
+            ></textarea>
+          </div>
+
+          <div id="type-options" class="tool-options" hidden>
+            <fieldset class="segment-fieldset">
+              <legend class="segment-legend">Output format</legend>
+              <div class="segment-group" role="group" aria-label="Type generator output format">
+                <label class="segment-label">
+                  <input type="radio" name="typegen-format" value="typescript" checked />
+                  TypeScript
+                </label>
+                <label class="segment-label">
+                  <input type="radio" name="typegen-format" value="zod" />
+                  Zod
+                </label>
+              </div>
+            </fieldset>
+            <label for="root-name-input">Name for your data (optional)</label>
+            <input
+              id="root-name-input"
+              type="text"
+              value="Root"
+              maxlength="60"
+              aria-describedby="root-name-hint"
+            />
+            <p id="root-name-hint" class="field-hint">
+              Used as the root type name (TypeScript) or <strong>NameSchema</strong> (Zod). The default
+              <strong>Root</strong> is fine—leave it if you are not sure.
+            </p>
+          </div>
+
+          <div id="jsonpath-panel" class="tool-options" hidden>
+            <label for="jsonpath-input">Query path</label>
+            <input
+              id="jsonpath-input"
+              type="text"
+              placeholder="$.store.book[0].title or $['items'][*].id"
+              spellcheck="false"
+              autocomplete="off"
+              aria-describedby="jsonpath-hint"
+            />
+            <div class="jsonpath-examples" role="group" aria-label="Example query paths">
+              <span class="examples-label">Try:</span>
+              <button type="button" class="link-btn jsonpath-example" data-path="$.name">$.name</button>
+              <button type="button" class="link-btn jsonpath-example" data-path="$.fields[0]">$.fields[0]</button>
+              <button type="button" class="link-btn jsonpath-example" data-path="$.fields[*]">$.fields[*]</button>
+              <button type="button" class="link-btn jsonpath-example" data-path="$.notes.collaborators[*]">
+                $.notes.collaborators[*]
+              </button>
+            </div>
+          </div>
+
+          <div class="sample-row">
+            <span class="examples-label">Try:</span>
+            <button type="button" class="link-btn" data-sample="valid">sample</button>
+            <button type="button" class="link-btn" data-sample="invalid">invalid sample</button>
+          </div>
+
+          <div class="actions">
+            <button id="run-btn" type="button">Run Tool</button>
+            <button id="secondary-btn" type="button" class="ghost-btn" hidden>Secondary Action</button>
+            <button id="copy-btn" type="button" class="ghost-btn">Copy Result</button>
+            <button id="download-btn" type="button" class="ghost-btn">Download Result</button>
+            <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+          </div>
+
+          <label for="result-output">Result</label>
+          <textarea id="result-output" readonly placeholder="Results appear here"></textarea>
+          <div id="json-stats" class="json-stats" hidden>
+            <span class="stat"><span class="stat-label">Size</span><span class="stat-value" data-stat="size">—</span></span>
+            <span class="stat"><span class="stat-label">Depth</span><span class="stat-value" data-stat="depth">—</span></span>
+            <span class="stat"><span class="stat-label">Keys</span><span class="stat-value" data-stat="keys">—</span></span>
+            <span class="stat"><span class="stat-label">Objects</span><span class="stat-value" data-stat="objects">—</span></span>
+            <span class="stat"><span class="stat-label">Arrays</span><span class="stat-value" data-stat="arrays">—</span></span>
+          </div>
+
+          <p id="tool-caption" class="tool-caption" hidden>
+            Validate syntax, format output, and run lint checks in one tab.
+          </p>
+
+          <p class="privacy-note">
+            <strong class="privacy-bold">We do not save, use, or sell your data.</strong>
+            Your JSON and text box input do not leave your system; they are processed locally in your
+            browser only.
+          </p>
+          <p id="status" class="status" aria-live="polite"></p>
+        </section>
+      </div>
+    </main>
+
+    <aside class="ad-box" aria-label="Advertisement">
+      <p class="ad-box-label">Advertisement</p>
+      <div class="ad-box-slot"></div>
+    </aside>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

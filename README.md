@@ -1,31 +1,59 @@
-# NeoNema Utility Website Template
+# NeoNema Tools
 
-This repository is a reusable starter for **one-page utility websites** under the NeoNema brand.
+Monorepo for NeoNema utility websites and shared brand assets. This repository is the source of truth for all NeoNema tools.
 
-## Template goals
-- One-page static website architecture.
-- Minimal overhead and minimal recurring cost.
-- Browser-first processing (avoid server/API dependencies by default).
-- Consistent NeoNema visual theme and color palette.
+## Apps
 
-## Project structure
-- `public/index.html` main page template
-- `public/styles.css` NeoNema palette + layout styles
-- `public/app.js` sample client-side utility logic
-- `public/privacy-policy.html` policy placeholder
-- `public/terms.html` terms placeholder
-- `AGENTS.md` LLM instruction entrypoint
-- `LLM_PRODUCT_RULES.md` enforced product and design rules
+| App | Path | Description |
+|-----|------|-------------|
+| RevealIP | `apps/revealip/` | Public IPv4/IPv6 display (S3 + CloudFront + edge function) |
+| JSON Toolkit | `apps/json/` | Browser-based JSON validate, diff, JSONPath, converters |
 
-## Local preview
-Run from this repository root:
+## Packages
 
-`python3 -m http.server 8080`
+| Package | Path | Description |
+|---------|------|-------------|
+| Brand | `packages/brand/` | Canonical design tokens, header lock, parent logo |
+| Utility template | `packages/utility-template/` | Scaffold for new one-page utilities |
 
-Then open [http://localhost:8080/public/](http://localhost:8080/public/).
+## Local development
 
-## How to use this template
-1. Rename the product title/metadata in `public/index.html`.
-2. Replace demo utility logic in `public/app.js`.
-3. Keep design tokens in `public/styles.css` aligned with NeoNema palette.
-4. Update policy/legal placeholders before publishing.
+```bash
+npm run dev:revealip    # http://localhost:8080
+npm run dev:json        # http://localhost:8080
+npm run dev:template    # http://localhost:8080
+```
+
+## Quality checks
+
+```bash
+npm run brand:check
+npm run test:json-converters
+npm run sync-brand          # copy packages/brand/ into all apps
+npm run sync-brand -- json  # sync a single app
+```
+
+## Deploy
+
+```bash
+cp deploy.config.example.json deploy.config.json   # once: fill in bucket + distribution IDs
+npm run deploy -- json --dry-run
+npm run deploy -- json
+npm run deploy:edge -- revealip   # only when ip-api-function.js changes
+```
+
+See [docs/deploy/automated-deploy.md](docs/deploy/automated-deploy.md).
+
+## Documentation
+
+- [Deployment guides](docs/deploy/) — AWS, Cloudflare, AdSense, automated deploy
+- [Infrastructure (planned)](docs/infra/) — future AWS account migration
+- [AGENTS.md](AGENTS.md) — LLM agent instructions
+- [LLM_PRODUCT_RULES.md](LLM_PRODUCT_RULES.md) — product and design rules
+
+## Adding a new utility
+
+1. Copy `packages/utility-template/` to `apps/<name>/`.
+2. Copy brand assets from `packages/brand/` into the new app's `public/`.
+3. Customize `index.html`, `app.js`, and legal pages.
+4. Run `npm run brand:check`.

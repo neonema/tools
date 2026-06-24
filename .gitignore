@@ -1,10 +1,14 @@
 .DS_Store
 .env
 .env.*
+deploy.config.json
 node_modules/
 dist/
 build/
 coverage/
+venv/
+.venv/
+.pytest_cache/
 
 # Editor and AI tooling metadata
 .cursorignore

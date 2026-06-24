@@ -1,0 +1,26 @@
+{
+  "apps": {
+    "revealip": {
+      "source": "apps/revealip/public",
+      "s3Bucket": "YOUR_REVEALIP_BUCKET_NAME",
+      "s3Region": "us-east-1",
+      "cloudfrontDistributionId": "EXXXXXXXXXXXX",
+      "awsProfile": "revealip",
+      "s3SyncDelete": false,
+      "invalidatePaths": ["/*"],
+      "edge": {
+        "cloudfrontFunctionName": "revealip-ip-api",
+        "functionSource": "apps/revealip/cloudfront/ip-api-function.js"
+      }
+    },
+    "json": {
+      "source": "apps/json/public",
+      "s3Bucket": "YOUR_JSON_BUCKET_NAME",
+      "s3Region": "us-east-1",
+      "cloudfrontDistributionId": "EYYYYYYYYYYYY",
+      "awsProfile": "json",
+      "s3SyncDelete": false,
+      "invalidatePaths": ["/*"]
+    }
+  }
+}

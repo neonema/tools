@@ -1,7 +1,14 @@
 {
-  "name": "neonema-template",
+  "name": "neonema-tools",
   "private": true,
   "scripts": {
-    "brand:check": "node ./scripts/brand-check.mjs"
+    "brand:check": "node ./scripts/brand-check.mjs",
+    "sync-brand": "node ./scripts/sync-brand.mjs",
+    "dev:revealip": "python3 -m http.server 8080 --directory apps/revealip/public",
+    "dev:json": "python3 -m http.server 8080 --directory apps/json/public",
+    "dev:template": "python3 -m http.server 8080 --directory packages/utility-template/public",
+    "test:json-converters": "node apps/json/scripts/test-converters.mjs",
+    "deploy": "node ./scripts/deploy.mjs",
+    "deploy:edge": "node ./scripts/deploy-edge.mjs"
   }
 }
