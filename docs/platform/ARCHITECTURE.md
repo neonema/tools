@@ -65,6 +65,10 @@ On the unified distribution, this function attaches to path `/api/ip*` on the **
 
 Do not add similar edge infrastructure to other apps unless explicitly requested and documented here.
 
+### Directory index rewrite (`tools-uri-rewrite`)
+
+S3 REST origins only apply **Default root object** at `/`. Paths like `/json/` request object key `json/`, which does not exist. CloudFront Function **`tools-uri-rewrite`** (`apps/hub/cloudfront/uri-rewrite-function.js`) on the default `*` behavior rewrites extensionless directory URLs to `index.html` (e.g. `/json/` → `/json/index.html`). Required for P1 direct tool URLs.
+
 ---
 
 ## Hub and tab routing
@@ -124,6 +128,7 @@ NeoNema tools AWS account          (local CLI: --profile neonema-tools)
 ├── CloudFront: tools-dev         (OAC → dev bucket)
 ├── ACM (us-east-1): tools.neonema.com, dev.tools.neonema.com
 ├── CloudFront Function: revealip-ip-api  (/api/ip on tools-prod)
+├── CloudFront Function: tools-uri-rewrite  (/json/, /revealip/ → index.html)
 └── IAM: GitHub OIDC role         (deploy on push to main / dev)
 ```
 
