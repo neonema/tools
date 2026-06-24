@@ -278,3 +278,19 @@ body {
     padding: 20px 12px;
   }
 }
+
+html.hub-embed body {
+  min-height: auto;
+}
+
+html.hub-embed .header,
+html.hub-embed .ad-wrap,
+html.hub-embed .footer {
+  display: none;
+}
+
+html.hub-embed .container {
+  min-height: auto;
+  padding: 20px 16px 24px;
+  justify-content: flex-start;
+}

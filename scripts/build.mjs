@@ -1,5 +1,5 @@
 import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
 
 const rootDir = resolve(import.meta.dirname, "..");
 const distDir = resolve(rootDir, "dist");
@@ -28,5 +28,13 @@ for (const app of APPS) {
   cpSync(src, dest, { recursive: true });
   console.log(`  ✓ ${app.label} → ${app.dest ? `${app.dest}/` : "/"}`);
 }
+
+const hubConfigPath = resolve(rootDir, "apps/hub/hub.config.json");
+if (!existsSync(hubConfigPath)) {
+  console.error("build: missing apps/hub/hub.config.json");
+  process.exit(1);
+}
+cpSync(hubConfigPath, join(distDir, "hub.config.json"));
+console.log("  ✓ hub.config.json → /");
 
 console.log("build: dist/ ready");

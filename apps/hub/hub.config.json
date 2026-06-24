@@ -1,0 +1,17 @@
+{
+  "defaultTool": "json",
+  "tools": [
+    {
+      "id": "json",
+      "label": "JSON Toolkit",
+      "path": "/json/index.html",
+      "description": "Validate, format, convert JSON"
+    },
+    {
+      "id": "revealip",
+      "label": "RevealIP",
+      "path": "/revealip/index.html",
+      "description": "Show your public IP"
+    }
+  ]
+}

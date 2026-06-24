@@ -557,5 +557,21 @@ button {
   color: var(--foreground);
 }
 
+html.hub-embed body {
+  min-height: auto;
+}
+
+html.hub-embed .header,
+html.hub-embed .hero,
+html.hub-embed .ad-box,
+html.hub-embed .footer {
+  display: none;
+}
+
+html.hub-embed .container {
+  padding-top: 12px;
+  padding-bottom: 20px;
+}
+
 @media (max-width: 768px) {
 }
