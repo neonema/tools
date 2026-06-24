@@ -99,23 +99,37 @@ Revisit inlined modules in P4 if iframe polish becomes a blocker.
 | `dev.tools.neonema.com` | Staging / preview |
 | `neonema-revealip.com` | 301 → `https://tools.neonema.com/#/revealip` |
 | `neonema-json.com` | 301 → `https://tools.neonema.com/#/json` |
-| `neonema.com` | Company marketing site (separate repo); links out to tools hub |
+| `neonema.com` | Company marketing site (separate repo + AWS account); links out to tools hub |
 
 ---
 
-## AWS layout (target)
+## AWS accounts (target)
+
+NeoNema uses **two AWS accounts** — tools and company site — with DNS in Cloudflare routing each hostname to the right CloudFront distribution. This repo (`neonema-tools`) deploys **only** to the **NeoNema tools account**.
+
+| Account | Hostnames | Owned by |
+|---------|-----------|----------|
+| **NeoNema tools** | `tools.neonema.com`, `dev.tools.neonema.com` | This repo |
+| **NeoNema company** | `neonema.com` | Separate company-site repo; links out to tools hub (P7) |
+
+No cross-account S3 origins: each CloudFront distribution reads buckets in its own account via OAC.
+
+### Tools account layout
 
 ```
-NeoNema LLC AWS account
+NeoNema tools AWS account          (local CLI: --profile neonema-tools)
 ├── S3: neonema-tools-prod        (tools.neonema.com)
 ├── S3: neonema-tools-dev         (dev.tools.neonema.com)
 ├── CloudFront: tools-prod        (OAC → prod bucket)
 ├── CloudFront: tools-dev         (OAC → dev bucket)
-├── ACM (us-east-1): *.neonema.com + neonema.com
+├── ACM (us-east-1): tools.neonema.com, dev.tools.neonema.com
+├── CloudFront Function: revealip-ip-api  (/api/ip on tools-prod)
 └── IAM: GitHub OIDC role         (deploy on push to main / dev)
 ```
 
-Legacy per-app buckets and distributions retire after P3 cutover and redirect verification.
+**Local deploy profile:** set `awsProfile` to `"neonema-tools"` in `deploy.config.json`. See [infra/README.md](../infra/README.md) for profile setup.
+
+Legacy per-app buckets and distributions in old AWS accounts retire after P3 cutover and redirect verification.
 
 ---
 
@@ -136,5 +150,5 @@ Legacy per-app buckets and distributions retire after P3 cutover and redirect ve
 
 - [deploy/README.md](../deploy/README.md) — S3 + CloudFront runbooks
 - [deploy/automated-deploy.md](../deploy/automated-deploy.md) — local deploy scripts
-- [infra/README.md](../infra/README.md) — AWS account consolidation
+- [infra/README.md](../infra/README.md) — two-account model, `neonema-tools` CLI profile
 - [TOOLS_PLATFORM_PLAN.md](../TOOLS_PLATFORM_PLAN.md) — priority checklist (P0–P7)

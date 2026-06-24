@@ -16,7 +16,8 @@ This file defines mandatory instructions for AI/LLM agents working in this repos
 - Deployment runbooks live in `docs/deploy/`.
 
 ## Platform Deploy Model
-- **Target:** single origin at `tools.neonema.com` — one S3 bucket + one CloudFront distribution.
+- **Target:** single origin at `tools.neonema.com` — one S3 bucket + one CloudFront distribution in the **NeoNema tools AWS account**.
+- **AWS CLI profile:** local deploys use `--profile neonema-tools` (see `docs/infra/README.md`). The company site (`neonema.com`) lives in a separate AWS account and repo.
 - **Build output:** `scripts/build.mjs` assembles `apps/hub/public`, `apps/json/public`, `apps/revealip/public`, etc. into `dist/` with path prefixes (`/json/`, `/revealip/`).
 - **Deploy:** `npm run deploy -- platform` syncs `dist/` to the prod bucket (see `docs/platform/ARCHITECTURE.md`).
 - Per-app deploy (`npm run deploy -- json`) remains during migration; new work should assume the unified model.

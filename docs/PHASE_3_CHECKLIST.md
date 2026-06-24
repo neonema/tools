@@ -15,15 +15,15 @@ Local-first deploy scripts. No AWS credentials in the repo.
 ## Intentionally deferred (Phase 4+)
 
 - [ ] GitHub Actions push-to-deploy (needs OIDC or secrets you configure)
-- [ ] AWS IaC (Terraform/CDK) and NeoNema LLC account migration
+- [ ] AWS IaC (Terraform/CDK) and migration into NeoNema tools account
 - [ ] Archive standalone GitHub repos
 
 ## Your setup steps
 
 - [ ] Install AWS CLI v2
-- [ ] Configure credentials (`aws configure` or per-app profiles)
+- [ ] Configure **`neonema-tools`** profile for the NeoNema tools AWS account (`aws configure --profile neonema-tools`)
 - [ ] Copy `deploy.config.example.json` → `deploy.config.json`
-- [ ] Fill in bucket names, regions, and CloudFront distribution IDs
+- [ ] Fill in bucket names, regions, CloudFront distribution IDs, and `"awsProfile": "neonema-tools"` for the `platform` entry
 - [ ] Run `npm run deploy -- json --dry-run` to verify commands
 - [ ] Run a real deploy when ready
 
@@ -31,10 +31,11 @@ Local-first deploy scripts. No AWS credentials in the repo.
 
 Provide these in `deploy.config.json` locally — safe to keep out of git:
 
-| App | S3 bucket | Region | CloudFront distribution ID | AWS profile (if separate account) |
-|-----|-----------|--------|----------------------------|-----------------------------------|
-| revealip | ? | ? | ? | ? |
-| json | ? | ? | ? | ? |
+| App | S3 bucket | Region | CloudFront distribution ID | AWS profile |
+|-----|-----------|--------|----------------------------|-------------|
+| platform (target) | neonema-tools-prod | us-east-1 | ? | **neonema-tools** |
+| revealip (interim) | ? | ? | ? | legacy profile until cutover |
+| json (interim) | ? | ? | ? | legacy profile until cutover |
 
 RevealIP only: CloudFront Function name (e.g. `revealip-ip-api`).
 

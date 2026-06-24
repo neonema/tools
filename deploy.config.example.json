@@ -1,12 +1,12 @@
 {
-  "_comment": "Target: platform entry deploys dist/ to tools.neonema.com (P1). Per-app entries are interim until cutover.",
+  "_comment": "Target: platform entry deploys dist/ to tools.neonema.com (P1) using AWS profile neonema-tools (NeoNema tools account). Per-app entries are interim until cutover.",
   "apps": {
     "platform": {
       "source": "dist",
       "s3Bucket": "neonema-tools-prod",
       "s3Region": "us-east-1",
       "cloudfrontDistributionId": "EXXXXXXXXXXXX",
-      "awsProfile": "neonema",
+      "awsProfile": "neonema-tools",
       "s3SyncDelete": false,
       "invalidatePaths": ["/*"],
       "edge": {

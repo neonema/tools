@@ -14,7 +14,9 @@ Shared runbooks for NeoNema static utility sites (S3 + CloudFront + optional Clo
 
 `scripts/build.mjs` assembles `dist/`; deploy with `npm run deploy -- platform` (P1). Full spec: [platform/ARCHITECTURE.md](../platform/ARCHITECTURE.md).
 
-**Interim:** per-app buckets and `npm run deploy -- json` / `revealip` still work until cutover.
+**Interim:** per-app buckets and `npm run deploy -- json` / `revealip` still work until cutover into the NeoNema tools account (`neonema-tools` profile for platform deploy).
+
+**AWS accounts:** `tools.neonema.com` deploys to the **NeoNema tools account** via profile `neonema-tools`. `neonema.com` is a separate account/repo. See [infra/README.md](../infra/README.md).
 
 ## Guides
 

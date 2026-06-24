@@ -9,10 +9,12 @@ Local deploy scripts sync static assets to S3 and invalidate CloudFront. No AWS 
 ## Prerequisites
 
 1. [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) installed.
-2. Credentials configured locally — one of:
-   - `aws configure` (default profile)
-   - Named profiles per app (`aws configure --profile revealip`)
-3. IAM permissions for each app: `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject` (if using sync delete), `cloudfront:CreateInvalidation`. RevealIP edge deploys also need `cloudfront:DescribeFunction`, `cloudfront:UpdateFunction`, `cloudfront:PublishFunction`.
+2. **NeoNema tools AWS account** credentials via the **`neonema-tools`** profile (see [infra/README.md](../infra/README.md)):
+   ```bash
+   aws configure --profile neonema-tools
+   aws sts get-caller-identity --profile neonema-tools   # verify tools account
+   ```
+3. IAM permissions for platform deploy: `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject` (if using sync delete), `cloudfront:CreateInvalidation`. RevealIP edge deploys also need `cloudfront:DescribeFunction`, `cloudfront:UpdateFunction`, `cloudfront:PublishFunction`.
 
 ## Setup
 
@@ -46,18 +48,28 @@ npm run deploy:edge -- revealip
 | `s3Bucket` | S3 bucket name (from AWS Console → S3) |
 | `s3Region` | Bucket region (e.g. `us-east-1`) |
 | `cloudfrontDistributionId` | Distribution ID starting with `E` (CloudFront → Distributions) |
-| `awsProfile` | Optional CLI profile name if not using default credentials |
+| `awsProfile` | CLI profile for the **NeoNema tools account** — use `"neonema-tools"` (see [infra/README.md](../infra/README.md)) |
 | `s3SyncDelete` | `true` removes S3 objects not in local `public/` — use with care |
 | `invalidatePaths` | Usually `["/*"]` |
 | `edge.cloudfrontFunctionName` | RevealIP only — function name in CloudFront → Functions |
 
 Find distribution ID: **CloudFront** → **Distributions** → copy **ID** column.
 
-## Separate AWS accounts today
+## Platform deploy (target)
 
-RevealIP and JSON may still live in different AWS accounts. Use a different `awsProfile` per app in `deploy.config.json` — each profile points at the right account via `~/.aws/credentials`.
+```bash
+npm run build
+npm run deploy -- platform --dry-run
+npm run deploy -- platform
+```
 
-Account consolidation into NeoNema LLC is planned for Phase 4 (`docs/infra/`).
+The `platform` entry in `deploy.config.json` should set `"awsProfile": "neonema-tools"`.
+
+## Legacy per-app deploy (interim)
+
+During migration, RevealIP and JSON may still live in **legacy per-app AWS accounts**. Use a different `awsProfile` per interim app entry in `deploy.config.json` until P1 cutover completes. After cutover, all deploys use **`neonema-tools`** in the NeoNema tools account only.
+
+See [infra/README.md](../infra/README.md) for the two-account model and profile setup.
 
 ## What is NOT required in the repo
 
@@ -72,7 +84,7 @@ Push-to-deploy from GitHub would need either:
 - **OIDC** (recommended): IAM role trusted by GitHub Actions — no long-lived keys
 - **Repository secrets**: `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` per environment
 
-Phase 3 ships local scripts only. Add CI deploy when accounts are consolidated or secrets are configured.
+Phase 3 ships local scripts only. Add CI deploy when the tools account OIDC role is configured (P5).
 
 ## Full RevealIP release
 

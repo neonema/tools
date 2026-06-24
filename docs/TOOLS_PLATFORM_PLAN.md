@@ -70,21 +70,29 @@ The hub (`apps/hub/`) is a lightweight static shell:
 | `dev.tools.neonema.com` | Staging / preview (placeholder) | `neonema-tools` |
 | `neonema-revealip.com` | 301 → `https://tools.neonema.com/#/revealip` | DNS redirect only |
 | `neonema-json.com` | 301 → `https://tools.neonema.com/#/json` | DNS redirect only |
-| `neonema.com` | Company marketing site | Separate repo/project; add “Tools” nav link |
+| `neonema.com` | Company marketing site | Separate repo/project; **separate AWS account**; add “Tools” nav link |
 
 ### AWS layout (target)
 
+**Two AWS accounts** — tools and company site — with Cloudflare DNS routing each hostname to the correct CloudFront distribution. This repo deploys only to the **NeoNema tools account**.
+
+| Account | Hostnames | Repo |
+|---------|-----------|------|
+| **NeoNema tools** | `tools.neonema.com`, `dev.tools.neonema.com` | `neonema-tools` (this repo) |
+| **NeoNema company** | `neonema.com` | Separate company-site repo |
+
 ```
-NeoNema LLC AWS account
+NeoNema tools AWS account          (local CLI: --profile neonema-tools)
 ├── S3: neonema-tools-prod        (tools.neonema.com)
 ├── S3: neonema-tools-dev         (dev.tools.neonema.com)
 ├── CloudFront: tools-prod        (OAC → prod bucket)
 ├── CloudFront: tools-dev         (OAC → dev bucket)
-├── ACM (us-east-1): *.neonema.com + neonema.com
+├── ACM (us-east-1): tools.neonema.com, dev.tools.neonema.com
+├── CloudFront Function: revealip-ip-api  (/api/ip on tools-prod)
 └── IAM: GitHub OIDC role         (deploy on push to main / dev)
 ```
 
-Legacy per-app buckets/distributions can be retired after cutover and redirect verification.
+Local deploys from this repo use the **`neonema-tools`** AWS CLI profile. See `docs/infra/README.md` for setup. Legacy per-app buckets/distributions can be retired after cutover and redirect verification.
 
 ---
 
@@ -226,7 +234,7 @@ Both commands should exit 0. No deploy or DNS changes are expected at this stage
 
 ### Checklist
 
-- [ ] **P1.1** Consolidate into **NeoNema LLC** AWS account (migrate off separate RevealIP / JSON accounts) — see `docs/infra/README.md`
+- [ ] **P1.1** Consolidate legacy RevealIP / JSON stacks into the **NeoNema tools AWS account** (separate from the `neonema.com` company account) — configure local CLI profile **`neonema-tools`** — see `docs/infra/README.md`
 - [ ] **P1.2** Provision **S3** bucket `neonema-tools-prod` (private, block public access)
 - [ ] **P1.3** Provision **CloudFront** distribution with OAC, HTTPS, `tools.neonema.com` alternate domain name
 - [ ] **P1.4** Issue **ACM certificate** in `us-east-1` for `tools.neonema.com` (and `dev.tools.neonema.com` if doing P6 in parallel)
@@ -257,19 +265,20 @@ dist/
 
 ### Step verification
 
-#### P1.1 — AWS account consolidation
+#### P1.1 — Tools AWS account + `neonema-tools` profile
 
-**Explanation:** RevealIP and JSON legacy stacks move into the NeoNema LLC AWS account so one IAM model, one billing view, and one OIDC deploy role (P5) are possible.
+**Explanation:** Legacy RevealIP and JSON stacks move into the dedicated **NeoNema tools AWS account** (not the company account hosting `neonema.com`). One IAM model, one billing view, and one OIDC deploy role (P5) apply within the tools account. Local deploys use the **`neonema-tools`** AWS CLI profile.
 
 **Manual verification:**
 
 ```bash
-aws sts get-caller-identity
-# Confirm Account ID matches NeoNema LLC (not legacy RevealIP/JSON accounts)
-aws s3 ls | grep neonema-tools-prod
+aws sts get-caller-identity --profile neonema-tools
+# Confirm Account ID is the NeoNema tools account (not company or legacy RevealIP/JSON accounts)
+aws s3 ls --profile neonema-tools | grep neonema-tools-prod
+grep '"neonema-tools"' deploy.config.example.json
 ```
 
-Follow `docs/infra/README.md` migration checklist. Legacy buckets should still exist only if cutover is not finished.
+Follow `docs/infra/README.md` for profile setup and migration checklist. Legacy buckets should still exist only if cutover is not finished.
 
 ---
 
@@ -1008,7 +1017,7 @@ Target: scaffold + checks + build in under 15 minutes excluding feature implemen
 
 ### Checklist
 
-- [ ] **P5.1** Create IAM OIDC identity provider for GitHub in NeoNema LLC account
+- [ ] **P5.1** Create IAM OIDC identity provider for GitHub in the **NeoNema tools AWS account**
 - [ ] **P5.2** IAM role `github-neonema-tools-deploy` — trust policy scoped to `repo:<org>/neonema-tools`, branch `main`
 - [ ] **P5.3** Role permissions: `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject` on prod bucket; `cloudfront:CreateInvalidation`; RevealIP function publish if edge changes
 - [ ] **P5.4** `.github/workflows/deploy-prod.yml` — on push to `main`: checkout → `npm run brand:check` → `npm run test:json-converters` → `npm run build` → `aws s3 sync` → invalidation
@@ -1025,7 +1034,7 @@ Split config by environment:
 | File | In git? | Contents |
 |------|---------|----------|
 | `deploy.config.prod.json` | Yes | bucket, distribution ID, region, invalidate paths |
-| `deploy.config.local.json` | No (gitignored) | overrides + `awsProfile` for local dev |
+| `deploy.config.local.json` | No (gitignored) | overrides + `awsProfile: "neonema-tools"` for local dev |
 | `deploy.config.dev.json` | Yes | dev bucket + distribution (P6) |
 
 Workflow skeleton:
@@ -1451,7 +1460,7 @@ Use this as the execution tracker. Details for each item are in the priority sec
 - [x] P0.5 Tab embedding strategy chosen (iframe first)
 
 ### P1 — Production infra
-- [ ] P1.1 AWS account consolidation
+- [ ] P1.1 Tools AWS account + `neonema-tools` profile
 - [ ] P1.2–P1.5 S3 + CloudFront + ACM + DNS for tools.neonema.com
 - [ ] P1.6 `scripts/build.mjs`
 - [ ] P1.7–P1.10 Deploy config + RevealIP edge on unified distribution + smoke test
@@ -1515,6 +1524,7 @@ infra/                             # optional Terraform/CDK (P1/P5)
 
 | Decision | Options | **Resolved** |
 |----------|---------|--------------|
+| AWS account layout | Single account for everything vs tools + company split | **Two accounts** — NeoNema tools account (`neonema-tools` profile) for this repo; company account for `neonema.com` |
 | Tab content loading | iframe vs inlined HTML/JS | **iframe first** (P0.5); inlined later for polish |
 | Dev deploy trigger | `dev` branch vs manual dispatch | `dev` branch auto-deploy + manual dispatch for hotfixes |
 | IaC timing | Manual AWS Console vs Terraform now | Console for Sprint 1; Terraform before P5 |
@@ -1528,7 +1538,7 @@ infra/                             # optional Terraform/CDK (P1/P5)
 - [platform/ARCHITECTURE.md](./platform/ARCHITECTURE.md) — canonical platform model (P0)
 - [deploy/README.md](./deploy/README.md) — current S3 + CloudFront runbooks
 - [deploy/automated-deploy.md](./deploy/automated-deploy.md) — local deploy scripts (Phase 3)
-- [infra/README.md](./infra/README.md) — AWS account consolidation placeholder
+- [infra/README.md](./infra/README.md) — two-account model, `neonema-tools` CLI profile
 - [PHASE_1_CHECKLIST.md](./PHASE_1_CHECKLIST.md) — monorepo migration (complete)
 - [PHASE_3_CHECKLIST.md](./PHASE_3_CHECKLIST.md) — local deploy automation (complete)
 

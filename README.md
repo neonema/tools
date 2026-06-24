@@ -3,7 +3,7 @@
 **Canonical repository** for all NeoNema utility products, shared brand assets, deploy automation, and platform docs.
 
 - **Production (target):** [tools.neonema.com](https://tools.neonema.com) — single origin hosting the hub and every tool (`/json/`, `/revealip/`, …).
-- **Legacy:** per-app repos (`neonema`, standalone JSON/RevealIP repos) and separate AWS accounts are being retired after platform cutover (see [docs/platform/ARCHITECTURE.md](docs/platform/ARCHITECTURE.md)).
+- **Legacy:** per-app repos and legacy AWS accounts are being retired after platform cutover into the **NeoNema tools account** (see [docs/platform/ARCHITECTURE.md](docs/platform/ARCHITECTURE.md)).
 
 ## Apps
 
@@ -38,10 +38,15 @@ npm run sync-brand -- json  # sync a single app
 
 ## Deploy
 
+Requires the **`neonema-tools`** AWS CLI profile (NeoNema tools account). See [docs/infra/README.md](docs/infra/README.md).
+
 ```bash
+aws configure --profile neonema-tools          # once: credentials for tools account
 cp deploy.config.example.json deploy.config.json   # once: fill in bucket + distribution IDs
-npm run deploy -- json --dry-run
-npm run deploy -- json
+npm run build                                  # assemble dist/ (platform deploy)
+npm run deploy -- platform --dry-run
+npm run deploy -- platform
+npm run deploy -- json --dry-run               # interim: per-app legacy buckets
 npm run deploy:edge -- revealip   # only when ip-api-function.js changes
 ```
 
@@ -52,7 +57,7 @@ See [docs/deploy/automated-deploy.md](docs/deploy/automated-deploy.md).
 - [Platform architecture](docs/platform/ARCHITECTURE.md) — single-origin model, static-only rules, tab routing
 - [Platform plan & checklist](docs/TOOLS_PLATFORM_PLAN.md) — P0–P7 execution tracker
 - [Deployment guides](docs/deploy/) — AWS, Cloudflare, AdSense, automated deploy
-- [Infrastructure (planned)](docs/infra/) — AWS account consolidation
+- [Infrastructure](docs/infra/) — two-account model, `neonema-tools` AWS profile
 - [AGENTS.md](AGENTS.md) — LLM agent instructions
 - [LLM_PRODUCT_RULES.md](LLM_PRODUCT_RULES.md) — product and design rules
 
