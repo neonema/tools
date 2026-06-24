@@ -1,0 +1,7 @@
+{
+  "name": "neonema-template",
+  "private": true,
+  "scripts": {
+    "brand:check": "node ./scripts/brand-check.mjs"
+  }
+}

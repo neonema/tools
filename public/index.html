@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UtilityName - by NeoNema</title>
+    <meta
+      name="description"
+      content="A fast, no-signup utility by NeoNema. One page, privacy-friendly, and simple."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <img
+            src="./ProductLogo.png"
+            alt="ProductName"
+            class="brand-main"
+          />
+          <span class="divider" aria-hidden="true"></span>
+          <div class="brand-parent">
+            <span class="brand-attribution">
+              A product of
+              <img
+                src="./NeoNema.png"
+                alt="NeoNema"
+                class="brand-sub"
+              />
+            </span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>One-page utility website template</h1>
+        <p class="hero-copy">
+          Replace this demo tool with your product logic. Keep processing in the browser whenever
+          possible to avoid API overhead, rate limits, and recurring costs.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title">Demo Utility: Slug Generator</h2>
+        <p class="tool-description">Example client-side utility you can swap with your own tool.</p>
+
+        <label for="source-input">Input text</label>
+        <textarea id="source-input" placeholder="Paste or type text here"></textarea>
+
+        <div class="actions">
+          <button id="generate-btn" type="button">Generate</button>
+          <button id="copy-btn" type="button" class="ghost-btn">Copy Result</button>
+        </div>
+
+        <label for="result-output">Result</label>
+        <input id="result-output" type="text" readonly />
+        <p id="status" class="status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

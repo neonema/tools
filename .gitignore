@@ -1,0 +1,13 @@
+.DS_Store
+.env
+.env.*
+node_modules/
+dist/
+build/
+coverage/
+
+# Editor and AI tooling metadata
+.cursorignore
+.cursorindexingignore
+.idea/
+.vscode/
