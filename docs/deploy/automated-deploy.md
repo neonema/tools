@@ -1,6 +1,10 @@
 # Automated Deploy (Phase 3)
 
-Local deploy scripts sync each app's `public/` folder to S3 and invalidate CloudFront. No AWS credentials are stored in this repo.
+Local deploy scripts sync static assets to S3 and invalidate CloudFront. No AWS credentials are stored in this repo.
+
+**Target model:** build `dist/` with `npm run build`, then `npm run deploy -- platform` to the unified `tools.neonema.com` bucket. See [platform/ARCHITECTURE.md](../platform/ARCHITECTURE.md).
+
+**Today:** per-app deploy (`npm run deploy -- json`, `npm run deploy -- revealip`) to separate buckets remains supported during migration.
 
 ## Prerequisites
 

@@ -1,6 +1,9 @@
 # NeoNema Tools
 
-Monorepo for NeoNema utility websites and shared brand assets. This repository is the source of truth for all NeoNema tools.
+**Canonical repository** for all NeoNema utility products, shared brand assets, deploy automation, and platform docs.
+
+- **Production (target):** [tools.neonema.com](https://tools.neonema.com) — single origin hosting the hub and every tool (`/json/`, `/revealip/`, …).
+- **Legacy:** per-app repos (`neonema`, standalone JSON/RevealIP repos) and separate AWS accounts are being retired after platform cutover (see [docs/platform/ARCHITECTURE.md](docs/platform/ARCHITECTURE.md)).
 
 ## Apps
 
@@ -46,8 +49,10 @@ See [docs/deploy/automated-deploy.md](docs/deploy/automated-deploy.md).
 
 ## Documentation
 
+- [Platform architecture](docs/platform/ARCHITECTURE.md) — single-origin model, static-only rules, tab routing
+- [Platform plan & checklist](docs/TOOLS_PLATFORM_PLAN.md) — P0–P7 execution tracker
 - [Deployment guides](docs/deploy/) — AWS, Cloudflare, AdSense, automated deploy
-- [Infrastructure (planned)](docs/infra/) — future AWS account migration
+- [Infrastructure (planned)](docs/infra/) — AWS account consolidation
 - [AGENTS.md](AGENTS.md) — LLM agent instructions
 - [LLM_PRODUCT_RULES.md](LLM_PRODUCT_RULES.md) — product and design rules
 
