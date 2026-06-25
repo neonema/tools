@@ -21,14 +21,12 @@ RevealIP at `https://tools.neonema.com/revealip/` calls `/api/ip` on the **same 
 
 ### Directory URLs (`/json/`, `/revealip/`)
 
-S3 REST origins do not serve `index.html` for subdirectory paths. The default `*` behavior uses CloudFront Function **`tools-uri-rewrite`** (`apps/hub/cloudfront/uri-rewrite-function.js`) on **Viewer request** to map `/json/` → `/json/index.html` (and similar paths).
+Tool root paths redirect to the hub — they are not public landing URLs. CloudFront Function **`tools-uri-rewrite`** (`apps/hub/cloudfront/uri-rewrite-function.js`) on the default `*` behavior returns `301` to `/#/json` or `/#/revealip` for `/json` and `/revealip` directory paths. Tool `index.html` also redirects top-level visits to the hub; iframe embeds (`/json/index.html`) are unchanged.
 
 Publish function code updates:
 
 ```bash
-npm run deploy:edge -- platform
-# or interim per-app config:
-npm run deploy:edge -- revealip
+# Republish tools-uri-rewrite in the AWS Console, or via CLI (see ARCHITECTURE.md)
 ```
 
 ## First-time setup (AWS Console)

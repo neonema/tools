@@ -2,7 +2,7 @@
 
 **Canonical repository** for all NeoNema utility products, shared brand assets, deploy automation, and platform docs.
 
-- **Production (target):** [tools.neonema.com](https://tools.neonema.com) — single origin hosting the hub and every tool (`/json/`, `/revealip/`, …).
+- **Production (target):** [tools.neonema.com](https://tools.neonema.com) — single origin hosting the hub and every tool (`#/json`, `#/revealip`, …).
 - **Legacy:** per-app repos and legacy AWS accounts are being retired after platform cutover into the **NeoNema tools account** (see [docs/platform/ARCHITECTURE.md](docs/platform/ARCHITECTURE.md)).
 
 ## Apps

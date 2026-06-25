@@ -13,8 +13,10 @@ All tools ship from **one S3 bucket** and **one CloudFront distribution** at `to
 
 ```
 tools.neonema.com/              → apps/hub/public/          (tab shell + tool picker)
-tools.neonema.com/json/         → apps/json/public/         (JSON Toolkit)
-tools.neonema.com/revealip/     → apps/revealip/public/     (RevealIP)
+tools.neonema.com/#/json        → JSON Toolkit (hub tab; public entry)
+tools.neonema.com/#/revealip    → RevealIP (hub tab; public entry)
+tools.neonema.com/json/...      → apps/json/public/         (iframe assets only — not a public landing URL)
+tools.neonema.com/revealip/...  → apps/revealip/public/     (iframe assets only — not a public landing URL)
 ```
 
 **Build step:** `scripts/build.mjs` (P1) assembles a deployable tree into `dist/` before `aws s3 sync`:
@@ -65,9 +67,19 @@ On the unified distribution, this function attaches to path `/api/ip*` on the **
 
 Do not add similar edge infrastructure to other apps unless explicitly requested and documented here.
 
-### Directory index rewrite (`tools-uri-rewrite`)
+### Directory URLs and hub-only public entry
 
-S3 REST origins only apply **Default root object** at `/`. Paths like `/json/` request object key `json/`, which does not exist. CloudFront Function **`tools-uri-rewrite`** (`apps/hub/cloudfront/uri-rewrite-function.js`) on the default `*` behavior rewrites extensionless directory URLs to `index.html` (e.g. `/json/` → `/json/index.html`). Required for P1 direct tool URLs.
+S3 REST origins only apply **Default root object** at `/`. Tool subtrees (`/json/`, `/revealip/`) still exist in `dist/` for hub iframe `src`, static assets, and legal pages.
+
+**Public entry is the hub only** — hash routes (`#/json`, `#/revealip`). Direct tool landing paths redirect to the hub:
+
+| Layer | Behavior |
+|-------|----------|
+| CloudFront **`tools-uri-rewrite`** | `301` from `/json`, `/json/`, `/revealip`, `/revealip/` → `/#/<tool-id>` |
+| Tool `index.html` (top-level visit) | `location.replace` to `/#/<tool-id>` when not embedded in the hub iframe |
+| Hub iframe | Loads `/json/index.html`, `/revealip/index.html` unchanged (`window.self !== window.top`) |
+
+`npm run dev:json` / `dev:revealip` still work — standalone dev servers serve the tool at `/`, which does not match the redirect path check.
 
 ---
 
@@ -76,11 +88,11 @@ S3 REST origins only apply **Default root object** at `/`. Paths like `/json/` r
 The hub (`apps/hub/`) is a lightweight static shell (scaffolded in P2):
 
 - Fixed NeoNema header (shared brand lock)
-- Horizontal tab bar driven by `hub.config.json`
+- Horizontal tab bar driven by `hub.config.json` (each tool registered explicitly — see [ADD_A_TOOL.md](./ADD_A_TOOL.md))
 - Client-side routes: `#/json`, `#/revealip` (hash or `history.pushState`)
 - Deep links: `tools.neonema.com/#/json` and legacy domain redirects land on the correct tab
 
-Each tool's `index.html` stays **self-contained** so direct URLs (`/json/`, `/revealip/`) work for bookmarks, SEO, and legacy redirects.
+Tool `index.html` files redirect top-level visits from `/json/` and `/revealip/` to the hub. Subpaths (assets, `privacy-policy.html`, `terms.html`) and iframe embeds are unchanged.
 
 ### Tab content embedding (decision: P0.5)
 
@@ -88,7 +100,7 @@ Each tool's `index.html` stays **self-contained** so direct URLs (`/json/`, `/re
 
 | Approach | Pros | Cons |
 |----------|------|------|
-| **iframe (chosen)** | Fast to ship; tools unchanged; direct URLs still work | Nested document; iframe height/CSS quirks |
+| **iframe (chosen)** | Fast to ship; tools unchanged; hub-only public URLs | Nested document; iframe height/CSS quirks |
 | Inlined HTML/JS | Single document; tighter UX | Build complexity; duplicate header risk |
 
 Revisit inlined modules in P4 if iframe polish becomes a blocker.
@@ -128,7 +140,7 @@ NeoNema tools AWS account          (local CLI: --profile neonema-tools)
 ├── CloudFront: tools-dev         (OAC → dev bucket)
 ├── ACM (us-east-1): tools.neonema.com, dev.tools.neonema.com
 ├── CloudFront Function: revealip-ip-api  (/api/ip on tools-prod)
-├── CloudFront Function: tools-uri-rewrite  (/json/, /revealip/ → index.html)
+├── CloudFront Function: tools-uri-rewrite  (tool root paths → hub hash; other dirs → index.html)
 └── IAM: GitHub OIDC role         (deploy on push to main / dev)
 ```
 
@@ -146,6 +158,7 @@ Legacy per-app buckets and distributions in old AWS accounts retire after P3 cut
 | `apps/<tool>/public/` | Deployable static files per tool |
 | `packages/brand/` | Canonical design tokens and header lock |
 | `packages/utility-template/` | Scaffold for new tools |
+| `docs/platform/ADD_A_TOOL.md` | Agent runbook: create app + register hub tab + build |
 | `scripts/build.mjs` | Assemble `dist/` for platform deploy |
 | `dist/` | Build output (gitignored) |
 

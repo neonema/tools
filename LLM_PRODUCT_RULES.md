@@ -9,6 +9,7 @@ Use these rules for all generated features, edits, and new templates in this rep
 - Shared brand source: `packages/brand/` (copy into apps — do not symlink)
 - New utilities: start from `packages/utility-template/`
 - Platform architecture: `docs/platform/ARCHITECTURE.md`
+- **Adding a tool to the hub:** `docs/platform/ADD_A_TOOL.md` (manual `hub.config.json` + `build.mjs` steps)
 - After brand changes, run `npm run sync-brand` then `npm run brand:check`
 
 ## Platform constraints
@@ -68,4 +69,4 @@ Current product focus is **bringing users to the site**, not ad monetization.
 - Keep pages fast and mobile-friendly.
 - Provide `privacy-policy.html` and `terms.html` for user trust — not as an ad-network prerequisite.
 - Do **not** add Google AdSense, `ads.txt`, or ad placement blocks unless explicitly requested.
-- Prefer direct URLs per tool (e.g. `/json/`) for bookmarks and search indexing.
+- Public tool entry is via the hub (`tools.neonema.com/#/<tool-id>`), not standalone `/tool-id/` landing pages.

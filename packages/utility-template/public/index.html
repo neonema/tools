@@ -14,6 +14,19 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <script>
+      (function () {
+        var HUB_TOOL_ID = "TOOL_ID";
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+          return;
+        }
+        var pattern = new RegExp("^\\/" + HUB_TOOL_ID + "(?:\\/index\\.html)?\\/?$");
+        if (pattern.test(location.pathname)) {
+          location.replace("/#/" + encodeURIComponent(HUB_TOOL_ID));
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>

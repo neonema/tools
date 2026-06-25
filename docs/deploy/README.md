@@ -9,8 +9,8 @@ Shared runbooks for NeoNema static utility sites (S3 + CloudFront + optional Clo
 | URL path | Source in repo | Build output |
 |----------|----------------|--------------|
 | `/` | `apps/hub/public/` | `dist/index.html` |
-| `/json/` | `apps/json/public/` | `dist/json/` |
-| `/revealip/` | `apps/revealip/public/` | `dist/revealip/` |
+| `/json/` | `apps/json/public/` | `dist/json/` (iframe assets; redirects to `/#/json` if opened directly) |
+| `/revealip/` | `apps/revealip/public/` | `dist/revealip/` (iframe assets; redirects to `/#/revealip` if opened directly) |
 
 `scripts/build.mjs` assembles `dist/`; deploy with `npm run deploy -- platform` (P1). Full spec: [platform/ARCHITECTURE.md](../platform/ARCHITECTURE.md).
 

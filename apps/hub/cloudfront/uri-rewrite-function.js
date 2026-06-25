@@ -10,6 +10,18 @@ function handler(event) {
     return request;
   }
 
+  var hubToolMatch = uri.match(/^\/(json|revealip)\/?$/);
+  if (hubToolMatch) {
+    var host = request.headers.host.value;
+    return {
+      statusCode: 301,
+      statusDescription: "Moved Permanently",
+      headers: {
+        location: { value: "https://" + host + "/#/" + hubToolMatch[1] },
+      },
+    };
+  }
+
   if (uri.lastIndexOf(".") > uri.lastIndexOf("/")) {
     return request;
   }

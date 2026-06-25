@@ -2,8 +2,8 @@
 
 Strategic plan for turning `neonema-tools` into the single source of truth for all NeoNema utility products, served from **tools.neonema.com** with fast, repeatable deploys.
 
-**Status:** Planning (post Phase 3 monorepo migration)  
-**Last updated:** 2026-06-24
+**Status:** In progress (P0–P2 complete)  
+**Last updated:** 2026-06-25
 
 Each priority section (P0–P7) ends with **Step verification**: for every checklist item, an **Explanation** (what “done” means) and **Manual verification** commands or browser steps you can run to confirm that phase work succeeded.
 
@@ -19,7 +19,7 @@ Each priority section (P0–P7) ends with **Step verification**: for every check
 | 4 | Legacy domains | **neonema-revealip.com** and **neonema-json.com** redirect to the new hub |
 | 5 | Tab per tool | The hub exposes each tool as its own tab (client-side, no server routing) |
 | 6 | Company site | **neonema.com** stays corporate; links out to tools.neonema.com |
-| 7 | Fast deploy platform | Templates, scripts, and runbooks to ship a new tool in hours, not days |
+| 7 | Fast deploy platform | Templates, docs, and runbooks so agents/contributors ship a new tool in hours, not days |
 | 8 | GitHub → AWS | Push/merge to `main` deploys production from GitHub Actions |
 | 9 | Dev environment | A separate dev/staging URL for pre-production validation |
 
@@ -33,8 +33,10 @@ Use **one S3 bucket + one CloudFront distribution** for `tools.neonema.com`. Eac
 
 ```
 tools.neonema.com/              → apps/hub/public/          (tab shell + tool picker)
-tools.neonema.com/json/         → apps/json/public/         (JSON Toolkit)
-tools.neonema.com/revealip/     → apps/revealip/public/     (RevealIP)
+tools.neonema.com/#/json        → JSON Toolkit (hub tab — public entry)
+tools.neonema.com/#/revealip    → RevealIP (hub tab — public entry)
+tools.neonema.com/json/...      → apps/json/public/         (iframe assets; redirects if opened directly)
+tools.neonema.com/revealip/...  → apps/revealip/public/     (iframe assets; redirects if opened directly)
 ```
 
 **Build step:** a deploy script assembles `dist/` (or syncs prefixes) from each app before `aws s3 sync`.
@@ -47,9 +49,12 @@ The hub (`apps/hub/`) is a lightweight static shell:
 
 - Fixed NeoNema header (shared brand lock)
 - Horizontal tab bar: JSON · RevealIP · (future tools)
-- Clicking a tab shows that tool’s panel **without a full page reload** (hash or `history.pushState` routes like `#/json`, `#/revealip`)
+- Clicking a tab shows that tool’s panel **without a full page reload** (hash routes like `#/json`, `#/revealip`)
 - Deep links: `tools.neonema.com/#/json` and legacy redirects land on the correct tab
-- Each tool panel can be an **iframe** pointing at `/json/index.html` etc., or **inlined static HTML** copied at build time — start with iframes for speed, migrate to inlined modules if you want zero nested documents
+- Each tool panel loads via **iframe** (`src="/json/index.html"`, etc.) — see P0.5
+- **No public direct tool URLs:** `/json/` and `/revealip/` redirect to hub hash routes (CloudFront + tool `index.html` guard)
+
+**Registering a new tool is explicit, not automatic.** When adding a tool, an agent or contributor edits `apps/hub/hub.config.json` and `scripts/build.mjs` per `docs/platform/ADD_A_TOOL.md`. The hub does not scan `apps/` or auto-append tabs.
 
 ### CDN-only / no data transfer constraint
 
@@ -106,7 +111,7 @@ Work top-to-bottom. Later tiers depend on earlier ones.
 | **P1** | Production hosting | 3, 8 (infra half) | `tools.neonema.com` exists and is deployable |
 | **P2** | Hub UX & tool integration | 5 | Users pick tools via tabs on one page |
 | **P3** | Legacy cutover | 4 | Old domains redirect; old AWS stacks can be decommissioned |
-| **P4** | Platform velocity | 7 | New tool scaffold → prod in a repeatable pipeline |
+| **P4** | Platform velocity | 7 | LLM agent guide (`ADD_A_TOOL.md`) + optional scaffold; manual hub registration |
 | **P5** | CI/CD automation | 8 (GitHub half) | No local AWS creds required for routine deploys |
 | **P6** | Dev / staging | 9 | Safe preview URL before production |
 | **P7** | Company site link | 6 | neonema.com points visitors to the tools hub |
@@ -409,58 +414,59 @@ After real deploy, wait 1–2 minutes for invalidation. Re-run curl/browser chec
 
 #### P1.10 — Tool paths live on production
 
-**Explanation:** Direct URLs `/json/` and `/revealip/` work for bookmarks, SEO, and legacy redirects even before the tabbed hub (P2).
+**Explanation:** Tool subtrees are deployed at `/json/` and `/revealip/` for iframe assets and `/api/ip`. Public landing URLs redirect to hub hash routes (`/#/json`, `/#/revealip`).
 
 **Manual verification:**
 
 ```bash
-curl -sI "https://tools.neonema.com/json/" | head -3
-curl -sI "https://tools.neonema.com/revealip/" | head -3
+curl -sI "https://tools.neonema.com/json/" | grep -iE "HTTP/|location"
+curl -sI "https://tools.neonema.com/revealip/" | grep -iE "HTTP/|location"
+curl -sI "https://tools.neonema.com/json/index.html" | head -3
 ```
 
-Browser: open both URLs — JSON Toolkit and RevealIP load, brand header visible, core tool actions work. RevealIP IP lookup succeeds via `/api/ip`.
+Expect `301` + `Location: .../#/json` (or revealip) for directory paths; `index.html` still `200` for iframe loads. Browser: `/#/json` and `/#/revealip` work in the hub; RevealIP IP lookup succeeds via `/api/ip`.
 
 ---
 
 #### P1 phase complete
 
-**Explanation:** Production origin exists at `tools.neonema.com` with unified build output. Tools are reachable at path prefixes; hub may still be a minimal listing until P2.
+**Explanation:** Production origin exists at `tools.neonema.com` with unified build output. Hub hash routes are the public entry; tool subtrees serve iframe assets.
 
 **Manual verification:**
 
 ```bash
 npm run build && npm run brand:check
 curl -sI "https://tools.neonema.com/" | grep -i "HTTP/"
-curl -sI "https://tools.neonema.com/json/" | grep -i "HTTP/"
-curl -sI "https://tools.neonema.com/revealip/" | grep -i "HTTP/"
+curl -sI "https://tools.neonema.com/json/" | grep -i location
 curl -s "https://tools.neonema.com/api/ip"
 ```
 
-All HTTP responses should be `200` (or `301` only if you intentionally redirect root). IP API returns valid JSON.
+Root should be `200`; `/json/` should `301` to `/#/json`. IP API returns valid JSON.
 
 ---
 
 ## P2 — Tools hub with tab navigation
 
 **Covers:** requirements 3, 5  
-**Effort:** ~1–2 days  
+**Effort:** ~1 day (mostly done in repo)  
 **Depends on:** P1 (or local `npm run build` preview)
+
+The hub shell, hash router, iframe panels, and build integration already live under `apps/hub/`. P2 is **verification and polish**, not a greenfield build. New tools are registered manually — see `docs/platform/ADD_A_TOOL.md` (completed in P4).
 
 ### Checklist
 
-- [ ] **P2.1** Scaffold `apps/hub/` from `packages/utility-template/` (hub is not a “tool” but uses the same brand shell)
-- [ ] **P2.2** Hub UI: tab bar listing registered tools (config-driven `tools.json` or `hub.config.json` in `apps/hub/`)
-- [ ] **P2.3** Client-side router: `#/json`, `#/revealip`, default tab (e.g. JSON or a neutral landing state)
-- [ ] **P2.4** Tab content: load tool via iframe `src="/json/index.html"` (adjust tool CSS so it works inside iframe height) **or** embed panel markup
-- [ ] **P2.5** Hub meta: title “NeoNema Tools”, description, favicon; no AdSense on hub unless desired
-- [ ] **P2.6** Register hub in `scripts/brand-check.mjs` scan list
-- [ ] **P2.7** Include hub in `scripts/build.mjs` output at `dist/index.html`
-- [ ] **P2.8** Document tab registration in `docs/platform/ADD_A_TOOL.md` (stub in P2, full in P4)
-- [ ] **P2.9** Device test: mobile tab bar, deep link `tools.neonema.com/#/revealip`, back/forward navigation
+- [x] **P2.1** `apps/hub/` with NeoNema brand shell (`public/index.html`, `styles.css`, `app.js`)
+- [x] **P2.2** Tab bar rendered from `apps/hub/hub.config.json` (explicit entries per tool — not auto-discovered from `apps/`)
+- [x] **P2.3** Hash router: `#/json`, `#/revealip`, default tab from `defaultTool` (`apps/hub/public/app.js`)
+- [x] **P2.4** Tool panels via iframe (`path` in hub config, e.g. `/json/index.html`)
+- [x] **P2.5** Hub meta: title “NeoNema Tools”, description (`apps/hub/public/index.html`)
+- [x] **P2.6** Hub included in `brand:check` (via `apps/*/public` scan)
+- [x] **P2.7** Hub at `dist/index.html`; `hub.config.json` copied by `scripts/build.mjs`
+- [x] **P2.8** Device / deep-link smoke test: mobile tab bar, `tools.neonema.com/#/revealip`, hash navigation
 
 ### Implementation notes
 
-**`apps/hub/hub.config.json` example:**
+**`apps/hub/hub.config.json`** lists tools the hub should show. Adding a tab means appending an entry here and in `scripts/build.mjs` — documented in `ADD_A_TOOL.md`.
 
 ```json
 {
@@ -472,142 +478,34 @@ All HTTP responses should be `200` (or `301` only if you intentionally redirect 
 }
 ```
 
-- Tabs switch `location.hash` or `history.pushState`; iframe `src` updates accordingly.
-- Keep each tool’s `index.html` self-contained so `/json/` still works as a direct URL (SEO, bookmarks, legacy redirects).
+- `app.js` reads config at runtime, renders tabs, and switches `location.hash`; iframes load tool `path` values.
+- Tool subtrees stay in `dist/` for iframe `src`, assets, and legal pages. Top-level visits to `/json/` or `/revealip/` redirect to the hub (`#/json`, `#/revealip`).
 
 ### Step verification
 
-#### P2.1 — Scaffold `apps/hub/`
+#### P2.1–P2.7 — Hub shell, config, router, build
 
-**Explanation:** The hub shell lives at `apps/hub/` with the same NeoNema brand assets as tools (copied from `packages/brand/`, not symlinked).
+**Explanation:** Hub exists with brand shell, `hub.config.json`-driven tabs, hash routing, iframes, and `dist/` integration.
 
 **Manual verification:**
 
 ```bash
-test -d apps/hub/public && test -f apps/hub/public/index.html && echo "OK: hub exists"
-ls apps/hub/public/brand-tokens.css apps/hub/public/NeoNema.png 2>/dev/null
+test -d apps/hub/public && test -f apps/hub/public/app.js && test -f apps/hub/hub.config.json
+npm run build && test -f dist/index.html && test -f dist/hub.config.json
 npm run brand:check
 ```
 
-`brand:check` should include `apps/hub/public/` in its scan list with no failures.
+Browser (local `python3 -m http.server 8765 --directory dist`):
+
+1. Tab bar shows **JSON Toolkit** and **RevealIP** from config.
+2. Click **RevealIP** — URL becomes `#/revealip`; iframe loads `/revealip/index.html`.
+3. Open `/#/json` in a new tab — JSON tab is active on load.
 
 ---
 
-#### P2.2 — Config-driven tab bar
+#### P2.8 — Device and deep-link test
 
-**Explanation:** Tool list comes from `hub.config.json` (or `tools.json`) so adding a tool does not require editing HTML for every tab label.
-
-**Manual verification:**
-
-```bash
-test -f apps/hub/hub.config.json && cat apps/hub/hub.config.json
-grep -E '"json"|"revealip"' apps/hub/hub.config.json
-```
-
-Open `https://tools.neonema.com/` (or local preview) — tab bar shows **JSON Toolkit** and **RevealIP** labels matching config.
-
----
-
-#### P2.3 — Client-side router
-
-**Explanation:** Hash or `history` routes (`#/json`, `#/revealip`) switch tabs without full page reload; URL is shareable.
-
-**Manual verification:**
-
-```bash
-# Local preview (after build):
-npm run build
-python3 -m http.server 8765 --directory dist
-```
-
-Browser (http://localhost:8765/):
-
-1. Click **RevealIP** tab — URL becomes `#/revealip` (or `/revealip` if using `pushState`).
-2. Paste `http://localhost:8765/#/json` in a new tab — JSON tab is active on load.
-3. Use browser Back/Forward — tab state follows history.
-
----
-
-#### P2.4 — Tab content (iframe)
-
-**Explanation:** Each tab loads the tool via iframe `src="/json/index.html"` etc. Tool CSS should not break inside the iframe viewport.
-
-**Manual verification:**
-
-Browser on hub:
-
-1. JSON tab — formatter/validator UI is usable; scroll if needed.
-2. RevealIP tab — IP displays; no double scrollbars or clipped header.
-3. DevTools → Network: iframe requests hit `/json/index.html` and `/revealip/index.html` (same origin).
-
-Resize to mobile width (375px) — both tools remain usable inside the panel.
-
----
-
-#### P2.5 — Hub meta
-
-**Explanation:** Root page has correct title, description, and favicon for the tools hub (not a single-tool title).
-
-**Manual verification:**
-
-```bash
-grep -E "<title>|meta name=\"description\"" apps/hub/public/index.html
-curl -s "https://tools.neonema.com/" | grep -i "<title>"
-curl -sI "https://tools.neonema.com/favicon.ico" | head -3
-```
-
-Title should reference **NeoNema Tools** (or similar hub branding). Favicon returns `200`.
-
----
-
-#### P2.6 — Hub in `brand-check.mjs`
-
-**Explanation:** Hub is subject to the same brand parity checks as tool apps.
-
-**Manual verification:**
-
-```bash
-grep -E "hub|apps/\*" scripts/brand-check.mjs
-npm run brand:check
-```
-
-Intentionally break a brand file in `apps/hub/public/` — `brand:check` should fail; revert before committing.
-
----
-
-#### P2.7 — Hub in `scripts/build.mjs`
-
-**Explanation:** Build output places hub at `dist/index.html` (site root), not a subdirectory.
-
-**Manual verification:**
-
-```bash
-npm run build
-test -f dist/index.html && grep -q "hub" dist/index.html 2>/dev/null || head -5 dist/index.html
-diff -q apps/hub/public/index.html dist/index.html 2>/dev/null || echo "Check build copies hub to root"
-```
-
-Deploy and confirm `https://tools.neonema.com/` serves the tabbed hub, not a stale placeholder.
-
----
-
-#### P2.8 — Tab registration doc stub
-
-**Explanation:** `docs/platform/ADD_A_TOOL.md` documents how to register a new tool in hub config and build script (full guide completed in P4).
-
-**Manual verification:**
-
-```bash
-test -f docs/platform/ADD_A_TOOL.md && grep -iE "hub.config|tab|register" docs/platform/ADD_A_TOOL.md
-```
-
-Doc should mention editing `hub.config.json` and `scripts/build.mjs` app list.
-
----
-
-#### P2.9 — Device and navigation test
-
-**Explanation:** Hub works on mobile, deep links land on the correct tab, and history navigation is predictable.
+**Explanation:** Hub works on mobile; production deep links land on the correct tab.
 
 **Manual verification:**
 
@@ -615,8 +513,7 @@ Production (or staging):
 
 1. `https://tools.neonema.com/#/revealip` — RevealIP tab active, tool works.
 2. `https://tools.neonema.com/#/json` — JSON tab active.
-3. Phone or DevTools device mode — tab bar wraps or scrolls; no horizontal overflow on body.
-4. Back button after switching tabs returns to previous tab state.
+3. Phone or DevTools device mode — tab bar usable; no horizontal overflow on body.
 
 Use `docs/deploy/device-test-checklist.md` for a fuller pass if desired.
 
@@ -624,7 +521,7 @@ Use `docs/deploy/device-test-checklist.md` for a fuller pass if desired.
 
 #### P2 phase complete
 
-**Explanation:** `tools.neonema.com` root is the tabbed hub; tools work both inside tabs and at direct `/json/` and `/revealip/` URLs.
+**Explanation:** `tools.neonema.com` root is the tabbed hub; tools work inside tabs via hash routes (`#/json`, `#/revealip`). Direct tool landing paths redirect to the hub.
 
 **Manual verification:**
 
@@ -634,10 +531,9 @@ npm run build && npm run brand:check
 
 Browser checklist:
 
-- [ ] Root hub loads with tabs
-- [ ] `#/json` and `#/revealip` deep links work
-- [ ] Direct `/json/` and `/revealip/` still work
-- [ ] Mobile layout acceptable
+- [x] Root hub loads with tabs
+- [x] `#/json` and `#/revealip` deep links work
+- [x] Mobile layout acceptable
 
 ---
 
@@ -824,39 +720,57 @@ Incognito browser: both apex domains open the correct tab on `tools.neonema.com`
 
 ---
 
-## P4 — Tools platform velocity (templates & automation)
+## P4 — Platform velocity (LLM guide & optional scaffold)
 
 **Covers:** requirement 7  
-**Effort:** ~2–3 days  
+**Effort:** ~1–2 days  
 **Depends on:** P0, P1, P2 (patterns proven once)
+
+**Primary deliverable:** `docs/platform/ADD_A_TOOL.md` — the runbook agents read when adding a tool (template → implement → register in `hub.config.json` + `build.mjs` → verify → deploy). Tools do **not** appear on the hub automatically.
 
 ### Checklist
 
-- [ ] **P4.1** `scripts/scaffold-tool.mjs` — copies `packages/utility-template/` → `apps/<name>/`, runs `sync-brand`, patches placeholders
-- [ ] **P4.2** `npm run scaffold -- <tool-id> "<Tool Label>"` npm script
-- [ ] **P4.3** Auto-append new tool to `apps/hub/hub.config.json` and `scripts/build.mjs` app list
-- [ ] **P4.4** `docs/platform/ADD_A_TOOL.md` — end-to-end checklist (scaffold → implement → brand:check → build → deploy)
-- [ ] **P4.5** `docs/platform/TOOL_CHECKLIST.md` — pre-ship: legal pages, ads.txt, robots.txt, device test, accessibility smoke
-- [ ] **P4.6** Optional per-tool `apps/<name>/tool.meta.json` (id, label, description, icon) consumed by hub and build
-- [ ] **P4.7** Extend CI: `brand:check` already scans apps; add build dry-run on PR
-- [ ] **P4.8** Cookie-cutter GitHub PR template for new tools
+- [x] **P4.1** `docs/platform/ADD_A_TOOL.md` — end-to-end checklist for agents and contributors
+- [ ] **P4.2** Optional `scripts/scaffold-tool.mjs` — copies `packages/utility-template/` → `apps/<name>/`, runs `sync-brand` (does **not** modify hub or build)
+- [ ] **P4.3** Optional `npm run scaffold -- <tool-id> "<Tool Label>"` npm script
+- [ ] **P4.4** `docs/platform/TOOL_CHECKLIST.md` — pre-ship: legal pages, robots.txt, device test, accessibility smoke
+- [ ] **P4.5** Extend CI: `brand:check` already scans apps; add build dry-run on PR
+- [ ] **P4.6** Optional cookie-cutter GitHub PR template for new tools
+- [ ] **P4.7** Cross-link `ADD_A_TOOL.md` from `AGENTS.md` and `LLM_PRODUCT_RULES.md` (AGENTS done)
 
 ### Implementation notes
 
-**Target time-to-ship for a simple tool:**
+**Target flow for a new tool (agent-directed):**
 
-1. `npm run scaffold -- slugify "Slugify Text"` (~1 min)
-2. Implement `app.js` + copy (~1–4 hrs)
-3. `npm run brand:check && npm run test` (~1 min)
-4. Merge to `main` → auto deploy (after P5)
+1. Follow `docs/platform/ADD_A_TOOL.md` — copy template, implement `app.js`, register in `hub.config.json` and `scripts/build.mjs`
+2. `npm run brand:check && npm run build` (~1 min)
+3. Merge to `main` → auto deploy (after P5)
+
+Optional scaffold script only creates `apps/<name>/` from `packages/utility-template/`; hub and build registration stay manual steps in `ADD_A_TOOL.md`.
 
 Keep `packages/utility-template/` as the only scaffold source; never fork manually.
 
 ### Step verification
 
-#### P4.1 — `scripts/scaffold-tool.mjs`
+#### P4.1 — `docs/platform/ADD_A_TOOL.md`
 
-**Explanation:** One script creates a new `apps/<name>/` tree from `utility-template`, runs brand sync, and replaces placeholders.
+**Explanation:** Canonical agent runbook: create app, implement tool, manually register in `hub.config.json` and `scripts/build.mjs`, verify, deploy.
+
+**Manual verification:**
+
+```bash
+test -f docs/platform/ADD_A_TOOL.md
+grep -iE "hub.config|build.mjs|brand:check|no auto" docs/platform/ADD_A_TOOL.md
+grep "ADD_A_TOOL" AGENTS.md
+```
+
+Walk through the doc — every step should map to files that exist in the repo.
+
+---
+
+#### P4.2 — Optional `scripts/scaffold-tool.mjs`
+
+**Explanation:** Helper copies `utility-template` to `apps/<name>/` and runs brand sync only. It does **not** edit hub config or `build.mjs`.
 
 **Manual verification:**
 
@@ -870,14 +784,15 @@ Dry run on a throwaway name in a git branch:
 ```bash
 npm run scaffold -- test-tool "Test Tool"
 test -d apps/test-tool/public && npm run brand:check
-git checkout -- . && git clean -fd apps/test-tool  # discard test scaffold
+! grep "test-tool" apps/hub/hub.config.json  # scaffold must not auto-register
+git checkout -- . && git clean -fd apps/test-tool
 ```
 
 ---
 
-#### P4.2 — `npm run scaffold` script
+#### P4.3 — Optional `npm run scaffold` script
 
-**Explanation:** Package.json exposes scaffold as a documented one-liner for contributors.
+**Explanation:** Package.json exposes scaffold as a documented one-liner.
 
 **Manual verification:**
 
@@ -886,80 +801,30 @@ grep "scaffold" package.json
 npm run scaffold -- 2>&1 | head -5
 ```
 
-Without args, should print usage or error with expected `<tool-id> "<Tool Label>"` format.
-
 ---
 
-#### P4.3 — Auto-append hub + build registration
+#### P4.4 — `docs/platform/TOOL_CHECKLIST.md`
 
-**Explanation:** Scaffolding a tool updates `hub.config.json` and the `scripts/build.mjs` app list so the new tool is included in `dist/` and hub tabs automatically.
-
-**Manual verification:**
-
-After scaffold (on a test branch):
-
-```bash
-grep "test-tool" apps/hub/hub.config.json scripts/build.mjs
-npm run build && test -d dist/test-tool && echo "OK: built into dist"
-```
-
-Revert test scaffold when done.
-
----
-
-#### P4.4 — `docs/platform/ADD_A_TOOL.md`
-
-**Explanation:** End-to-end guide: scaffold → implement `app.js` → `brand:check` → `build` → deploy.
-
-**Manual verification:**
-
-```bash
-test -f docs/platform/ADD_A_TOOL.md
-grep -iE "scaffold|brand:check|build|deploy" docs/platform/ADD_A_TOOL.md
-```
-
-Walk through the doc mentally — every step should map to an npm script that exists in `package.json`.
-
----
-
-#### P4.5 — `docs/platform/TOOL_CHECKLIST.md`
-
-**Explanation:** Pre-ship checklist covers legal pages, `ads.txt`, `robots.txt`, device test, and accessibility smoke.
+**Explanation:** Pre-ship checklist covers legal pages, `robots.txt`, device test, and accessibility smoke.
 
 **Manual verification:**
 
 ```bash
 test -f docs/platform/TOOL_CHECKLIST.md
-grep -iE "privacy|terms|ads\.txt|robots" docs/platform/TOOL_CHECKLIST.md
+grep -iE "privacy|terms|robots" docs/platform/TOOL_CHECKLIST.md
 ```
 
 Cross-check against an existing app:
 
 ```bash
-ls apps/json/public/privacy-policy.html apps/json/public/terms.html apps/json/public/ads.txt
+ls apps/json/public/privacy-policy.html apps/json/public/terms.html
 ```
 
 ---
 
-#### P4.6 — Optional `tool.meta.json`
+#### P4.5 — CI build dry-run on PR
 
-**Explanation:** Per-tool metadata file can drive hub labels and build registration from one source.
-
-**Manual verification:**
-
-```bash
-# If implemented:
-ls apps/*/tool.meta.json 2>/dev/null
-grep -r "tool.meta.json" scripts/ apps/hub/
-```
-
-Scaffold should create `tool.meta.json`; hub or build script should read `label` and `description` from it.
-
----
-
-#### P4.7 — CI build dry-run on PR
-
-**Explanation:** Pull requests run `npm run build` (or equivalent) so broken hub/build integration is caught before merge.
+**Explanation:** Pull requests run `npm run build` so broken hub/build integration is caught before merge.
 
 **Manual verification:**
 
@@ -968,44 +833,31 @@ grep -E "build|brand:check" .github/workflows/ci.yml
 npm run build
 ```
 
-Open a test PR that breaks `build.mjs` — CI should fail. Restore and confirm green check.
-
 ---
 
-#### P4.8 — PR template for new tools
+#### P4.6 — PR template for new tools
 
-**Explanation:** GitHub PR template reminds authors of legal pages, brand check, and device test.
+**Explanation:** GitHub PR template reminds authors of `ADD_A_TOOL.md`, legal pages, and brand check.
 
 **Manual verification:**
 
 ```bash
-test -f .github/pull_request_template.md && grep -iE "tool|brand|legal" .github/pull_request_template.md
-```
-
-Or confirm template path in repo settings via:
-
-```bash
-gh api repos/:owner/:repo/contents/.github --jq '.[].name' 2>/dev/null
+test -f .github/pull_request_template.md && grep -iE "tool|brand|ADD_A_TOOL" .github/pull_request_template.md
 ```
 
 ---
 
 #### P4 phase complete
 
-**Explanation:** A new tool can go from scaffold to deployable `dist/` subtree in minutes; docs and CI enforce the checklist.
+**Explanation:** Agents have a single doc for adding tools; optional scaffold speeds template copy only.
 
 **Manual verification:**
 
-Timed dry run (use a throwaway tool id on a branch):
-
 ```bash
-npm run scaffold -- slugify "Slugify Text"
-# implement minimal app.js change
-npm run brand:check && npm run test:json-converters && npm run build
-ls dist/slugify/
+test -f docs/platform/ADD_A_TOOL.md && npm run brand:check && npm run build
 ```
 
-Target: scaffold + checks + build in under 15 minutes excluding feature implementation.
+Mental walkthrough: follow `ADD_A_TOOL.md` for a hypothetical tool — all referenced paths exist.
 
 ---
 
@@ -1466,13 +1318,14 @@ Use this as the execution tracker. Details for each item are in the priority sec
 - [ ] P1.7–P1.10 Deploy config + RevealIP edge on unified distribution + smoke test
 
 ### P2 — Hub & tabs
-- [ ] P2.1–P2.9 `apps/hub/` with config-driven tabs and build integration
+- [x] P2.1–P2.8 Hub shell, tabs, hash router, iframes, build integration, device/deep-link smoke test
 
 ### P3 — Legacy redirects
 - [ ] P3.1–P3.8 Cloudflare redirects + decommission old stacks
 
 ### P4 — Platform velocity
-- [ ] P4.1–P4.8 Scaffold script + ADD_A_TOOL + TOOL_CHECKLIST docs
+- [x] P4.1 `docs/platform/ADD_A_TOOL.md` (LLM agent runbook)
+- [ ] P4.2–P4.7 Optional scaffold, TOOL_CHECKLIST, CI build, PR template
 
 ### P5 — GitHub deploy
 - [ ] P5.1–P5.9 OIDC + `deploy-prod.yml`
@@ -1490,8 +1343,8 @@ Use this as the execution tracker. Details for each item are in the priority sec
 | Sprint | Focus | Deliverable |
 |--------|-------|-------------|
 | **Sprint 1** | P0 + P1 | `tools.neonema.com` serves `/json/` and `/revealip/` from unified build (hub can be a simple index listing tools) |
-| **Sprint 2** | P2 + P3 | Tabbed hub live; legacy domains redirect |
-| **Sprint 3** | P4 + P5 | Scaffold script; merge to `main` deploys prod |
+| **Sprint 2** | P2 + P3 | Tabbed hub verified; legacy domains redirect |
+| **Sprint 3** | P4 + P5 | `ADD_A_TOOL.md` + optional scaffold; merge to `main` deploys prod |
 | **Sprint 4** | P6 + P7 | Dev URL; company site cross-links |
 
 ---
@@ -1501,9 +1354,9 @@ Use this as the execution tracker. Details for each item are in the priority sec
 New paths this plan will add over time:
 
 ```
-apps/hub/                          # tools.neonema.com shell + tabs
+apps/hub/                          # tools.neonema.com shell + tabs (hub.config.json)
 scripts/build.mjs                  # assemble dist/ for deploy
-scripts/scaffold-tool.mjs          # new tool generator
+scripts/scaffold-tool.mjs          # optional: copy utility-template only (P4)
 dist/                              # build output (gitignored)
 deploy.config.prod.json            # CI-safe prod config
 deploy.config.dev.json             # dev config
@@ -1511,7 +1364,7 @@ deploy.config.dev.json             # dev config
 .github/workflows/deploy-dev.yml
 docs/platform/
   ARCHITECTURE.md
-  ADD_A_TOOL.md
+  ADD_A_TOOL.md                    # LLM agent runbook for new tools (P4)
   TOOL_CHECKLIST.md
   DOMAIN_CUTOVER.md
   ENVIRONMENTS.md
@@ -1528,14 +1381,29 @@ infra/                             # optional Terraform/CDK (P1/P5)
 | Tab content loading | iframe vs inlined HTML/JS | **iframe first** (P0.5); inlined later for polish |
 | Dev deploy trigger | `dev` branch vs manual dispatch | `dev` branch auto-deploy + manual dispatch for hotfixes |
 | IaC timing | Manual AWS Console vs Terraform now | Console for Sprint 1; Terraform before P5 |
-| Default hub tab | Landing page vs first tool | Small landing with tool cards; default hash `#/json` or no default |
+| Default hub tab | Landing page vs first tool | `defaultTool` in `hub.config.json` (currently `json`) |
 | AdSense | Per-tool only vs hub too | Per-tool subtrees only (current pattern) |
+
+---
+
+## Hub-only public URLs (implemented)
+
+Public entry is the hub and hash routes only — not standalone `/json/` or `/revealip/` landing pages.
+
+| Layer | Implementation |
+|-------|----------------|
+| CloudFront `tools-uri-rewrite` | `301` from `/json`, `/json/`, `/revealip`, `/revealip/` → `/#/<tool-id>` |
+| Tool `index.html` | Top-level visit redirects to hub; iframe embed unchanged |
+| `dist/` layout | Tool subtrees remain for iframe `src`, assets, legal pages, `/api/ip` |
+
+When adding a tool, include the hub-redirect script from `packages/utility-template` (see `ADD_A_TOOL.md`). Republish `tools-uri-rewrite` in CloudFront when adding a new tool root path to the edge redirect list.
 
 ---
 
 ## Related docs
 
 - [platform/ARCHITECTURE.md](./platform/ARCHITECTURE.md) — canonical platform model (P0)
+- [platform/ADD_A_TOOL.md](./platform/ADD_A_TOOL.md) — how agents add a tool (hub + build registration)
 - [deploy/README.md](./deploy/README.md) — current S3 + CloudFront runbooks
 - [deploy/automated-deploy.md](./deploy/automated-deploy.md) — local deploy scripts (Phase 3)
 - [infra/README.md](./infra/README.md) — two-account model, `neonema-tools` CLI profile
@@ -1546,4 +1414,6 @@ infra/                             # optional Terraform/CDK (P1/P5)
 
 ## Next step
 
-**P0 complete.** Start **P1** — provision `neonema-tools-prod` S3 + CloudFront for `tools.neonema.com`, then **P1.6** (`scripts/build.mjs`) so you can deploy a unified `dist/` tree before building the tab UI in P2.
+**P0–P2 are complete** (hub shell, tabs, hash router, iframes, build, device/deep-link verification). **`ADD_A_TOOL.md` is the agent runbook for new tools.**
+
+Continue **P1** if any production infra items remain open, then **P3** (legacy domain redirects). Use `docs/platform/ADD_A_TOOL.md` whenever an agent adds a tool — no auto-registration on the hub.

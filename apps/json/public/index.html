@@ -16,7 +16,15 @@
       rel="stylesheet"
     />
     <script>
-      if (window.self !== window.top) document.documentElement.classList.add("hub-embed");
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+          return;
+        }
+        if (/^\/json(?:\/index\.html)?\/?$/.test(location.pathname)) {
+          location.replace("/#/json");
+        }
+      })();
     </script>
     <link rel="stylesheet" href="./styles.css" />
     <script

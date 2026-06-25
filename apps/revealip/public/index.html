@@ -15,7 +15,15 @@
       rel="stylesheet"
     />
     <script>
-      if (window.self !== window.top) document.documentElement.classList.add("hub-embed");
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+          return;
+        }
+        if (/^\/revealip(?:\/index\.html)?\/?$/.test(location.pathname)) {
+          location.replace("/#/revealip");
+        }
+      })();
     </script>
     <link rel="icon" type="image/png" href="./RevealIP-NeoNema.png" />
     <link rel="stylesheet" href="./styles.css?v=9" />

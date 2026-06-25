@@ -12,6 +12,7 @@ This file defines mandatory instructions for AI/LLM agents working in this repos
 - The tools hub shell lives under `apps/hub/` (tab navigation for tools.neonema.com).
 - Shared brand assets live in `packages/brand/` — copy into an app's `public/` when scaffolding (do not symlink).
 - New utilities start from `packages/utility-template/`.
+- **Adding a tool:** follow `docs/platform/ADD_A_TOOL.md` (manual hub + build registration; no auto-discovery).
 - Platform architecture: `docs/platform/ARCHITECTURE.md`.
 - Deployment runbooks live in `docs/deploy/`.
 
