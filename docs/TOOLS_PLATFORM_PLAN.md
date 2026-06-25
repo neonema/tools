@@ -16,7 +16,7 @@ Each priority section (P0–P7) ends with **Step verification**: for every check
 | 1 | Main repo | `neonema-tools` owns all tools, templates, deploy automation, and docs |
 | 2 | Static CDN tools | Each tool is a one-page site; no NeoNema backend; no user data stored or relayed |
 | 3 | Primary URL | Public tools hub lives at **tools.neonema.com** |
-| 4 | Legacy domains | **neonema-revealip.com** and **neonema-json.com** redirect to the new hub |
+| 4 | Legacy domains | **revealip-neonema.com** and **json-neonema.com** redirect to the new hub |
 | 5 | Tab per tool | The hub exposes each tool as its own tab (client-side, no server routing) |
 | 6 | Company site | **neonema.com** stays corporate; links out to tools.neonema.com |
 | 7 | Fast deploy platform | Templates, docs, and runbooks so agents/contributors ship a new tool in hours, not days |
@@ -73,8 +73,8 @@ The hub (`apps/hub/`) is a lightweight static shell:
 |----------|------|----------------|
 | `tools.neonema.com` | Tools hub + all tools (production) | `neonema-tools` |
 | `dev.tools.neonema.com` | Staging / preview (placeholder) | `neonema-tools` |
-| `neonema-revealip.com` | 301 → `https://tools.neonema.com/#/revealip` | DNS redirect only |
-| `neonema-json.com` | 301 → `https://tools.neonema.com/#/json` | DNS redirect only |
+| `revealip-neonema.com` | 301 → `https://tools.neonema.com/#/revealip` | DNS redirect only |
+| `json-neonema.com` | 301 → `https://tools.neonema.com/#/json` | DNS redirect only |
 | `neonema.com` | Company marketing site | Separate repo/project; **separate AWS account**; add “Tools” nav link |
 
 ### AWS layout (target)
@@ -546,15 +546,15 @@ Browser checklist:
 ### Checklist
 
 - [ ] **P3.1** Define canonical targets:
-  - `https://neonema-revealip.com` → `https://tools.neonema.com/#/revealip`
-  - `https://neonema-json.com` → `https://tools.neonema.com/#/json`
+  - `https://revealip-neonema.com` → `https://tools.neonema.com/#/revealip`
+  - `https://json-neonema.com` → `https://tools.neonema.com/#/json`
   - Include `www` variants
 - [ ] **P3.2** Implement redirects in **Cloudflare** (recommended): Bulk Redirects or Page Rules — 301, preserve path only if needed (usually redirect apex → hub hash)
 - [ ] **P3.3** Alternative: dedicated minimal CloudFront distributions per legacy domain with CloudFront Function redirect (if DNS cannot move to Cloudflare)
 - [ ] **P3.4** Update each tool’s `robots.txt` / canonical tags if they reference old domains
 - [ ] **P3.5** Verify with `curl -I` and browser from cold cache
-- [ ] **P3.6** Run AdSense / Search Console domain updates if properties are tied to old hostnames
-- [ ] **P3.7** Document in `docs/platform/DOMAIN_CUTOVER.md`
+- [x] **P3.6** Run AdSense / Search Console domain updates if properties are tied to old hostnames (`ads.txt` live; AdSense **removal** tracked in platform backlog)
+- [x] **P3.7** Document in `docs/platform/DOMAIN_CUTOVER.md`
 - [ ] **P3.8** After 30-day soak: decommission old S3 buckets and CloudFront distributions (separate AWS accounts)
 
 ### Implementation notes
@@ -563,8 +563,8 @@ Browser checklist:
 
 | Source | Target | Status |
 |--------|--------|--------|
-| `neonema-json.com/*` | `https://tools.neonema.com/#/json` | 301 |
-| `neonema-revealip.com/*` | `https://tools.neonema.com/#/revealip` | 301 |
+| `json-neonema.com/*` | `https://tools.neonema.com/#/json` | 301 |
+| `revealip-neonema.com/*` | `https://tools.neonema.com/#/revealip` | 301 |
 
 If a tool relied on apex `index.html` at the old domain, apex redirect is sufficient; no path mapping required.
 
@@ -577,15 +577,15 @@ If a tool relied on apex `index.html` at the old domain, apex redirect is suffic
 **Manual verification:**
 
 ```bash
-grep -E "neonema-revealip|neonema-json|#/revealip|#/json" docs/TOOLS_PLATFORM_PLAN.md docs/platform/DOMAIN_CUTOVER.md 2>/dev/null
+grep -E "revealip-neonema|json-neonema|#/revealip|#/json" docs/TOOLS_PLATFORM_PLAN.md docs/platform/DOMAIN_CUTOVER.md 2>/dev/null
 ```
 
 Confirm written targets:
 
 | Source | Target |
 |--------|--------|
-| `neonema-json.com` (+ `www`) | `https://tools.neonema.com/#/json` |
-| `neonema-revealip.com` (+ `www`) | `https://tools.neonema.com/#/revealip` |
+| `json-neonema.com` (+ `www`) | `https://tools.neonema.com/#/json` |
+| `revealip-neonema.com` (+ `www`) | `https://tools.neonema.com/#/revealip` |
 
 ---
 
@@ -596,10 +596,10 @@ Confirm written targets:
 **Manual verification:**
 
 ```bash
-curl -sI "https://neonema-json.com/" | grep -iE "HTTP/|location:"
-curl -sI "https://www.neonema-json.com/" | grep -iE "HTTP/|location:"
-curl -sI "https://neonema-revealip.com/" | grep -iE "HTTP/|location:"
-curl -sI "https://www.neonema-revealip.com/" | grep -iE "HTTP/|location:"
+curl -sI "https://json-neonema.com/" | grep -iE "HTTP/|location:"
+curl -sI "https://www.json-neonema.com/" | grep -iE "HTTP/|location:"
+curl -sI "https://revealip-neonema.com/" | grep -iE "HTTP/|location:"
+curl -sI "https://www.revealip-neonema.com/" | grep -iE "HTTP/|location:"
 ```
 
 Each response: `HTTP/2 301` (or `308`) and `location: https://tools.neonema.com/#/...` matching the tool.
@@ -614,8 +614,8 @@ Each response: `HTTP/2 301` (or `308`) and `location: https://tools.neonema.com/
 
 ```bash
 # Only if P3.3 path was chosen:
-curl -sI "https://neonema-json.com/" | grep -i location
-aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items[?@=='neonema-json.com']].Id"
+curl -sI "https://json-neonema.com/" | grep -i location
+aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items[?@=='json-neonema.com']].Id"
 ```
 
 Skip this block if P3.2 Cloudflare redirects are in place and working.
@@ -629,7 +629,7 @@ Skip this block if P3.2 Cloudflare redirects are in place and working.
 **Manual verification:**
 
 ```bash
-grep -rE "canonical|neonema-json\.com|neonema-revealip\.com" apps/json/public apps/revealip/public
+grep -rE "canonical|json-neonema\.com|revealip-neonema\.com" apps/json/public apps/revealip/public
 curl -s "https://tools.neonema.com/json/" | grep -i canonical
 curl -s "https://tools.neonema.com/revealip/" | grep -i canonical
 ```
@@ -645,13 +645,13 @@ Canonical URLs should use `https://tools.neonema.com/...`, not legacy hostnames.
 **Manual verification:**
 
 ```bash
-curl -sI "https://neonema-json.com/" -H "Cache-Control: no-cache" | grep -iE "HTTP/|location:"
+curl -sI "https://json-neonema.com/" -H "Cache-Control: no-cache" | grep -iE "HTTP/|location:"
 ```
 
 Browser (incognito / private window):
 
-1. Open `https://neonema-json.com` — lands on JSON tab at `tools.neonema.com`.
-2. Open `https://neonema-revealip.com` — lands on RevealIP tab.
+1. Open `https://json-neonema.com` — lands on JSON tab at `tools.neonema.com`.
+2. Open `https://revealip-neonema.com` — lands on RevealIP tab.
 3. Bookmarked old URLs still redirect.
 
 ---
@@ -660,13 +660,24 @@ Browser (incognito / private window):
 
 **Explanation:** Ad and search properties reflect the new canonical host so revenue and indexing follow the migration.
 
-**Manual verification:**
+**Repo prerequisite:** `apps/hub/public/ads.txt` ships at `https://tools.neonema.com/ads.txt` after `npm run deploy -- platform`. See [adsense.md](./deploy/adsense.md) section **G) Platform cutover**.
 
-Manual (no CLI):
+**CLI verification (ads.txt):**
 
-1. Google Search Console — add or verify `tools.neonema.com` property; submit updated sitemap if used.
-2. AdSense — site list includes `tools.neonema.com` paths; remove or demote legacy domains after soak period.
-3. Confirm no ad serving errors on `/json/` and `/revealip/` after domain change.
+```bash
+curl -sI "https://tools.neonema.com/ads.txt" | grep -iE "HTTP/|content-type:"
+curl -s "https://tools.neonema.com/ads.txt"
+```
+
+Expected: **200** and the `google.com, pub-…` line.
+
+**Manual verification (dashboards):**
+
+1. **Google Search Console** — add and verify `https://tools.neonema.com`; submit sitemap only if you add one (none in repo today).
+2. **Google AdSense** — add `tools.neonema.com` to Sites; confirm `ads.txt` authorized; keep legacy domains until post-soak cleanup.
+3. **Incognito smoke test** — `tools.neonema.com/#/json` and `/#/revealip` load without AdSense console errors.
+
+Full step-by-step: [adsense.md](./deploy/adsense.md#g-platform-cutover--toolsneonemacom-p36).
 
 ---
 
@@ -710,7 +721,7 @@ Checklist before delete:
 **Manual verification:**
 
 ```bash
-for host in neonema-json.com www.neonema-json.com neonema-revealip.com www.neonema-revealip.com; do
+for host in json-neonema.com www.json-neonema.com revealip-neonema.com www.revealip-neonema.com; do
   echo "=== $host ==="
   curl -sI "https://$host/" | grep -iE "HTTP/|location:"
 done
@@ -1321,7 +1332,11 @@ Use this as the execution tracker. Details for each item are in the priority sec
 - [x] P2.1–P2.8 Hub shell, tabs, hash router, iframes, build integration, device/deep-link smoke test
 
 ### P3 — Legacy redirects
-- [ ] P3.1–P3.8 Cloudflare redirects + decommission old stacks
+- [x] P3.1–P3.2 apex targets + Cloudflare redirects
+- [x] P3.5–P3.7 verification, `ads.txt`, runbook (`DOMAIN_CUTOVER.md`)
+- [ ] P3.4 canonical tags in tool HTML (documented in runbook; deploy when applied)
+- [ ] P3.8 decommission legacy AWS (post 30-day soak)
+- Backlog: `www` hostnames, AdSense removal
 
 ### P4 — Platform velocity
 - [x] P4.1 `docs/platform/ADD_A_TOOL.md` (LLM agent runbook)
@@ -1335,6 +1350,49 @@ Use this as the execution tracker. Details for each item are in the priority sec
 
 ### P7 — Company site
 - [ ] P7.1–P7.4 Links between neonema.com and tools.neonema.com
+
+### Platform backlog (not blocking current sprints)
+
+| Item | Why deferred | When picked up |
+|------|--------------|----------------|
+| **`www` legacy hostnames** | Apex redirects live; `www` DNS/verification incomplete | Add proxied `www` CNAME per zone in Cloudflare; verify `curl -4` |
+| **Remove Google AdSense** | Sites are not monetized; ad infra adds weight and third-party scripts | See [Remove AdSense (backlog)](#remove-adsense-backlog) below |
+
+---
+
+## Remove AdSense (backlog)
+
+**Intent:** Tools are utility-first with no ad monetization today (`LLM_PRODUCT_RULES.md`). Strip AdSense scripts, slots, `ads.txt`, and ad-related copy when this backlog item is scheduled.
+
+**Not blocking:** P3.6 cutover work (Search Console / `ads.txt`) can stay as-is until removal; or skip further AdSense dashboard setup if you defer entirely.
+
+### Code & assets to remove
+
+| Area | Files / symbols |
+|------|-----------------|
+| **Hub** | `apps/hub/public/ads.txt` |
+| **JSON** | `apps/json/public/ads.txt`; `index.html` (`adsbygoogle.js`, `aside.ad-box`); `app.js` (`ADSENSE_SIDEBAR_SLOT`, `initAdsenseSidebar`); `.ad-box*` CSS in `styles.css`; AdSense paragraphs in `privacy-policy.html` |
+| **RevealIP** | `apps/revealip/public/ads.txt`; `index.html` (script + `section.ad-wrap`); `app.js` (`adsbygoogle.push`); `.ad-wrap` CSS; `adsbygoogle` in `privacy-policy.html` / `terms.html` |
+| **robots.txt** (both tools) | `Mediapartners-Google` / `AdsBot-Google` blocks (optional — only needed for ad crawlers) |
+| **Tests** | `apps/json/scripts/test-converters.mjs` (`adsbygoogle` mock) |
+
+### Docs to trim or archive
+
+- `docs/deploy/adsense.md` — archive or reduce to “not used” stub
+- References in `docs/deploy/README.md`, `order-of-operations.md`, `cloudflare-dns.md`, deploy checklists
+
+### External cleanup (manual)
+
+1. **Google AdSense** — remove `tools.neonema.com`, `json-neonema.com`, `revealip-neonema.com` from Sites (after deploy removes `ads.txt`).
+2. **Search Console** — no change required for removal; keep `tools.neonema.com` property for indexing.
+
+### Verify after removal
+
+```bash
+grep -riE "adsense|adsbygoogle|ca-pub-|ads\.txt" apps/
+npm run build && npm run deploy -- platform
+# Incognito: hub tabs load with no googlesyndication requests in Network tab
+```
 
 ---
 

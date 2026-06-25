@@ -113,8 +113,9 @@ Revisit inlined modules in P4 if iframe polish becomes a blocker.
 |----------|------|
 | `tools.neonema.com` | Tools hub + all tools (production) |
 | `dev.tools.neonema.com` | Staging / preview |
-| `neonema-revealip.com` | 301 → `https://tools.neonema.com/#/revealip` |
-| `neonema-json.com` | 301 → `https://tools.neonema.com/#/json` |
+| `revealip-neonema.com` | 301 → `https://tools.neonema.com/#/revealip` |
+| `json-neonema.com` | 301 → `https://tools.neonema.com/#/json` |
+| `www.revealip-neonema.com`, `www.json-neonema.com` | Same targets — **backlog** ([DOMAIN_CUTOVER.md](./DOMAIN_CUTOVER.md)) |
 | `neonema.com` | Company marketing site (separate repo + AWS account); links out to tools hub |
 
 ---
@@ -170,3 +171,4 @@ Legacy per-app buckets and distributions in old AWS accounts retire after P3 cut
 - [deploy/automated-deploy.md](../deploy/automated-deploy.md) — local deploy scripts
 - [infra/README.md](../infra/README.md) — two-account model, `neonema-tools` CLI profile
 - [TOOLS_PLATFORM_PLAN.md](../TOOLS_PLATFORM_PLAN.md) — priority checklist (P0–P7)
+- [DOMAIN_CUTOVER.md](./DOMAIN_CUTOVER.md) — legacy domain 301 runbook and decommission timeline

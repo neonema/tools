@@ -1,6 +1,8 @@
 # Google AdSense Step-by-Step (Static site on S3 + CloudFront + Cloudflare)
 
-This complements [aws-s3-cloudfront.md](./aws-s3-cloudfront.md) and [cloudflare-dns.md](./cloudflare-dns.md). AdSense policies and product flows change over time; always confirm details in [Google’s AdSense Help](https://support.google.com/adsense/) and your AdSense account.
+> **Platform backlog:** NeoNema tools are **not monetized** today. A future task will remove AdSense scripts, ad slots, and `ads.txt` from the repo — see [TOOLS_PLATFORM_PLAN.md](../TOOLS_PLATFORM_PLAN.md#remove-adsense-backlog). This guide remains for reference if ads are re-enabled later.
+
+This complements [aws-s3-cloudfront.md](./aws-s3-cloudfront.md) and [cloudflare-dns.md](./cloudflare-dns.md).
 
 ## Prerequisites
 
@@ -68,3 +70,69 @@ After AdSense approves ad serving (or during setup if they instruct you to):
 - Forgetting to **invalidate** CloudFront after updating `ads.txt` or `index.html`.
 - Enabling **Auto ads** and **manual units** without planning layout—test on mobile.
 - **Privacy policy** still saying “no third-party ads” after enabling AdSense.
+
+---
+
+## G) Platform cutover — `tools.neonema.com` (P3.6)
+
+After JSON and RevealIP move under the unified hub, update Google properties so ads and search indexing follow the new hostname.
+
+### Repo / deploy (before dashboard work)
+
+| File | Purpose |
+|------|---------|
+| `apps/hub/public/ads.txt` | **Required** at `https://tools.neonema.com/ads.txt` (hub deploy root) |
+| `apps/json/public/ads.txt` | Optional duplicate at `/json/ads.txt` (legacy per-app path) |
+| `apps/revealip/public/ads.txt` | Optional duplicate at `/revealip/ads.txt` |
+
+Deploy hub `ads.txt` with platform build:
+
+```bash
+npm run build
+test -f dist/ads.txt && cat dist/ads.txt
+npm run deploy -- platform
+```
+
+Verify:
+
+```bash
+curl -sI "https://tools.neonema.com/ads.txt" | grep -iE "HTTP/|content-type:"
+curl -s "https://tools.neonema.com/ads.txt"
+```
+
+Expected: **HTTP 200**, `content-type: text/plain`, publisher line present.
+
+### Google Search Console
+
+1. Open [Google Search Console](https://search.google.com/search-console).
+2. **Add property** → **URL prefix** `https://tools.neonema.com` (or **Domain** `tools.neonema.com` if you prefer DNS verification).
+3. Verify ownership (HTML file upload, DNS TXT in Cloudflare, or Google Analytics — use whichever matches your setup).
+4. **Sitemap:** this repo does not ship a `sitemap.xml`. Skip unless you add one later at `https://tools.neonema.com/sitemap.xml`.
+5. **Legacy properties** (`json-neonema.com`, `revealip-neonema.com`): leave in place during redirect soak, or use **Change of address** to `tools.neonema.com` if both properties are verified. Apex **301** redirects already send users and most crawlers to the hub.
+6. Optional: **URL Inspection** → request indexing for `https://tools.neonema.com/#/json` and `https://tools.neonema.com/#/revealip` (hash URLs may index inconsistently; hub root is the primary property).
+
+### Google AdSense
+
+1. Open [Google AdSense](https://www.google.com/adsense/) → **Sites**.
+2. **Add site** `tools.neonema.com` if not already listed.
+3. Confirm **ads.txt** status is **Authorized** for `tools.neonema.com` (requires root `ads.txt` deploy above).
+4. Legacy sites (`json-neonema.com`, `revealip-neonema.com`): **do not remove immediately**. After the 30-day redirect soak (P3.8), remove or archive them from the site list if AdSense still shows them as separate properties.
+5. Ad units remain in tool `index.html` files (`apps/json/public/`, `apps/revealip/public/`). No hub-level ad script is required — ads load inside hub iframes.
+
+### Ad serving smoke test (manual)
+
+In incognito, with ad blockers disabled:
+
+1. `https://tools.neonema.com/#/json` — JSON tab loads; no console errors from `adsbygoogle.js`; ad slot or Auto ads render if enabled in your account.
+2. `https://tools.neonema.com/#/revealip` — same for RevealIP.
+3. AdSense → **Policy center** / **Site management** — no new crawl or `ads.txt` errors for `tools.neonema.com`.
+
+### P3.6 sign-off checklist
+
+- [x] `https://tools.neonema.com/ads.txt` returns **200**
+- [ ] Search Console property for `tools.neonema.com` verified (optional if focusing on utility traffic only)
+- [ ] AdSense lists `tools.neonema.com` with authorized `ads.txt` (optional — **AdSense removal is platform backlog**; sites are not monetized)
+- [ ] No ad-serving errors on JSON and RevealIP hub tabs
+- [ ] Legacy AdSense / GSC properties noted for post-soak cleanup (P3.8)
+
+**Backlog:** strip all AdSense code and `ads.txt` when scheduled — see [TOOLS_PLATFORM_PLAN.md](../TOOLS_PLATFORM_PLAN.md#remove-adsense-backlog).

@@ -69,4 +69,5 @@ Current product focus is **bringing users to the site**, not ad monetization.
 - Keep pages fast and mobile-friendly.
 - Provide `privacy-policy.html` and `terms.html` for user trust — not as an ad-network prerequisite.
 - Do **not** add Google AdSense, `ads.txt`, or ad placement blocks unless explicitly requested.
+- **Backlog:** remove existing AdSense integration (scripts, slots, `ads.txt`, privacy-policy ad copy) — sites are not monetized. Tracker: `docs/TOOLS_PLATFORM_PLAN.md` → **Remove AdSense (backlog)**.
 - Public tool entry is via the hub (`tools.neonema.com/#/<tool-id>`), not standalone `/tool-id/` landing pages.
