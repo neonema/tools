@@ -10,6 +10,8 @@ Use these rules for all generated features, edits, and new templates in this rep
 - New utilities: start from `packages/utility-template/`
 - Platform architecture: `docs/platform/ARCHITECTURE.md`
 - **Adding a tool to the hub:** `docs/platform/ADD_A_TOOL.md` (manual `hub.config.json` + `build.mjs` steps)
+- **Scaffold helper:** `npm run scaffold -- <tool-id> "<Tool Label>"` — see `ADD_A_TOOL.md`
+- **Pre-ship checklist:** `docs/platform/TOOL_CHECKLIST.md`
 - After brand changes, run `npm run sync-brand` then `npm run brand:check`
 
 ## Platform constraints

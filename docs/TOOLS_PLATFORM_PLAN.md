@@ -2,7 +2,7 @@
 
 Strategic plan for turning `neonema-tools` into the single source of truth for all NeoNema utility products, served from **tools.neonema.com** with fast, repeatable deploys.
 
-**Status:** In progress (P0–P2 complete)  
+**Status:** In progress (P0–P2, P4 complete)  
 **Last updated:** 2026-06-25
 
 Each priority section (P0–P7) ends with **Step verification**: for every checklist item, an **Explanation** (what “done” means) and **Manual verification** commands or browser steps you can run to confirm that phase work succeeded.
@@ -742,12 +742,12 @@ Incognito browser: both apex domains open the correct tab on `tools.neonema.com`
 ### Checklist
 
 - [x] **P4.1** `docs/platform/ADD_A_TOOL.md` — end-to-end checklist for agents and contributors
-- [ ] **P4.2** Optional `scripts/scaffold-tool.mjs` — copies `packages/utility-template/` → `apps/<name>/`, runs `sync-brand` (does **not** modify hub or build)
-- [ ] **P4.3** Optional `npm run scaffold -- <tool-id> "<Tool Label>"` npm script
-- [ ] **P4.4** `docs/platform/TOOL_CHECKLIST.md` — pre-ship: legal pages, robots.txt, device test, accessibility smoke
-- [ ] **P4.5** Extend CI: `brand:check` already scans apps; add build dry-run on PR
-- [ ] **P4.6** Optional cookie-cutter GitHub PR template for new tools
-- [ ] **P4.7** Cross-link `ADD_A_TOOL.md` from `AGENTS.md` and `LLM_PRODUCT_RULES.md` (AGENTS done)
+- [x] **P4.2** Optional `scripts/scaffold-tool.mjs` — copies `packages/utility-template/` → `apps/<name>/`, runs `sync-brand` (does **not** modify hub or build)
+- [x] **P4.3** Optional `npm run scaffold -- <tool-id> "<Tool Label>"` npm script
+- [x] **P4.4** `docs/platform/TOOL_CHECKLIST.md` — pre-ship: legal pages, robots.txt, device test, accessibility smoke
+- [x] **P4.5** Extend CI: `brand:check` already scans apps; add build dry-run on PR
+- [x] **P4.6** Optional cookie-cutter GitHub PR template for new tools
+- [x] **P4.7** Cross-link `ADD_A_TOOL.md` from `AGENTS.md` and `LLM_PRODUCT_RULES.md`
 
 ### Implementation notes
 
@@ -1340,7 +1340,7 @@ Use this as the execution tracker. Details for each item are in the priority sec
 
 ### P4 — Platform velocity
 - [x] P4.1 `docs/platform/ADD_A_TOOL.md` (LLM agent runbook)
-- [ ] P4.2–P4.7 Optional scaffold, TOOL_CHECKLIST, CI build, PR template
+- [x] P4.2–P4.7 Scaffold, TOOL_CHECKLIST, CI build, PR template, cross-links
 
 ### P5 — GitHub deploy
 - [ ] P5.1–P5.9 OIDC + `deploy-prod.yml`
@@ -1472,6 +1472,6 @@ When adding a tool, include the hub-redirect script from `packages/utility-templ
 
 ## Next step
 
-**P0–P2 are complete** (hub shell, tabs, hash router, iframes, build, device/deep-link verification). **`ADD_A_TOOL.md` is the agent runbook for new tools.**
+**P0–P2 and P4 are complete** (hub shell, tabs, hash router, iframes, build, agent runbook, scaffold, pre-ship checklist, CI build dry-run, PR template).
 
-Continue **P1** if any production infra items remain open, then **P3** (legacy domain redirects). Use `docs/platform/ADD_A_TOOL.md` whenever an agent adds a tool — no auto-registration on the hub.
+Continue **P3** (legacy domain redirects) if any items remain open, then **P5** (GitHub → AWS deploy). Use `docs/platform/ADD_A_TOOL.md` whenever an agent adds a tool — no auto-registration on the hub.

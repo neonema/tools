@@ -1,0 +1,147 @@
+# Tool Pre-Ship Checklist
+
+Run this **before merging or deploying** a new or updated tool.  
+Use after completing the steps in [ADD_A_TOOL.md](./ADD_A_TOOL.md).
+
+---
+
+## Automated checks
+
+```bash
+npm run brand:check
+npm run build
+```
+
+Both must pass. `brand:check` verifies palette tokens, locked header CSS, and `NeoNema.png` match `packages/brand/`.
+
+---
+
+## Legal pages
+
+Each tool subtree must ship:
+
+| File | Requirement |
+|------|-------------|
+| `apps/<tool-id>/public/privacy-policy.html` | Tool-specific privacy copy (not template placeholders). Cover browser-only processing, third-party ads if enabled, and any data the tool touches. |
+| `apps/<tool-id>/public/terms.html` | Tool-specific terms of service. |
+
+**Verify:**
+
+```bash
+ls apps/<tool-id>/public/privacy-policy.html apps/<tool-id>/public/terms.html
+```
+
+- Footer links on `index.html` open both pages.
+- Legal pages use the same brand styles and link back to the tool.
+- Product name and hostname in copy match the shipped tool (not `UtilityName` placeholders).
+
+---
+
+## `robots.txt`
+
+Include `apps/<tool-id>/public/robots.txt`. Default pattern (allow crawlers):
+
+```txt
+User-agent: *
+Allow: /
+
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+```
+
+If AdSense is enabled, keep the `Mediapartners-Google` and `AdsBot-Google` blocks so ad crawlers can reach the tool.  
+Do **not** reference legacy domains (`json-neonema.com`, `revealip-neonema.com`).
+
+**Verify:**
+
+```bash
+test -f apps/<tool-id>/public/robots.txt
+grep -iE "Allow:|Disallow:" apps/<tool-id>/public/robots.txt
+```
+
+---
+
+## Hub integration
+
+After `npm run build`, preview from `dist/`:
+
+```bash
+python3 -m http.server 8765 --directory dist
+```
+
+| Check | Expected |
+|-------|----------|
+| `http://localhost:8765/#/<tool-id>` | Hub tab active; iframe loads the tool |
+| `http://localhost:8765/<tool-id>/` | Redirects to `/#/<tool-id>` (not a standalone landing page) |
+| `http://localhost:8765/<tool-id>/privacy-policy.html` | Legal page loads inside or outside iframe as designed |
+| Tab label & description | Match `apps/hub/hub.config.json` |
+
+Optional canonical (production SEO): hub-hash URL in tool `index.html`:
+
+```html
+<link rel="canonical" href="https://tools.neonema.com/#/<tool-id>" />
+```
+
+See [DOMAIN_CUTOVER.md](./DOMAIN_CUTOVER.md#p34--canonical-tags--robotstxt) for details.
+
+---
+
+## Device / responsive smoke
+
+Test the tool UI at these widths (browser devtools or real devices):
+
+| Viewport | Role |
+|----------|------|
+| 320 × 568 | Small phone |
+| 375 × 667 | Standard phone |
+| 390 × 844 | Modern phone |
+| 768 × 1024 | Tablet portrait |
+| 1366 × 768 | Desktop |
+
+**On each viewport, confirm:**
+
+- No horizontal scrolling on the main tool view.
+- Primary controls and copy remain readable and tappable.
+- Footer links (Privacy, Terms) are visible and do not overlap content.
+- Ad slots (if present) stay within their container width.
+
+Tool-specific device notes may live in `docs/deploy/device-test-checklist.md`.
+
+---
+
+## Accessibility smoke
+
+Quick pass — not a full audit:
+
+- [ ] Page has `<html lang="en">` and a descriptive `<title>`.
+- [ ] One visible `<h1>` describes the tool; section headings use a logical order.
+- [ ] All interactive controls are keyboard reachable (Tab) and activatable (Enter / Space).
+- [ ] Icon-only buttons have `aria-label` (or visible text).
+- [ ] Form fields have associated `<label>` elements or `aria-label`.
+- [ ] Status / error messages use `aria-live="polite"` (or similar) where content updates dynamically.
+- [ ] Decorative images use empty `alt=""` or `aria-hidden="true"`; meaningful images have descriptive `alt` text.
+- [ ] Focus states are visible on buttons and inputs (do not remove outline without a replacement).
+- [ ] Color contrast is readable on brand backgrounds (avoid light-gray-on-white for body copy).
+
+---
+
+## Platform constraints (final gate)
+
+- [ ] Tool logic runs in the browser — no `fetch()` to NeoNema-owned APIs unless documented in [ARCHITECTURE.md](./ARCHITECTURE.md).
+- [ ] `HUB_TOOL_ID` in `index.html` matches the tool id in `hub.config.json` and `build.mjs`.
+- [ ] `npm run brand:check` still passes after all edits.
+
+---
+
+## Related docs
+
+| Doc | Purpose |
+|-----|---------|
+| [ADD_A_TOOL.md](./ADD_A_TOOL.md) | Scaffold, implement, register in hub + build |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Static-only rules, tab routing, edge exceptions |
+| [DOMAIN_CUTOVER.md](./DOMAIN_CUTOVER.md) | Canonical URLs, legacy redirects |
+| [docs/deploy/device-test-checklist.md](../deploy/device-test-checklist.md) | Extended device test notes (per-tool) |
+| [docs/deploy/adsense.md](../deploy/adsense.md) | AdSense, `ads.txt`, privacy copy |

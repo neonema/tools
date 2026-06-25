@@ -19,5 +19,8 @@ jobs:
       - name: Brand compliance
         run: npm run brand:check
 
+      - name: Build dry-run
+        run: npm run build
+
       - name: JSON converter tests
         run: npm run test:json-converters

@@ -20,6 +20,8 @@ Related: [ARCHITECTURE.md](./ARCHITECTURE.md), [LLM_PRODUCT_RULES.md](../../LLM_
 ### 1. Create the app from template
 
 ```bash
+npm run scaffold -- <tool-id> "<Tool Label>"
+# or manually:
 cp -R packages/utility-template apps/<tool-id>
 npm run sync-brand -- <tool-id>
 ```
@@ -67,6 +69,7 @@ Optional: set `"defaultTool"` if this tab should open on `/` with no hash.
 
 ### 5. Verify and deploy
 
+Complete the pre-ship checks in [TOOL_CHECKLIST.md](./TOOL_CHECKLIST.md), then:
 ```bash
 npm run brand:check
 npm run build
@@ -102,3 +105,4 @@ Do **not** add CloudFront Functions, Lambdas, or NeoNema APIs unless explicitly 
 | Build / deploy tree | `scripts/build.mjs` → `dist/` |
 | Hub routing (hash + iframe) | `apps/hub/public/app.js` |
 | Agent defaults | `AGENTS.md` |
+| Pre-ship checklist | `docs/platform/TOOL_CHECKLIST.md` |

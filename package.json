@@ -4,6 +4,7 @@
   "scripts": {
     "brand:check": "node ./scripts/brand-check.mjs",
     "sync-brand": "node ./scripts/sync-brand.mjs",
+    "scaffold": "node ./scripts/scaffold-tool.mjs",
     "dev:revealip": "python3 -m http.server 8080 --directory apps/revealip/public",
     "dev:json": "python3 -m http.server 8080 --directory apps/json/public",
     "dev:template": "python3 -m http.server 8080 --directory packages/utility-template/public",

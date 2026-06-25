@@ -13,6 +13,8 @@ This file defines mandatory instructions for AI/LLM agents working in this repos
 - Shared brand assets live in `packages/brand/` — copy into an app's `public/` when scaffolding (do not symlink).
 - New utilities start from `packages/utility-template/`.
 - **Adding a tool:** follow `docs/platform/ADD_A_TOOL.md` (manual hub + build registration; no auto-discovery).
+- **Scaffold helper:** `npm run scaffold -- <tool-id> "<Tool Label>"` — copies template + sync-brand only; see `ADD_A_TOOL.md`.
+- **Pre-ship:** `docs/platform/TOOL_CHECKLIST.md` before merge or deploy.
 - Platform architecture: `docs/platform/ARCHITECTURE.md`.
 - Deployment runbooks live in `docs/deploy/`.
 
