@@ -1,0 +1,36 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3ProdBucketList",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::neonema-tools-prod"
+    },
+    {
+      "Sid": "S3ProdBucketObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::neonema-tools-prod/*"
+    },
+    {
+      "Sid": "CloudFrontInvalidateProd",
+      "Effect": "Allow",
+      "Action": "cloudfront:CreateInvalidation",
+      "Resource": "arn:aws:cloudfront::029727239472:distribution/EGT0I63QAM75Z"
+    },
+    {
+      "Sid": "CloudFrontRevealIpFunction",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:DescribeFunction",
+        "cloudfront:UpdateFunction",
+        "cloudfront:PublishFunction"
+      ],
+      "Resource": "arn:aws:cloudfront::029727239472:function/revealip-ip-api"
+    }
+  ]
+}

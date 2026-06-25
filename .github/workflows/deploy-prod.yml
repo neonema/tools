@@ -1,0 +1,39 @@
+name: Deploy prod
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Brand compliance
+        run: npm run brand:check
+
+      - name: JSON converter tests
+        run: npm run test:json-converters
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::029727239472:role/github-neonema-tools-deploy
+          aws-region: us-east-1
+
+      - name: Deploy platform
+        env:
+          DEPLOY_CONFIG: deploy.config.prod.json
+        run: npm run deploy -- platform
