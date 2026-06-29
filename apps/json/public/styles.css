@@ -569,7 +569,7 @@ html.hub-embed .footer {
 }
 
 html.hub-embed .container {
-  padding-top: 12px;
+  padding-top: 0;
   padding-bottom: 20px;
 }
 

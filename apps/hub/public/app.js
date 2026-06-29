@@ -1,12 +1,14 @@
 const tabList = document.getElementById("tool-tabs");
-const toolDescription = document.getElementById("tool-description");
 const toolPanel = document.getElementById("tool-panel");
 
-/** @type {{ defaultTool: string; tools: { id: string; label: string; path: string; description: string }[] } | null} */
+/** @type {{ defaultTool: string; tools: { id: string; label: string; path: string }[] } | null} */
 let hubConfig = null;
 
 /** @type {Map<string, HTMLIFrameElement>} */
 const iframeByToolId = new Map();
+
+/** @type {Map<string, ResizeObserver>} */
+const resizeObserverByToolId = new Map();
 
 function getToolById(id) {
   return hubConfig?.tools.find((tool) => tool.id === id) ?? null;
@@ -40,8 +42,27 @@ function setActiveTab(toolId) {
     tab.setAttribute("aria-selected", isActive ? "true" : "false");
   });
 
-  toolDescription.textContent = tool.description;
   showToolFrame(toolId);
+}
+
+function resizeToolFrame(frame) {
+  const doc = frame.contentDocument;
+  if (!doc) return;
+
+  const height = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight);
+  frame.style.height = `${height}px`;
+}
+
+function observeToolFrame(frame, toolId) {
+  const existing = resizeObserverByToolId.get(toolId);
+  if (existing) existing.disconnect();
+
+  const doc = frame.contentDocument;
+  if (!doc?.body) return;
+
+  const observer = new ResizeObserver(() => resizeToolFrame(frame));
+  observer.observe(doc.body);
+  resizeObserverByToolId.set(toolId, observer);
 }
 
 function showToolFrame(toolId) {
@@ -59,11 +80,16 @@ function showToolFrame(toolId) {
     frame.title = tool.label;
     frame.src = tool.path;
     frame.dataset.toolId = toolId;
+    frame.addEventListener("load", () => {
+      resizeToolFrame(frame);
+      observeToolFrame(frame, toolId);
+    });
     toolPanel.appendChild(frame);
     iframeByToolId.set(toolId, frame);
   }
 
   frame.hidden = false;
+  resizeToolFrame(frame);
 }
 
 function navigateToTool(toolId, { replace = false } = {}) {

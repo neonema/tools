@@ -291,6 +291,6 @@ html.hub-embed .footer {
 
 html.hub-embed .container {
   min-height: auto;
-  padding: 20px 16px 24px;
+  padding: 0 16px 24px;
   justify-content: flex-start;
 }

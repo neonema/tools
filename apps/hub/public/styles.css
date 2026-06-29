@@ -156,33 +156,21 @@ body {
   max-width: 1120px;
   width: 100%;
   margin: 0 auto;
-  padding: 20px 16px 24px;
+  padding: 0 16px 32px;
   min-height: 0;
-}
-
-.tool-description {
-  margin: 0 0 16px;
-  color: var(--muted);
-  font-size: 0.9375rem;
-  line-height: 1.5;
 }
 
 .tool-panel {
   flex: 1;
   min-height: 0;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--card);
 }
 
 .tool-iframe {
   display: block;
   width: 100%;
-  height: calc(100vh - 200px);
-  min-height: 420px;
+  height: 0;
   border: 0;
-  background: var(--background);
+  overflow: hidden;
 }
 
 .tool-iframe[hidden] {
@@ -206,8 +194,4 @@ body {
     flex: 0 0 auto;
   }
 
-  .tool-iframe {
-    height: calc(100vh - 188px);
-    min-height: 360px;
-  }
 }
