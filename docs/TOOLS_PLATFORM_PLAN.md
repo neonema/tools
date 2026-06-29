@@ -2,8 +2,8 @@
 
 Strategic plan for turning `neonema-tools` into the single source of truth for all NeoNema utility products, served from **tools.neonema.com** with fast, repeatable deploys.
 
-**Status:** In progress (P0–P2, P4 complete)  
-**Last updated:** 2026-06-25
+**Status:** In progress (P0–P2, P4–P5 complete; P5.9 skipped)  
+**Last updated:** 2026-06-29
 
 Each priority section (P0–P7) ends with **Step verification**: for every checklist item, an **Explanation** (what “done” means) and **Manual verification** commands or browser steps you can run to confirm that phase work succeeded.
 
@@ -880,15 +880,15 @@ Mental walkthrough: follow `ADD_A_TOOL.md` for a hypothetical tool — all refer
 
 ### Checklist
 
-- [ ] **P5.1** Create IAM OIDC identity provider for GitHub in the **NeoNema tools AWS account**
-- [ ] **P5.2** IAM role `github-neonema-tools-deploy` — trust policy scoped to `repo:<org>/neonema-tools`, branch `main`
-- [ ] **P5.3** Role permissions: `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject` on prod bucket; `cloudfront:CreateInvalidation`; RevealIP function publish if edge changes
-- [ ] **P5.4** `.github/workflows/deploy-prod.yml` — on push to `main`: checkout → `npm run brand:check` → `npm run test:json-converters` → `npm run build` → `aws s3 sync` → invalidation
-- [ ] **P5.5** Use `aws-actions/configure-aws-credentials@v4` with `role-to-assume` (no long-lived keys in secrets)
-- [ ] **P5.6** Store non-secret config in repo: `deploy.config.prod.json` (bucket name, distribution ID, region) — **no** profiles; OIDC role replaces profiles
-- [ ] **P5.7** Manual `workflow_dispatch` for on-demand deploy
-- [ ] **P5.8** Update `docs/deploy/automated-deploy.md` with CI path; mark local deploy as fallback
-- [ ] **P5.9** Optional: deploy only changed app prefixes (path-filter) to speed up CI
+- [x] **P5.1** Create IAM OIDC identity provider for GitHub in the **NeoNema tools AWS account**
+- [x] **P5.2** IAM role `github-neonema-tools-deploy` — trust policy scoped to `repo:<org>/neonema-tools`, branch `main`
+- [x] **P5.3** Role permissions: `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject` on prod bucket; `cloudfront:CreateInvalidation`; RevealIP function publish if edge changes
+- [x] **P5.4** `.github/workflows/deploy-prod.yml` — on push to `main`: checkout → `npm run brand:check` → `npm run test:json-converters` → `npm run build` → `aws s3 sync` → invalidation
+- [x] **P5.5** Use `aws-actions/configure-aws-credentials@v4` with `role-to-assume` (no long-lived keys in secrets)
+- [x] **P5.6** Store non-secret config in repo: `deploy.config.prod.json` (bucket name, distribution ID, region) — **no** profiles; OIDC role replaces profiles
+- [x] **P5.7** Manual `workflow_dispatch` for on-demand deploy
+- [x] **P5.8** Update `docs/deploy/automated-deploy.md` with CI path; mark local deploy as fallback
+- [ ] **P5.9** Optional: deploy only changed app prefixes (path-filter) to speed up CI — **skipped**
 
 ### Implementation notes
 
@@ -1343,7 +1343,7 @@ Use this as the execution tracker. Details for each item are in the priority sec
 - [x] P4.2–P4.7 Scaffold, TOOL_CHECKLIST, CI build, PR template, cross-links
 
 ### P5 — GitHub deploy
-- [ ] P5.1–P5.9 OIDC + `deploy-prod.yml`
+- [x] P5.1–P5.8 OIDC + `deploy-prod.yml` + `deploy.config.prod.json` (P5.9 path-filter skipped)
 
 ### P6 — Dev environment
 - [ ] P6.1–P6.6 dev.tools.neonema.com + deploy-dev workflow
@@ -1472,6 +1472,6 @@ When adding a tool, include the hub-redirect script from `packages/utility-templ
 
 ## Next step
 
-**P0–P2 and P4 are complete** (hub shell, tabs, hash router, iframes, build, agent runbook, scaffold, pre-ship checklist, CI build dry-run, PR template).
+**P0–P2, P4, and P5 are complete** (hub shell, tabs, CI/CD to prod via GitHub Actions OIDC, agent runbook, scaffold, pre-ship checklist).
 
-Continue **P3** (legacy domain redirects) if any items remain open, then **P5** (GitHub → AWS deploy). Use `docs/platform/ADD_A_TOOL.md` whenever an agent adds a tool — no auto-registration on the hub.
+Continue **P6** (dev.tools.neonema.com + deploy-dev workflow) or **P7** (company site cross-links). Use `docs/platform/ADD_A_TOOL.md` whenever an agent adds a tool — no auto-registration on the hub.
