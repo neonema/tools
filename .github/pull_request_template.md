@@ -18,8 +18,8 @@ If this PR adds or ships a tool, confirm the steps in [docs/platform/ADD_A_TOOL.
 
 ## Test plan
 
-<!-- How did you verify? Local preview, hub tab, redirect, device/a11y smoke, etc. -->
+<!-- How did you verify? See docs/platform/PREVIEW.md — npm run dev or npm run preview, hub tab, redirect, device/a11y smoke, etc. -->
 
-- [ ] `python3 -m http.server 8765 --directory dist` — hub tab loads tool iframe
+- [ ] `npm run preview` (or `npm run dev`) — hub tab loads tool iframe
 - [ ] `/<tool-id>/` redirects to `/#/<tool-id>`
 - [ ] Footer Privacy / Terms links work

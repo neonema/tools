@@ -2,7 +2,7 @@
 
 Strategic plan for turning `neonema-tools` into the single source of truth for all NeoNema utility products, served from **tools.neonema.com** with fast, repeatable deploys.
 
-**Status:** In progress (P0–P2, P4–P5 complete; P5.9 skipped)  
+**Status:** In progress (P0–P2, P4–P6 complete; P5.9 skipped)  
 **Last updated:** 2026-06-29
 
 Each priority section (P0–P7) ends with **Step verification**: for every checklist item, an **Explanation** (what “done” means) and **Manual verification** commands or browser steps you can run to confirm that phase work succeeded.
@@ -21,7 +21,7 @@ Each priority section (P0–P7) ends with **Step verification**: for every check
 | 6 | Company site | **neonema.com** stays corporate; links out to tools.neonema.com |
 | 7 | Fast deploy platform | Templates, docs, and runbooks so agents/contributors ship a new tool in hours, not days |
 | 8 | GitHub → AWS | Push/merge to `main` deploys production from GitHub Actions |
-| 9 | Dev environment | A separate dev/staging URL for pre-production validation |
+| 9 | Pre-production preview | Local hub preview before merging to `main` (no separate staging URL) |
 
 ---
 
@@ -72,7 +72,6 @@ The hub (`apps/hub/`) is a lightweight static shell:
 | Hostname | Role | Repo ownership |
 |----------|------|----------------|
 | `tools.neonema.com` | Tools hub + all tools (production) | `neonema-tools` |
-| `dev.tools.neonema.com` | Staging / preview (placeholder) | `neonema-tools` |
 | `revealip-neonema.com` | 301 → `https://tools.neonema.com/#/revealip` | DNS redirect only |
 | `json-neonema.com` | 301 → `https://tools.neonema.com/#/json` | DNS redirect only |
 | `neonema.com` | Company marketing site | Separate repo/project; **separate AWS account**; add “Tools” nav link |
@@ -83,18 +82,16 @@ The hub (`apps/hub/`) is a lightweight static shell:
 
 | Account | Hostnames | Repo |
 |---------|-----------|------|
-| **NeoNema tools** | `tools.neonema.com`, `dev.tools.neonema.com` | `neonema-tools` (this repo) |
+| **NeoNema tools** | `tools.neonema.com` | `neonema-tools` (this repo) |
 | **NeoNema company** | `neonema.com` | Separate company-site repo |
 
 ```
 NeoNema tools AWS account          (local CLI: --profile neonema-tools)
 ├── S3: neonema-tools-prod        (tools.neonema.com)
-├── S3: neonema-tools-dev         (dev.tools.neonema.com)
 ├── CloudFront: tools-prod        (OAC → prod bucket)
-├── CloudFront: tools-dev         (OAC → dev bucket)
-├── ACM (us-east-1): tools.neonema.com, dev.tools.neonema.com
+├── ACM (us-east-1): tools.neonema.com
 ├── CloudFront Function: revealip-ip-api  (/api/ip on tools-prod)
-└── IAM: GitHub OIDC role         (deploy on push to main / dev)
+└── IAM: GitHub OIDC role         (deploy on push to main)
 ```
 
 Local deploys from this repo use the **`neonema-tools`** AWS CLI profile. See `docs/infra/README.md` for setup. Legacy per-app buckets/distributions can be retired after cutover and redirect verification.
@@ -113,7 +110,7 @@ Work top-to-bottom. Later tiers depend on earlier ones.
 | **P3** | Legacy cutover | 4 | Old domains redirect; old AWS stacks can be decommissioned |
 | **P4** | Platform velocity | 7 | LLM agent guide (`ADD_A_TOOL.md`) + optional scaffold; manual hub registration |
 | **P5** | CI/CD automation | 8 (GitHub half) | No local AWS creds required for routine deploys |
-| **P6** | Dev / staging | 9 | Safe preview URL before production |
+| **P6** | Local preview | 9 | Documented `npm run dev` / `npm run preview` before production |
 | **P7** | Company site link | 6 | neonema.com points visitors to the tools hub |
 
 ---
@@ -242,7 +239,7 @@ Both commands should exit 0. No deploy or DNS changes are expected at this stage
 - [ ] **P1.1** Consolidate legacy RevealIP / JSON stacks into the **NeoNema tools AWS account** (separate from the `neonema.com` company account) — configure local CLI profile **`neonema-tools`** — see `docs/infra/README.md`
 - [ ] **P1.2** Provision **S3** bucket `neonema-tools-prod` (private, block public access)
 - [ ] **P1.3** Provision **CloudFront** distribution with OAC, HTTPS, `tools.neonema.com` alternate domain name
-- [ ] **P1.4** Issue **ACM certificate** in `us-east-1` for `tools.neonema.com` (and `dev.tools.neonema.com` if doing P6 in parallel)
+- [ ] **P1.4** Issue **ACM certificate** in `us-east-1` for `tools.neonema.com`
 - [ ] **P1.5** Cloudflare DNS: `tools` CNAME → CloudFront distribution domain (see `docs/deploy/cloudflare-dns.md`)
 - [ ] **P1.6** Add `scripts/build.mjs` — assembles deployable tree from `apps/hub/public`, `apps/json/public`, `apps/revealip/public` into `dist/` with correct prefixes
 - [ ] **P1.7** Extend `deploy.config.example.json` with a `platform` (or `tools-hub`) entry pointing at `dist/` and the new bucket/distribution
@@ -318,7 +315,7 @@ Distribution status should be **Deployed**. Origin must use OAC (not legacy OAI 
 
 #### P1.4 — ACM certificate
 
-**Explanation:** TLS cert in `us-east-1` (required for CloudFront) covering `tools.neonema.com` and optionally `dev.tools.neonema.com`.
+**Explanation:** TLS cert in `us-east-1` (required for CloudFront) covering `tools.neonema.com`.
 
 **Manual verification:**
 
@@ -898,7 +895,6 @@ Split config by environment:
 |------|---------|----------|
 | `deploy.config.prod.json` | Yes | bucket, distribution ID, region, invalidate paths |
 | `deploy.config.local.json` | No (gitignored) | overrides + `awsProfile: "neonema-tools"` for local dev |
-| `deploy.config.dev.json` | Yes | dev bucket + distribution (P6) |
 
 Workflow skeleton:
 
@@ -1083,145 +1079,142 @@ If implemented: change only `apps/json/` in a PR, merge, and confirm workflow lo
 
 ---
 
-## P6 — Dev / staging environment
+## P6 — Local preview workflow
 
 **Covers:** requirement 9  
-**Effort:** ~1 day  
-**Depends on:** P1 (same patterns), P5 (reuse workflow with different config)
+**Effort:** ~2 hours (docs + small script polish)  
+**Depends on:** P2 (hub shell exists)
+
+**Scope change (2026-06-29):** P6 no longer provisions `dev.tools.neonema.com`, a dev S3 bucket, or a `deploy-dev` workflow. Pre-production validation happens on **localhost** via existing dev/preview scripts. A hosted staging URL remains a future enhancement if needed.
+
+### What already exists in the repo
+
+| Capability | Location | Status |
+|------------|----------|--------|
+| Fast hub dev server (no build) | `scripts/dev.mjs` → `npm run dev` | Implemented; under-documented |
+| Prod-like `dist/` preview | `npm run build` + static server | Documented in `ADD_A_TOOL.md`, `TOOL_CHECKLIST.md` |
+| Per-tool standalone dev | `npm run dev:json`, `dev:revealip` | Implemented; documented in README |
+
+`scripts/dev.mjs` mounts the hub at `/`, tool subtrees at `/json/` and `/revealip/`, and serves `hub.config.json` — same tab + iframe flow as production, without a build step.
 
 ### Checklist
 
-- [ ] **P6.1** S3 bucket `neonema-tools-dev` + CloudFront `dev.tools.neonema.com`
-- [ ] **P6.2** `deploy.config.dev.json` in repo (dev bucket + distribution ID)
-- [ ] **P6.3** `.github/workflows/deploy-dev.yml` — deploy on push to `dev` branch **or** `workflow_dispatch` from PR branches (choose one)
-- [ ] **P6.4** Optional: robots `noindex` on dev (`apps/hub/public/robots.txt` variant or build flag)
-- [ ] **P6.5** Document dev URL in README and `docs/platform/ENVIRONMENTS.md`
-- [ ] **P6.6** Placeholder hub banner: “Development — not production” (build-time flag `DEPLOY_ENV=dev`)
+- [x] **P6.1** Add `npm run preview` — `npm run build` then serve `dist/` on port 8765 (prod-like local URL)
+- [x] **P6.2** Document hub preview in README: `npm run dev` (fast) vs `npm run preview` (prod-like)
+- [x] **P6.3** Add `docs/platform/PREVIEW.md` — when to use each mode, RevealIP `/api/ip` caveat, hub smoke URLs
+- [x] **P6.4** Cross-link preview doc from `ADD_A_TOOL.md`, `TOOL_CHECKLIST.md`, and PR template
+- [x] **P6.5** Optional: `npm run dev` auto-registers new tool mounts when `scripts/build.mjs` `APPS` grows (or document manual `MOUNTS` update in `ADD_A_TOOL.md`)
 
 ### Implementation notes
 
-Minimal viable dev setup:
+Two preview modes cover requirement 9:
 
-- **Branch `dev`** → auto-deploy to `dev.tools.neonema.com`
-- **`main`** → production only
-- PR previews can be a later enhancement (per-PR prefixes are higher effort)
+| Mode | Command | Use when |
+|------|---------|----------|
+| **Fast dev** | `npm run dev` | Iterating on hub tabs, styles, or tool UI — no build step |
+| **Prod-like** | `npm run preview` | Verifying redirects, `dist/` layout, and pre-merge hub smoke tests |
+
+RevealIP `/api/ip` still requires deployed CloudFront (or AWS console function test) — document in `PREVIEW.md`; local preview cannot fully exercise edge compute.
+
+**Deferred (not P6):** hosted staging at `dev.tools.neonema.com`, `deploy.config.dev.json`, `.github/workflows/deploy-dev.yml`, dev banner, staging `noindex`. Pick up only if local preview proves insufficient for contributors.
 
 ### Step verification
 
-#### P6.1 — Dev S3 + CloudFront
+#### P6.1 — `npm run preview`
 
-**Explanation:** Separate `neonema-tools-dev` bucket and distribution serve `dev.tools.neonema.com` without touching production.
+**Explanation:** One command builds `dist/` and serves it locally — same tree CI deploys to production.
 
 **Manual verification:**
 
 ```bash
-aws s3api get-bucket-location --bucket neonema-tools-dev
-aws cloudfront list-distributions --query "DistributionList.Items[?Aliases.Items[?@=='dev.tools.neonema.com']].[Id,Status]" --output table
-curl -sI "https://dev.tools.neonema.com/" | head -5
+grep '"preview"' package.json
+npm run preview &
+sleep 2
+curl -sI "http://localhost:8765/" | head -3
+curl -sI "http://localhost:8765/json/" | head -3   # expect redirect to /#/json
+kill %1 2>/dev/null
 ```
 
-HTTPS should succeed. Content may differ from prod (see P6.6 banner).
+Browser: `http://localhost:8765/#/json` and `http://localhost:8765/#/revealip` load hub tabs and iframes.
 
 ---
 
-#### P6.2 — `deploy.config.dev.json`
+#### P6.2 — README preview section
 
-**Explanation:** Committed config points deploy script at dev bucket and distribution ID.
+**Explanation:** Contributors find `npm run dev` and `npm run preview` without reading platform internals.
 
 **Manual verification:**
 
 ```bash
-test -f deploy.config.dev.json
-node -e "console.log(JSON.parse(require('fs').readFileSync('deploy.config.dev.json')))"
-npm run deploy -- platform --config deploy.config.dev.json --dry-run
+grep -E "npm run dev|npm run preview" README.md
 ```
 
-Dry-run must target `neonema-tools-dev`, not prod bucket name.
+README should list both commands with port `8765` and when to use each.
 
 ---
 
-#### P6.3 — `deploy-dev.yml` workflow
+#### P6.3 — `docs/platform/PREVIEW.md`
 
-**Explanation:** Pushes to `dev` branch (or manual dispatch) deploy staging automatically.
-
-**Manual verification:**
-
-```bash
-test -f .github/workflows/deploy-dev.yml
-grep -E "dev|workflow_dispatch|deploy.config.dev" .github/workflows/deploy-dev.yml
-```
-
-```bash
-git push origin main:dev   # or merge to dev branch
-gh run list --workflow=deploy-dev.yml --limit 3
-```
-
-After success: `curl -sI "https://dev.tools.neonema.com/json/" | head -3`
-
----
-
-#### P6.4 — `noindex` on dev
-
-**Explanation:** Staging should not be indexed by search engines.
+**Explanation:** Single runbook for pre-production validation — hub URLs, per-tool dev servers, RevealIP edge caveat.
 
 **Manual verification:**
 
 ```bash
-npm run build   # with DEPLOY_ENV=dev if build flag exists
-grep -i noindex dist/robots.txt apps/hub/public/robots.txt 2>/dev/null
-curl -s "https://dev.tools.neonema.com/robots.txt"
-```
-
-`robots.txt` on dev should contain `Disallow: /` or pages should include `<meta name="robots" content="noindex">`.
-
----
-
-#### P6.5 — Document dev URL
-
-**Explanation:** README and env doc tell contributors where to preview before merging to `main`.
-
-**Manual verification:**
-
-```bash
-grep -i "dev.tools.neonema.com" README.md docs/platform/ENVIRONMENTS.md
-test -f docs/platform/ENVIRONMENTS.md && grep -i "staging\|dev" docs/platform/ENVIRONMENTS.md
+test -f docs/platform/PREVIEW.md
+grep -E "npm run dev|npm run preview|8765|/api/ip" docs/platform/PREVIEW.md
 ```
 
 ---
 
-#### P6.6 — Dev banner
+#### P6.4 — Cross-links
 
-**Explanation:** Visible “Development — not production” banner avoids confusing testers or users who land on staging.
+**Explanation:** Agent runbook, pre-ship checklist, and PR template point at the preview doc.
 
 **Manual verification:**
 
 ```bash
-curl -s "https://dev.tools.neonema.com/" | grep -i "development\|not production"
+grep -l "PREVIEW.md" docs/platform/ADD_A_TOOL.md docs/platform/TOOL_CHECKLIST.md .github/pull_request_template.md
 ```
 
-Browser: dev site shows banner; `https://tools.neonema.com/` does **not** show the same banner.
+---
+
+#### P6.5 — Dev server mount parity (optional)
+
+**Explanation:** Adding a tool should not silently break `npm run dev` while `npm run build` still works.
+
+**Manual verification:**
+
+```bash
+# After adding a tool to scripts/build.mjs APPS:
+grep -A20 "const MOUNTS" scripts/dev.mjs
+grep -A10 "const APPS" scripts/build.mjs
+```
+
+Mount list in `dev.mjs` should match build `APPS` tool prefixes (or `ADD_A_TOOL.md` documents updating both).
 
 ---
 
 #### P6 phase complete
 
-**Explanation:** Staging mirrors prod deploy pipeline on a separate origin; safe to break things without affecting users.
+**Explanation:** Contributors can validate hub + tool changes locally before merge; no AWS staging infra required.
 
 **Manual verification:**
 
 ```bash
-# Prod vs dev should differ only by env banner/config, not broken tools:
-diff <(curl -sI "https://tools.neonema.com/json/" | head -1) \
-     <(curl -sI "https://dev.tools.neonema.com/json/" | head -1)
-npm run deploy -- platform --config deploy.config.dev.json --dry-run
+npm run dev &
+sleep 1 && curl -s "http://localhost:8765/" | grep -i "NeoNema Tools"
+kill %1 2>/dev/null
+npm run preview &
+sleep 3 && curl -s "http://localhost:8765/#/json" -o /dev/null -w "%{http_code}\n"
+kill %1 2>/dev/null
 ```
 
 Checklist:
 
-- [ ] `dev.tools.neonema.com` loads hub + tools
-- [ ] Dev deploy workflow green on last `dev` branch push
-- [ ] `robots.txt` or meta prevents indexing
-- [ ] Dev banner visible on staging only
+- [x] `npm run dev` serves hub + tabs without build
+- [x] `npm run preview` serves built `dist/` matching deploy output
+- [x] `docs/platform/PREVIEW.md` exists and is linked from contributor docs
+- [x] PR authors know which preview mode to cite in test plans
 
 ---
 
@@ -1345,8 +1338,8 @@ Use this as the execution tracker. Details for each item are in the priority sec
 ### P5 — GitHub deploy
 - [x] P5.1–P5.8 OIDC + `deploy-prod.yml` + `deploy.config.prod.json` (P5.9 path-filter skipped)
 
-### P6 — Dev environment
-- [ ] P6.1–P6.6 dev.tools.neonema.com + deploy-dev workflow
+### P6 — Local preview
+- [x] P6.1–P6.5 `npm run preview` + `docs/platform/PREVIEW.md` + README cross-links
 
 ### P7 — Company site
 - [ ] P7.1–P7.4 Links between neonema.com and tools.neonema.com
@@ -1355,6 +1348,7 @@ Use this as the execution tracker. Details for each item are in the priority sec
 
 | Item | Why deferred | When picked up |
 |------|--------------|----------------|
+| **`dev.tools.neonema.com` staging** | Local preview covers pre-merge validation | Hosted staging + `deploy-dev` workflow if local preview is insufficient |
 | **`www` legacy hostnames** | Apex redirects live; `www` DNS/verification incomplete | Add proxied `www` CNAME per zone in Cloudflare; verify `curl -4` |
 | **Remove Google AdSense** | Sites are not monetized; ad infra adds weight and third-party scripts | See [Remove AdSense (backlog)](#remove-adsense-backlog) below |
 
@@ -1403,7 +1397,7 @@ npm run build && npm run deploy -- platform
 | **Sprint 1** | P0 + P1 | `tools.neonema.com` serves `/json/` and `/revealip/` from unified build (hub can be a simple index listing tools) |
 | **Sprint 2** | P2 + P3 | Tabbed hub verified; legacy domains redirect |
 | **Sprint 3** | P4 + P5 | `ADD_A_TOOL.md` + optional scaffold; merge to `main` deploys prod |
-| **Sprint 4** | P6 + P7 | Dev URL; company site cross-links |
+| **Sprint 4** | P6 + P7 | Local preview docs; company site cross-links |
 
 ---
 
@@ -1417,15 +1411,13 @@ scripts/build.mjs                  # assemble dist/ for deploy
 scripts/scaffold-tool.mjs          # optional: copy utility-template only (P4)
 dist/                              # build output (gitignored)
 deploy.config.prod.json            # CI-safe prod config
-deploy.config.dev.json             # dev config
 .github/workflows/deploy-prod.yml
-.github/workflows/deploy-dev.yml
 docs/platform/
   ARCHITECTURE.md
   ADD_A_TOOL.md                    # LLM agent runbook for new tools (P4)
   TOOL_CHECKLIST.md
   DOMAIN_CUTOVER.md
-  ENVIRONMENTS.md
+  PREVIEW.md                       # local preview runbook (P6)
 infra/                             # optional Terraform/CDK (P1/P5)
 ```
 
@@ -1437,7 +1429,7 @@ infra/                             # optional Terraform/CDK (P1/P5)
 |----------|---------|--------------|
 | AWS account layout | Single account for everything vs tools + company split | **Two accounts** — NeoNema tools account (`neonema-tools` profile) for this repo; company account for `neonema.com` |
 | Tab content loading | iframe vs inlined HTML/JS | **iframe first** (P0.5); inlined later for polish |
-| Dev deploy trigger | `dev` branch vs manual dispatch | `dev` branch auto-deploy + manual dispatch for hotfixes |
+| Dev deploy trigger | `dev` branch vs manual dispatch | **Deferred** — local preview (`npm run dev` / `npm run preview`) instead of `dev.tools.neonema.com` |
 | IaC timing | Manual AWS Console vs Terraform now | Console for Sprint 1; Terraform before P5 |
 | Default hub tab | Landing page vs first tool | `defaultTool` in `hub.config.json` (currently `json`) |
 | AdSense | Per-tool only vs hub too | Per-tool subtrees only (current pattern) |
@@ -1472,6 +1464,6 @@ When adding a tool, include the hub-redirect script from `packages/utility-templ
 
 ## Next step
 
-**P0–P2, P4, and P5 are complete** (hub shell, tabs, CI/CD to prod via GitHub Actions OIDC, agent runbook, scaffold, pre-ship checklist).
+**P0–P2, P4–P6, and P5 are complete** (hub shell, tabs, CI/CD to prod via GitHub Actions OIDC, agent runbook, scaffold, pre-ship checklist, local preview).
 
-Continue **P6** (dev.tools.neonema.com + deploy-dev workflow) or **P7** (company site cross-links). Use `docs/platform/ADD_A_TOOL.md` whenever an agent adds a tool — no auto-registration on the hub.
+Continue **P7** (company site cross-links). Use `docs/platform/ADD_A_TOOL.md` whenever an agent adds a tool — no auto-registration on the hub.

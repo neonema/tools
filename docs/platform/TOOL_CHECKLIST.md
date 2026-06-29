@@ -66,11 +66,13 @@ grep -iE "Allow:|Disallow:" apps/<tool-id>/public/robots.txt
 
 ## Hub integration
 
-After `npm run build`, preview from `dist/`:
+Prod-like preview (builds `dist/` then serves on port 8765):
 
 ```bash
-python3 -m http.server 8765 --directory dist
+npm run preview
 ```
+
+For fast iteration without a build step, use `npm run dev` instead. See [PREVIEW.md](./PREVIEW.md).
 
 | Check | Expected |
 |-------|----------|
@@ -141,6 +143,7 @@ Quick pass — not a full audit:
 | Doc | Purpose |
 |-----|---------|
 | [ADD_A_TOOL.md](./ADD_A_TOOL.md) | Scaffold, implement, register in hub + build |
+| [PREVIEW.md](./PREVIEW.md) | `npm run dev` vs `npm run preview`, smoke URLs |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Static-only rules, tab routing, edge exceptions |
 | [DOMAIN_CUTOVER.md](./DOMAIN_CUTOVER.md) | Canonical URLs, legacy redirects |
 | [docs/deploy/device-test-checklist.md](../deploy/device-test-checklist.md) | Extended device test notes (per-tool) |

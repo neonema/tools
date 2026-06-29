@@ -21,10 +21,21 @@
 
 ## Local development
 
+**Hub preview** (tab bar + iframes, port 8765):
+
 ```bash
-npm run dev:revealip    # http://localhost:8080
-npm run dev:json        # http://localhost:8080
-npm run dev:template    # http://localhost:8080
+npm run dev       # fast — no build; serves apps/ directly
+npm run preview   # prod-like — builds dist/ then serves it (pre-merge smoke tests)
+```
+
+See [docs/platform/PREVIEW.md](docs/platform/PREVIEW.md) for smoke URLs and the RevealIP `/api/ip` caveat.
+
+**Single-tool dev** (focused work, port 8080):
+
+```bash
+npm run dev:revealip
+npm run dev:json
+npm run dev:template
 ```
 
 ## Quality checks
@@ -54,6 +65,7 @@ See [docs/deploy/automated-deploy.md](docs/deploy/automated-deploy.md).
 
 ## Documentation
 
+- [Local preview](docs/platform/PREVIEW.md) — `npm run dev` vs `npm run preview`
 - [Platform architecture](docs/platform/ARCHITECTURE.md) — single-origin model, static-only rules, tab routing
 - [Platform plan & checklist](docs/TOOLS_PLATFORM_PLAN.md) — P0–P7 execution tracker
 - [Deployment guides](docs/deploy/) — AWS, Cloudflare, AdSense, automated deploy

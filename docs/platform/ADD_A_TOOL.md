@@ -50,6 +50,14 @@ Add an entry to the `APPS` array in `scripts/build.mjs`:
 
 This copies the tool into `dist/<tool-id>/` so the hub iframe can load `/<tool-id>/index.html` and assets are served from the unified origin.
 
+For **fast local dev** (`npm run dev`), add a matching mount in `scripts/dev.mjs` `MOUNTS`:
+
+```javascript
+{ mount: "/<tool-id>", dir: "apps/<tool-id>/public" },
+```
+
+`npm run preview` only needs the `build.mjs` entry. See [PREVIEW.md](./PREVIEW.md).
+
 ### 4. Register a hub tab
 
 Add a tool object to `apps/hub/hub.config.json`:
@@ -70,14 +78,13 @@ Optional: set `"defaultTool"` if this tab should open on `/` with no hash.
 ### 5. Verify and deploy
 
 Complete the pre-ship checks in [TOOL_CHECKLIST.md](./TOOL_CHECKLIST.md), then:
+
 ```bash
 npm run brand:check
-npm run build
-# Local preview:
-python3 -m http.server 8765 --directory dist
+npm run preview
 ```
 
-Browser checks:
+Browser checks (see [PREVIEW.md](./PREVIEW.md)):
 
 - `http://localhost:8765/#/<tool-id>` — tab active, iframe loads the tool
 - `http://localhost:8765/<tool-id>/` — redirects to `/#/<tool-id>` (not a standalone landing page)
@@ -106,3 +113,4 @@ Do **not** add CloudFront Functions, Lambdas, or NeoNema APIs unless explicitly 
 | Hub routing (hash + iframe) | `apps/hub/public/app.js` |
 | Agent defaults | `AGENTS.md` |
 | Pre-ship checklist | `docs/platform/TOOL_CHECKLIST.md` |
+| Local preview | `docs/platform/PREVIEW.md` |

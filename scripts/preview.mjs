@@ -3,7 +3,7 @@ import { readFileSync, existsSync, statSync } from "node:fs";
 import { resolve, join, extname, normalize } from "node:path";
 import { listenOnPort } from "./lib/listen-dev-server.mjs";
 
-const rootDir = resolve(import.meta.dirname, "..");
+const rootDir = resolve(import.meta.dirname, "..", "dist");
 const port = Number(process.env.PORT) || 8765;
 
 const MIME = {
@@ -17,18 +17,16 @@ const MIME = {
   ".txt": "text/plain; charset=utf-8",
 };
 
-/** @type {{ mount: string; dir: string }[]} */
-const MOUNTS = [
-  { mount: "/json", dir: "apps/json/public" },
-  { mount: "/revealip", dir: "apps/revealip/public" },
-];
+if (!existsSync(rootDir)) {
+  console.error("preview: dist/ not found — run npm run build first");
+  process.exit(1);
+}
 
-function resolvePublic(appRel, urlPath) {
+function resolveFile(urlPath) {
   const safePath = normalize(urlPath).replace(/^(\.\.(\/|\\|$))+/, "");
-  const baseDir = join(rootDir, appRel);
-  let filePath = join(baseDir, safePath);
+  let filePath = join(rootDir, safePath === "/" ? "index.html" : safePath);
 
-  if (!filePath.startsWith(baseDir)) {
+  if (!filePath.startsWith(rootDir)) {
     return null;
   }
 
@@ -37,21 +35,6 @@ function resolvePublic(appRel, urlPath) {
   }
 
   return existsSync(filePath) && statSync(filePath).isFile() ? filePath : null;
-}
-
-function resolveFile(urlPath) {
-  if (urlPath === "/hub.config.json") {
-    return resolve(rootDir, "apps/hub/hub.config.json");
-  }
-
-  for (const { mount, dir } of MOUNTS) {
-    if (urlPath === mount || urlPath.startsWith(`${mount}/`)) {
-      const rel = urlPath.slice(mount.length) || "/";
-      return resolvePublic(dir, rel);
-    }
-  }
-
-  return resolvePublic("apps/hub/public", urlPath === "/" ? "/index.html" : urlPath);
 }
 
 const server = http.createServer((req, res) => {
@@ -70,9 +53,9 @@ const server = http.createServer((req, res) => {
   res.end(body);
 });
 
-await listenOnPort(server, port, "dev");
+await listenOnPort(server, port, "preview");
 
-console.log("NeoNema tools dev server (no build step)");
+console.log("NeoNema tools preview (built dist/)");
 console.log(`  http://localhost:${port}/`);
 console.log(`  http://localhost:${port}/#/json`);
 console.log(`  http://localhost:${port}/#/revealip`);
