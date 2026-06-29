@@ -104,20 +104,34 @@ body {
 }
 /* BRAND_LOCK_END */
 
-.hub-nav {
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--header-bg) 72%, transparent);
+body > .header {
+  border-bottom: none;
+  box-shadow: 0 1px 0 var(--border);
 }
 
-.hub-nav-inner {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 12px 16px;
+.hub-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.hub-header-inner .brand {
+  flex-shrink: 0;
+}
+
+.hub-nav {
+  flex: 0 1 auto;
+  min-width: 0;
+  border: none;
+  background: none;
 }
 
 .hub-tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
   gap: 8px;
 }
 
@@ -156,7 +170,7 @@ body {
   max-width: 1120px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 16px 32px;
+  padding: 16px 16px 32px;
   min-height: 0;
 }
 
@@ -178,16 +192,16 @@ body {
 }
 
 @media (max-width: 768px) {
-  .hub-nav-inner {
-    padding: 10px 12px;
+  .hub-header-inner {
+    gap: 12px;
+    padding-top: 6px;
+    padding-bottom: 6px;
   }
 
   .hub-tabs {
-    flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    padding-bottom: 2px;
   }
 
   .hub-tab {
