@@ -1,0 +1,17 @@
+{
+  "_comment": "Production deploy targets for GitHub Actions (P5). OIDC role github-neonema-tools-deploy supplies CI credentials.",
+  "apps": {
+    "platform": {
+      "source": "dist",
+      "s3Bucket": "neonema-tools-prod",
+      "s3Region": "us-east-1",
+      "cloudfrontDistributionId": "EGT0I63QAM75Z",
+      "s3SyncDelete": false,
+      "invalidatePaths": ["/*"],
+      "edge": {
+        "cloudfrontFunctionName": "revealip-ip-api",
+        "functionSource": "apps/revealip/cloudfront/ip-api-function.js"
+      }
+    }
+  }
+}
