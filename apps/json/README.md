@@ -28,8 +28,10 @@ npm run test:json-converters
 
 ## Deploy
 
-Upload `apps/json/public/*` to your S3 bucket (bucket root, not a `public/` prefix). See [docs/deploy/](../../docs/deploy/) for AWS, Cloudflare, and AdSense guides.
+This tool deploys as part of the platform — `npm run build` copies `public/` into `dist/json/`, and a push to `main` ships it. See [docs/deploy/automated-deploy.md](../../docs/deploy/automated-deploy.md).
+
+Public entry is `https://tools.neonema.com/#/json`; `/json/` serves iframe assets only.
 
 ## Roadmap
 
-See `idea.md` in this directory for planned features.
+`idea.md` in this directory is an unfiltered brainstorm of candidate JSON tools — not a committed plan.

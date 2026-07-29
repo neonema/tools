@@ -1,14 +1,15 @@
-# RevealIP CloudFront Function (`/api/ip`)
+# CloudFront Functions
 
-RevealIP is the only current app that requires an edge function. The JSON toolkit is fully static.
+Two edge functions run on the production distribution. Everything else on the platform is static files.
 
-## Source file
-
-`apps/revealip/cloudfront/ip-api-function.js`
+| Function | Source | Purpose |
+|----------|--------|---------|
+| `revealip-ip-api` | `apps/revealip/cloudfront/ip-api-function.js` | Serves `/api/ip` — returns the viewer's IP to the browser |
+| `tools-uri-rewrite` | `apps/hub/cloudfront/uri-rewrite-function.js` | Directory URLs: tool roots → hub hash routes, others → `index.html` |
 
 ## Platform distribution (`tools.neonema.com`)
 
-On the **unified** production distribution (`platform` in `deploy.config.json`):
+On the production distribution (`platform` in `deploy.config.json`):
 
 | Setting | Value |
 |---------|--------|
@@ -21,12 +22,22 @@ RevealIP at `https://tools.neonema.com/revealip/` calls `/api/ip` on the **same 
 
 ### Directory URLs (`/json/`, `/revealip/`)
 
-Tool root paths redirect to the hub — they are not public landing URLs. CloudFront Function **`tools-uri-rewrite`** (`apps/hub/cloudfront/uri-rewrite-function.js`) on the default `*` behavior returns `301` to `/#/json` or `/#/revealip` for `/json` and `/revealip` directory paths. Tool `index.html` also redirects top-level visits to the hub; iframe embeds (`/json/index.html`) are unchanged.
+Tool root paths are not public landing URLs. CloudFront Function **`tools-uri-rewrite`** (`apps/hub/cloudfront/uri-rewrite-function.js`) on the default `*` behavior returns `301` to `/#/json` or `/#/revealip`, and rewrites other directory paths to `index.html`. Tool `index.html` also redirects top-level visits to the hub as a fallback; iframe embeds (`/json/index.html`) are unchanged.
 
-Publish function code updates:
+### Publishing both functions
 
 ```bash
-# Republish tools-uri-rewrite in the AWS Console, or via CLI (see ARCHITECTURE.md)
+npm run deploy:edge -- platform --dry-run
+npm run deploy:edge -- platform
+```
+
+This publishes `revealip-ip-api` and `tools-uri-rewrite` from the `edge` array in the deploy config. Republish after **any** edit under `apps/*/cloudfront/` — a stale published version is silent, and the site keeps serving the old behavior.
+
+Verify:
+
+```bash
+curl -s  "https://tools.neonema.com/api/ip"
+curl -sI "https://tools.neonema.com/json/" | grep -iE "HTTP/|location:"   # expect 301
 ```
 
 ## First-time setup (AWS Console)

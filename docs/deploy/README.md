@@ -1,58 +1,32 @@
 # Deployment Guides
 
-Shared runbooks for NeoNema static utility sites (S3 + CloudFront + optional Cloudflare + AdSense).
+Runbooks for the NeoNema tools platform: one S3 bucket + one CloudFront distribution serving `tools.neonema.com`, with DNS in Cloudflare.
 
-## Target: single-origin platform deploy
-
-**Default model for new work:** one S3 bucket + one CloudFront distribution at `tools.neonema.com`.
+## Deploy model
 
 | URL path | Source in repo | Build output |
 |----------|----------------|--------------|
 | `/` | `apps/hub/public/` | `dist/index.html` |
-| `/json/` | `apps/json/public/` | `dist/json/` (iframe assets; redirects to `/#/json` if opened directly) |
-| `/revealip/` | `apps/revealip/public/` | `dist/revealip/` (iframe assets; redirects to `/#/revealip` if opened directly) |
+| `/json/` | `apps/json/public/` | `dist/json/` (iframe assets; 301s to `/#/json` if opened directly) |
+| `/revealip/` | `apps/revealip/public/` | `dist/revealip/` (iframe assets; 301s to `/#/revealip`) |
+| `/api/ip` | `apps/revealip/cloudfront/ip-api-function.js` | CloudFront Function on the same distribution |
 
-`scripts/build.mjs` assembles `dist/`; deploy with `npm run deploy -- platform` (P1). Full spec: [platform/ARCHITECTURE.md](../platform/ARCHITECTURE.md).
+`scripts/build.mjs` assembles `dist/`; push to `main` deploys it, or run `npm run deploy -- platform` locally. Full spec: [platform/ARCHITECTURE.md](../platform/ARCHITECTURE.md).
 
-**Interim:** per-app buckets and `npm run deploy -- json` / `revealip` still work until cutover into the NeoNema tools account (`neonema-tools` profile for platform deploy).
-
-**AWS accounts:** `tools.neonema.com` deploys to the **NeoNema tools account** via profile `neonema-tools`. `neonema.com` is a separate account/repo. See [infra/README.md](../infra/README.md).
+**AWS accounts:** `tools.neonema.com` lives in the NeoNema tools account (profile `neonema-tools`). `neonema.com` is a separate account and repo. See [infra/README.md](../infra/README.md).
 
 ## Guides
 
 | Guide | Description |
 |-------|-------------|
+| [automated-deploy.md](./automated-deploy.md) | CI deploy and local `npm run deploy` fallback |
 | [aws-s3-cloudfront.md](./aws-s3-cloudfront.md) | S3 bucket, CloudFront distribution, OAC, ACM |
 | [cloudflare-dns.md](./cloudflare-dns.md) | Cloudflare DNS → CloudFront |
-| [adsense.md](./adsense.md) | Google AdSense setup |
-| [device-test-checklist.md](./device-test-checklist.md) | Pre-release QA checklist |
-| [order-of-operations.md](./order-of-operations.md) | RevealIP launch sequence |
-| [revealip-cloudfront-function.md](./revealip-cloudfront-function.md) | Edge function for `/api/ip` |
-| [automated-deploy.md](./automated-deploy.md) | `npm run deploy` scripts (S3 sync + invalidation) |
+| [edge-functions.md](./edge-functions.md) | Edge functions: `/api/ip` and directory URLs |
 
-## Deploy paths
+## Conventions
 
-### Platform (target)
-
-Upload `dist/` after `npm run build`:
-
-- `dist/index.html` → bucket root (`tools.neonema.com/`)
-- `dist/json/*` → `json/` prefix
-- `dist/revealip/*` → `revealip/` prefix
-- RevealIP `/api/ip` → CloudFront Function on the **same** distribution
-
-### Per-app (interim / legacy)
-
-Upload the **contents** of each app's `public/` folder to a dedicated bucket root:
-
-| App | Local path | Notes |
-|-----|------------|-------|
-| RevealIP | `apps/revealip/public/` | Requires CloudFront Function for `/api/ip` |
-| JSON Toolkit | `apps/json/public/` | Fully static; no edge functions |
-
-## Monorepo convention
-
-- Platform hub homepage: `index.html` at bucket root (from `apps/hub/public/`)
-- Tool subtrees: `json/index.html`, `revealip/index.html`, etc.
-- After deploy, invalidate CloudFront cache for changed paths
-- `ads.txt` and `robots.txt` live in each app's `public/` folder
+- Hub `index.html` sits at the bucket root; tools live under `json/`, `revealip/`, … prefixes.
+- `robots.txt` at the origin root (`apps/hub/public/`) governs crawling for the whole site.
+- Invalidate CloudFront after deploy — `npm run deploy` does this for `/*` by default.
+- No `ads.txt` and no ad or analytics scripts anywhere on the platform.

@@ -1,43 +1,51 @@
-# AGENTS: NeoNema Utility Website Standards
+# AGENTS: NeoNema Tools — working rules
 
-This file defines mandatory instructions for AI/LLM agents working in this repository.
+Mandatory instructions for AI/LLM agents working in this repository.
+Brand, palette, and copy rules live in [LLM_PRODUCT_RULES.md](LLM_PRODUCT_RULES.md) — this file covers structure, platform constraints, and workflow.
 
-## Core Product Direction
-- Build **utility websites** for NeoNema.
-- Default scope is **one-page websites**.
-- Prefer static architecture and browser-first implementation.
+## Core product direction
 
-## Monorepo Layout
-- Live products live under `apps/<name>/` (each has its own `public/` deploy folder).
-- The tools hub shell lives under `apps/hub/` (tab navigation for tools.neonema.com).
-- Shared brand assets live in `packages/brand/` — copy into an app's `public/` when scaffolding (do not symlink).
-- New utilities start from `packages/utility-template/`.
-- **Adding a tool:** follow `docs/platform/ADD_A_TOOL.md` (manual hub + build registration; no auto-discovery).
-- **Scaffold helper:** `npm run scaffold -- <tool-id> "<Tool Label>"` — copies template + sync-brand only; see `ADD_A_TOOL.md`.
-- **Pre-ship:** `docs/platform/TOOL_CHECKLIST.md` before merge or deploy.
-- Platform architecture: `docs/platform/ARCHITECTURE.md`.
-- Deployment runbooks live in `docs/deploy/`.
+- Build **utility websites** for NeoNema. Default scope is **one page per tool**.
+- Static architecture, browser-first implementation, no signups.
+- The promise to users: nothing they paste, upload, or type leaves their browser.
 
-## Platform Deploy Model
-- **Target:** single origin at `tools.neonema.com` — one S3 bucket + one CloudFront distribution in the **NeoNema tools AWS account**.
-- **AWS CLI profile:** local deploys use `--profile neonema-tools` (see `docs/infra/README.md`). The company site (`neonema.com`) lives in a separate AWS account and repo.
-- **Build output:** `scripts/build.mjs` assembles `apps/hub/public`, `apps/json/public`, `apps/revealip/public`, etc. into `dist/` with path prefixes (`/json/`, `/revealip/`).
-- **Deploy:** `npm run deploy -- platform` syncs `dist/` to the prod bucket (see `docs/platform/ARCHITECTURE.md`).
-- Per-app deploy (`npm run deploy -- json`) remains during migration; new work should assume the unified model.
+## Monorepo layout
 
-## Cost and Overhead Rules
-- **No backend:** tools are static CDN sites; all processing happens in the browser (`public/app.js`). No `fetch()` to NeoNema-owned APIs.
-- Avoid adding APIs, backend services, databases, or third-party dependencies unless explicitly requested.
-- **Documented exception:** RevealIP `/api/ip` via CloudFront Function only — see `docs/platform/ARCHITECTURE.md`.
-- Avoid features that create rate-limiting risk, recurring usage fees, or operational overhead.
-- Prefer client-side processing in each app's `public/app.js`.
+| Path | Purpose |
+|------|---------|
+| `apps/hub/` | Tools hub shell — tab bar and hash router for tools.neonema.com |
+| `apps/<tool>/public/` | One deployable static tool per folder |
+| `packages/brand/` | Canonical tokens, header lock, parent logo — copy into apps, never symlink |
+| `packages/utility-template/` | Starting point for new tools |
+| `scripts/` | Build, deploy, scaffold, brand sync and check |
+| `docs/` | Platform, deploy, and infra runbooks |
 
-## Theme and Palette Rules
-- Always keep the NeoNema design system and color palette aligned with `LLM_PRODUCT_RULES.md`.
-- Do not introduce a conflicting visual language or random color sets.
-- Source canonical tokens from `packages/brand/brand-tokens.css`; run `npm run sync-brand` then `npm run brand:check` after brand changes.
+- **Adding a tool:** follow `docs/platform/ADD_A_TOOL.md`. Registration in `apps/hub/hub.config.json` and `scripts/build.mjs` is **manual** — there is no auto-discovery, and an unregistered tool is invisible.
+- **Scaffold helper:** `npm run scaffold -- <tool-id> "<Tool Label>"` copies the template and syncs brand assets. It does not register anything.
+- **Before merge or deploy:** `docs/platform/TOOL_CHECKLIST.md`.
+- **Current platform state:** `docs/STATUS.md`.
 
-## Delivery Rules for Agents
+## Platform constraints
+
+- **No backend.** Tools are static files on a CDN; all processing happens in the browser (`public/app.js`). No `fetch()` to NeoNema-owned APIs, no databases, no Lambdas.
+- **Documented exception:** RevealIP `/api/ip`, served by a CloudFront Function that returns the viewer's IP to the browser and persists nothing. Do not add comparable edge infrastructure to other tools unless explicitly requested and documented in `docs/platform/ARCHITECTURE.md`.
+- **No third-party trackers.** No analytics, no ad networks, no `ads.txt`, no consent-requiring scripts. This is a product commitment, not a preference.
+- **No new dependencies** — no build-time frameworks, npm runtime packages, or CDN scripts unless explicitly requested. Every tool ships as plain HTML, CSS, and JS.
+- **Legal pages required:** each tool subtree ships `privacy-policy.html` and `terms.html` with copy that matches what the tool actually does.
+- Avoid anything that creates recurring cost, rate-limit exposure, or operational overhead.
+
+## Deploy model
+
+- **Single origin:** one S3 bucket + one CloudFront distribution serve `tools.neonema.com` from the NeoNema tools AWS account.
+- **Build:** `scripts/build.mjs` assembles `apps/hub/public` plus each tool's `public/` into `dist/` with path prefixes (`/json/`, `/revealip/`).
+- **Deploy:** push to `main` deploys via GitHub Actions. `npm run deploy -- platform` is the local fallback and uses the `--profile neonema-tools` AWS CLI profile.
+- **Edge functions:** `npm run deploy:edge -- platform` publishes `revealip-ip-api` and `tools-uri-rewrite`. Republish after editing anything under `apps/*/cloudfront/`.
+- The company site (`neonema.com`) lives in a separate AWS account and repo. Never deploy to it from here.
+
+## Delivery rules
+
 - Keep pages lightweight, fast, and mobile-friendly.
 - Keep copy clear and utility-first.
-- If changing structure, preserve one-page flow unless user explicitly asks for multi-page expansion.
+- Preserve the one-page flow per tool unless the user explicitly asks for multi-page expansion.
+- Source brand tokens from `packages/brand/brand-tokens.css`; after brand changes run `npm run sync-brand` then `npm run brand:check`.
+- Before proposing work as done: `npm run brand:check`, `npm run test:json-converters`, `npm run build`.

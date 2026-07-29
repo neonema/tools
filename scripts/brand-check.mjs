@@ -177,9 +177,12 @@ function checkApp({ name, publicDir }) {
     }
   }
 
-  const headerSelectorCount = (stylesCss.match(/\.header\s*\{/g) || []).length;
+  // Only the bare `.header {` rule is locked. Compound selectors such as
+  // `body > .header {` or `html.hub-embed .header,` are app-level refinements
+  // and do not redefine the locked rule itself.
+  const headerSelectorCount = (stylesCss.match(/^\s*\.header\s*\{/gm) || []).length;
   if (headerSelectorCount !== 1) {
-    fail(`${name}: expected exactly one .header selector in styles.css`);
+    fail(`${name}: expected exactly one bare .header selector in styles.css`);
   }
 
   if (!stylesCss.includes("body {") || !stylesCss.includes("background: var(--background);")) {

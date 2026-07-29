@@ -27,11 +27,11 @@ After `npm run dev` or `npm run preview`:
 | `http://localhost:8765/` | Hub loads; default tab from `hub.config.json` |
 | `http://localhost:8765/#/json` | JSON Toolkit tab active; iframe loads |
 | `http://localhost:8765/#/revealip` | RevealIP tab active; iframe loads |
-| `http://localhost:8765/json/` | Redirects to `/#/json` (tool `index.html` guard) |
+| `http://localhost:8765/json/` | Redirects to `/#/json` (tool `index.html` guard — the edge 301 is production-only) |
 | `http://localhost:8765/revealip/` | Redirects to `/#/revealip` |
 | `http://localhost:8765/json/privacy-policy.html` | Legal page loads |
 
-Tab labels and descriptions should match `apps/hub/hub.config.json`.
+Tab labels should match `apps/hub/hub.config.json`.
 
 ---
 
@@ -42,7 +42,7 @@ RevealIP fetches the viewer IP from `/api/ip`, served in production by a **Cloud
 - `npm run dev` and `npm run preview` — IP detection will fail or show an error unless you mock the endpoint.
 - `npm run dev:revealip` — same limitation at `http://localhost:8080/`.
 
-To test IP detection, use deployed CloudFront or the function **Test** tab in the AWS console. See [revealip-cloudfront-function.md](../deploy/revealip-cloudfront-function.md).
+To test IP detection, use deployed CloudFront or the function **Test** tab in the AWS console. See [edge-functions.md](../deploy/edge-functions.md).
 
 ---
 

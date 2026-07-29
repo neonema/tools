@@ -34,67 +34,81 @@ function runJson(command, commandArgs) {
 
 const { config } = loadDeployConfig();
 const app = getAppConfig(config, appName);
+const baseArgs = awsBaseArgs(app);
 
-if (!app.edge?.cloudfrontFunctionName || !app.edge?.functionSource) {
+// `edge` accepts a single function object or an array — the platform distribution
+// runs two: revealip-ip-api (/api/ip) and tools-uri-rewrite (directory URLs).
+const edgeFunctions = [app.edge].flat().filter(Boolean);
+
+if (edgeFunctions.length === 0) {
   console.error(`deploy-edge: apps.${appName}.edge is not configured in deploy.config.json`);
   process.exit(1);
 }
 
-const functionPath = resolve(rootDir, app.edge.functionSource);
-if (!existsSync(functionPath)) {
-  console.error(`deploy-edge: function source not found: ${functionPath}`);
-  process.exit(1);
+for (const edge of edgeFunctions) {
+  if (!edge.cloudfrontFunctionName || !edge.functionSource) {
+    console.error(`deploy-edge: apps.${appName}.edge entries need cloudfrontFunctionName and functionSource`);
+    process.exit(1);
+  }
 }
 
-const functionName = app.edge.cloudfrontFunctionName;
-const baseArgs = awsBaseArgs(app);
+for (const edge of edgeFunctions) {
+  const functionName = edge.cloudfrontFunctionName;
+  const functionPath = resolve(rootDir, edge.functionSource);
 
-console.log(`\n→ Publish CloudFront Function "${functionName}" from ${app.edge.functionSource}`);
+  if (!existsSync(functionPath)) {
+    console.error(`deploy-edge: function source not found: ${functionPath}`);
+    process.exit(1);
+  }
 
-const described = runJson("aws", [
-  "cloudfront",
-  "describe-function",
-  "--name",
-  functionName,
-  ...baseArgs,
-  "--output",
-  "json",
-]);
+  console.log(`\n→ Publish CloudFront Function "${functionName}" from ${edge.functionSource}`);
 
-if (!described) {
+  const described = runJson("aws", [
+    "cloudfront",
+    "describe-function",
+    "--name",
+    functionName,
+    ...baseArgs,
+    "--output",
+    "json",
+  ]);
+
+  if (!described) continue;
+
+  const runtime = edge.runtime || described.FunctionSummary?.FunctionConfig?.Runtime || "cloudfront-js-2.0";
+  const comment = described.FunctionSummary?.FunctionConfig?.Comment || functionName;
+
+  const updated = runJson("aws", [
+    "cloudfront",
+    "update-function",
+    "--name",
+    functionName,
+    "--if-match",
+    described.ETag,
+    "--function-config",
+    `Comment=${comment},Runtime=${runtime}`,
+    "--function-code",
+    `fileb://${functionPath}`,
+    ...baseArgs,
+    "--output",
+    "json",
+  ]);
+
+  runJson("aws", [
+    "cloudfront",
+    "publish-function",
+    "--name",
+    functionName,
+    "--if-match",
+    updated.ETag,
+    ...baseArgs,
+    "--output",
+    "json",
+  ]);
+
+  console.log(`\ndeploy-edge: ${functionName} published`);
+}
+
+if (dryRun) {
   console.log("\ndeploy-edge: dry-run complete");
-  process.exit(0);
 }
-
-const runtime = app.edge.runtime || described.FunctionSummary?.FunctionConfig?.Runtime || "cloudfront-js-2.0";
-const comment = described.FunctionSummary?.FunctionConfig?.Comment || functionName;
-
-const updated = runJson("aws", [
-  "cloudfront",
-  "update-function",
-  "--name",
-  functionName,
-  "--if-match",
-  described.ETag,
-  "--function-config",
-  `Comment=${comment},Runtime=${runtime}`,
-  "--function-code",
-  `fileb://${functionPath}`,
-  ...baseArgs,
-  "--output",
-  "json",
-]);
-
-runJson("aws", [
-  "cloudfront",
-  "publish-function",
-  "--name",
-  functionName,
-  "--if-match",
-  updated.ETag,
-  ...baseArgs,
-  "--output",
-  "json",
-]);
-
-console.log(`\ndeploy-edge: ${functionName} published${dryRun ? " (dry-run)" : ""}`);

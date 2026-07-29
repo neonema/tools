@@ -59,8 +59,7 @@ const document = {
 const windowStub = {
   location: { href: "http://localhost/", pathname: "/", search: "", hash: "" },
   history: { replaceState() {} },
-  addEventListener() {},
-  adsbygoogle: { push() {} }
+  addEventListener() {}
 };
 
 const sandbox = {

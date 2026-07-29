@@ -2,14 +2,16 @@
 
 **Canonical repository** for all NeoNema utility products, shared brand assets, deploy automation, and platform docs.
 
-- **Production (target):** [tools.neonema.com](https://tools.neonema.com) — single origin hosting the hub and every tool (`#/json`, `#/revealip`, …).
-- **Legacy:** per-app repos and legacy AWS accounts are being retired after platform cutover into the **NeoNema tools account** (see [docs/platform/ARCHITECTURE.md](docs/platform/ARCHITECTURE.md)).
+- **Production:** [tools.neonema.com](https://tools.neonema.com) — single origin hosting the hub and every tool (`#/json`, `#/revealip`, …).
+- **Privacy:** tools run entirely in the browser. No accounts, no analytics, no ads, no user data stored or relayed.
+- **Status:** [docs/STATUS.md](docs/STATUS.md) — what is live, what is open, what is deliberately not built.
 
 ## Apps
 
 | App | Path | Description |
 |-----|------|-------------|
-| RevealIP | `apps/revealip/` | Public IPv4/IPv6 display (S3 + CloudFront + edge function) |
+| Hub | `apps/hub/` | Tab shell and router for tools.neonema.com |
+| RevealIP | `apps/revealip/` | Public IPv4/IPv6 display (edge function for `/api/ip`) |
 | JSON Toolkit | `apps/json/` | Browser-based JSON validate, diff, JSONPath, converters |
 
 ## Packages
@@ -49,33 +51,35 @@ npm run sync-brand -- json  # sync a single app
 
 ## Deploy
 
-Requires the **`neonema-tools`** AWS CLI profile (NeoNema tools account). See [docs/infra/README.md](docs/infra/README.md).
+Production deploys run from GitHub Actions on push to `main`. Local deploys are the fallback and need the **`neonema-tools`** AWS CLI profile — see [docs/infra/README.md](docs/infra/README.md).
 
 ```bash
-aws configure --profile neonema-tools          # once: credentials for tools account
+aws configure --profile neonema-tools              # once: credentials for tools account
 cp deploy.config.example.json deploy.config.json   # once: fill in bucket + distribution IDs
-npm run build                                  # assemble dist/ (platform deploy)
+npm run build                                      # assemble dist/
 npm run deploy -- platform --dry-run
 npm run deploy -- platform
-npm run deploy -- json --dry-run               # interim: per-app legacy buckets
-npm run deploy:edge -- revealip   # only when ip-api-function.js changes
+npm run deploy:edge -- platform   # only when a cloudfront/*.js function changes
 ```
 
 See [docs/deploy/automated-deploy.md](docs/deploy/automated-deploy.md).
 
 ## Documentation
 
+- [Platform status](docs/STATUS.md) — live state, open items, non-goals
 - [Local preview](docs/platform/PREVIEW.md) — `npm run dev` vs `npm run preview`
 - [Platform architecture](docs/platform/ARCHITECTURE.md) — single-origin model, static-only rules, tab routing
-- [Platform plan & checklist](docs/TOOLS_PLATFORM_PLAN.md) — P0–P7 execution tracker
-- [Deployment guides](docs/deploy/) — AWS, Cloudflare, AdSense, automated deploy
+- [Add a tool](docs/platform/ADD_A_TOOL.md) — the runbook for shipping a new utility
+- [Pre-ship checklist](docs/platform/TOOL_CHECKLIST.md) — legal pages, device and accessibility smoke
+- [Deployment guides](docs/deploy/) — AWS, Cloudflare, automated deploy
 - [Infrastructure](docs/infra/) — two-account model, `neonema-tools` AWS profile
 - [AGENTS.md](AGENTS.md) — LLM agent instructions
 - [LLM_PRODUCT_RULES.md](LLM_PRODUCT_RULES.md) — product and design rules
 
 ## Adding a new utility
 
-1. Copy `packages/utility-template/` to `apps/<name>/`.
-2. Copy brand assets from `packages/brand/` into the new app's `public/`.
-3. Customize `index.html`, `app.js`, and legal pages.
-4. Run `npm run brand:check`.
+Follow [docs/platform/ADD_A_TOOL.md](docs/platform/ADD_A_TOOL.md). A tool is not live until it is registered in **both** `apps/hub/hub.config.json` and `scripts/build.mjs` — the hub does not discover apps automatically.
+
+```bash
+npm run scaffold -- <tool-id> "<Tool Label>"
+```

@@ -32,9 +32,6 @@ const statValueEls = {
   arrays: statsEl.querySelector('[data-stat="arrays"]')
 };
 
-// Paste display ad unit slot from AdSense, or leave "" if you use only Auto ads.
-const ADSENSE_SIDEBAR_SLOT = "2950963550";
-
 const TOOL_CONFIG = {
   vfl: {
     caption: "Validate syntax, format output, and run lint checks in one tab.",
@@ -1769,18 +1766,3 @@ requestAnimationFrame(() => {
     sourceInput.focus({ preventScroll: true });
   }
 });
-
-(function initAdsenseSidebar() {
-  const slot = String(ADSENSE_SIDEBAR_SLOT || "").trim();
-  const mount = document.querySelector(".ad-box-slot");
-  if (!slot || !mount) return;
-  const ins = document.createElement("ins");
-  ins.className = "adsbygoogle";
-  ins.style.display = "block";
-  ins.setAttribute("data-ad-client", "ca-pub-7032115236198174");
-  ins.setAttribute("data-ad-slot", slot);
-  ins.setAttribute("data-ad-format", "auto");
-  ins.setAttribute("data-full-width-responsive", "true");
-  mount.appendChild(ins);
-  (window.adsbygoogle = window.adsbygoogle || []).push({});
-})();

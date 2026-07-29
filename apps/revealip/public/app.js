@@ -75,9 +75,3 @@ window.addEventListener("focus", loadIp);
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) loadIp();
 });
-
-try {
-  (window.adsbygoogle = window.adsbygoogle || []).push({});
-} catch (error) {
-  // Ignore AdSense init errors in local/dev.
-}

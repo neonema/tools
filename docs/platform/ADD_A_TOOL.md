@@ -66,8 +66,7 @@ Add a tool object to `apps/hub/hub.config.json`:
 {
   "id": "<tool-id>",
   "label": "Human Label",
-  "path": "/<tool-id>/index.html",
-  "description": "One-line description shown under the tab bar"
+  "path": "/<tool-id>/index.html"
 }
 ```
 
@@ -96,9 +95,23 @@ npm run deploy -- platform
 
 ---
 
+### 6. Add the tool root to the edge redirect
+
+`apps/hub/cloudfront/uri-rewrite-function.js` 301s tool root paths to the hub. Add the new id to its match list:
+
+```javascript
+var hubToolMatch = uri.match(/^\/(json|revealip|<tool-id>)\/?$/);
+```
+
+Then republish: `npm run deploy:edge -- platform`. Skipping this leaves the tool reachable at a second public URL.
+
+---
+
 ## Edge exceptions
 
 Do **not** add CloudFront Functions, Lambdas, or NeoNema APIs unless explicitly requested and documented in `ARCHITECTURE.md`. The only current exception is RevealIP `/api/ip`.
+
+Likewise: no analytics, ad, or tracking scripts in a new tool. See [LLM_PRODUCT_RULES.md](../../LLM_PRODUCT_RULES.md).
 
 ---
 

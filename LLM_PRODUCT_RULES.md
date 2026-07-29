@@ -1,75 +1,56 @@
-# LLM Product Rules: NeoNema Utility Sites
+# LLM Product Rules: NeoNema utility sites
 
-Use these rules for all generated features, edits, and new templates in this repository.
+Product, design, and copy rules for every tool in this repository.
+Repo structure, platform constraints, and deploy workflow live in [AGENTS.md](AGENTS.md).
 
-## Monorepo layout
+## 1) Website shape
 
-- Live products: `apps/<name>/public/` (deploy folder)
-- Tools hub: `apps/hub/` (tab shell for tools.neonema.com)
-- Shared brand source: `packages/brand/` (copy into apps — do not symlink)
-- New utilities: start from `packages/utility-template/`
-- Platform architecture: `docs/platform/ARCHITECTURE.md`
-- **Adding a tool to the hub:** `docs/platform/ADD_A_TOOL.md` (manual `hub.config.json` + `build.mjs` steps)
-- **Scaffold helper:** `npm run scaffold -- <tool-id> "<Tool Label>"` — see `ADD_A_TOOL.md`
-- **Pre-ship checklist:** `docs/platform/TOOL_CHECKLIST.md`
-- After brand changes, run `npm run sync-brand` then `npm run brand:check`
+- Build each tool as a **single-page utility**.
+- Keep the flow direct: headline → tool → output → trust/legal links.
+- No unnecessary navigation. The hub provides cross-tool navigation; tools do not.
+- Public entry is the hub (`tools.neonema.com/#/<tool-id>`), not standalone `/tool-id/` landing pages.
 
-## Platform constraints
+## 2) Privacy posture
 
-- **Static CDN only:** each tool is a one-page static site; no NeoNema backend, database, or user-data relay.
-- **Browser-first processing:** tool logic runs in `public/app.js`; do not send user input to NeoNema infrastructure.
-- **No NeoNema API calls:** do not add `fetch()` to NeoNema-owned APIs unless explicitly approved and documented.
-- **Deploy target:** unified build to `dist/` → `tools.neonema.com` (single S3 bucket + CloudFront). See `docs/platform/ARCHITECTURE.md`.
-- **Legal pages required:** every tool subtree must ship `privacy-policy.html` and `terms.html`.
-- **Edge exception:** RevealIP `/api/ip` CloudFront Function only — returns viewer IP to browser; NeoNema does not persist it.
+This is the product's main differentiator — treat it as a hard requirement, not marketing copy.
 
-## 1) Website Shape
+- Everything runs in the browser. User input never reaches NeoNema infrastructure.
+- No analytics, no ad networks, no trackers, no cookies beyond what the tool itself needs.
+- Say so plainly on the page, and make sure `privacy-policy.html` describes what the tool actually does — no boilerplate, no placeholders.
 
-- Build as a **single-page utility site** by default.
-- Keep the user flow direct: headline, tool, output, and optional trust/legal links.
-- Do not add unnecessary navigation complexity.
+## 3) Mandatory NeoNema palette
 
-## 2) Low-Overhead Requirement
+Canonical tokens live in `packages/brand/brand-tokens.css`:
 
-- No backend/API integration by default.
-- No expensive third-party services by default.
-- Keep processing local to the browser where possible.
-- If external calls are unavoidable, clearly mark them as optional and explain why.
+| Token | Value |
+|-------|-------|
+| `--background` | `#0b0f0d` |
+| `--foreground` | `#ffffff` |
+| `--card` | `#18211d` |
+| `--primary` | `#39d98a` |
+| `--muted` | `#9da7a2` |
+| `--border` | `#25322d` |
+| `--header-bg` | `#111815` |
 
-**Exception:** RevealIP (`apps/revealip/`) requires a CloudFront Function for `/api/ip` because public IP detection cannot be done purely in the browser. Do not add similar edge infrastructure to other apps unless explicitly requested.
+Never introduce a conflicting visual language or an ad-hoc color set.
 
-## 3) Mandatory NeoNema Palette
+## 4) Theme consistency
 
-Canonical tokens live in `packages/brand/brand-tokens.css`. Use these values:
+- Dark, high-contrast NeoNema style.
+- Typography: Outfit with a system sans fallback.
+- `--primary` carries key actions and highlights.
+- The locked header block must stay identical to `packages/brand/header-lock.css` — `npm run brand:check` enforces this.
 
-- `--background: #0b0f0d`
-- `--foreground: #ffffff`
-- `--card: #18211d`
-- `--primary: #39d98a`
-- `--muted: #9da7a2`
-- `--border: #25322d`
-- `--header-bg: #111815`
+## 5) Brand language
 
-## 4) Theme Consistency
+- Parent brand is **NeoNema**; each tool is presented as a NeoNema utility product.
 
-- Use dark, high-contrast NeoNema visual style.
-- Keep typography modern and clean (Outfit/system sans stack).
-- Primary accent usage should center around `--primary` for key actions and highlights.
-- Keep the locked header block identical to `packages/brand/header-lock.css`.
+## 6) Traffic and discoverability
 
-## 5) Brand Language
+Current focus is **bringing users to the site**, not monetizing them.
 
-- Parent brand is **NeoNema**.
-- Products should be presented as NeoNema utility products.
-
-## 6) Traffic and Discoverability
-
-Current product focus is **bringing users to the site**, not ad monetization.
-
-- Ship unique, useful utility value on every page (clear headline, tool, outcome).
-- Include accurate `<title>`, meta description, and favicon per tool.
-- Keep pages fast and mobile-friendly.
-- Provide `privacy-policy.html` and `terms.html` for user trust — not as an ad-network prerequisite.
-- Do **not** add Google AdSense, `ads.txt`, or ad placement blocks unless explicitly requested.
-- **Backlog:** remove existing AdSense integration (scripts, slots, `ads.txt`, privacy-policy ad copy) — sites are not monetized. Tracker: `docs/TOOLS_PLATFORM_PLAN.md` → **Remove AdSense (backlog)**.
-- Public tool entry is via the hub (`tools.neonema.com/#/<tool-id>`), not standalone `/tool-id/` landing pages.
+- Ship real utility value on every page: clear headline, working tool, obvious outcome.
+- Accurate `<title>`, meta description, and favicon per tool.
+- Fast and mobile-friendly; no layout shift on load.
+- `privacy-policy.html` and `terms.html` exist for user trust.
+- Do **not** add Google AdSense, `ads.txt`, ad slots, or any ad placement. The tools are not monetized, and ad scripts would break the privacy promise in section 2.

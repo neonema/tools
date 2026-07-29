@@ -2,7 +2,7 @@
 
 Production deploys run from **GitHub Actions** on push to `main` (or on demand). Local scripts remain the fallback when you need to deploy from your machine.
 
-**Target model:** build `dist/` with `npm run build`, then sync to the unified `tools.neonema.com` bucket. See [platform/ARCHITECTURE.md](../platform/ARCHITECTURE.md).
+Build `dist/` with `npm run build`, then sync it to the `tools.neonema.com` bucket. See [platform/ARCHITECTURE.md](../platform/ARCHITECTURE.md).
 
 ## Production deploy (CI — primary)
 
@@ -34,7 +34,7 @@ gh run watch
 
 CI uses role `arn:aws:iam::029727239472:role/github-neonema-tools-deploy`. No `awsProfile` in `deploy.config.prod.json` — OIDC supplies credentials.
 
-See [infra/README.md](../infra/README.md) for the two-account model and OIDC setup (P5).
+See [infra/README.md](../infra/README.md) for the two-account model and OIDC setup.
 
 ## Local deploy (fallback)
 
@@ -79,17 +79,15 @@ DEPLOY_CONFIG=deploy.config.prod.json npm run deploy -- platform
 ### Other deploy commands
 
 ```bash
-# Per-app sync (legacy / interim buckets)
-npm run deploy -- json --dry-run
-npm run deploy -- json
-npm run deploy -- revealip
-
 # Sync only (skip invalidation)
-npm run deploy -- json --no-invalidate
+npm run deploy -- platform --no-invalidate
 
-# RevealIP: publish CloudFront Function after editing ip-api-function.js
-npm run deploy:edge -- revealip
+# Publish both CloudFront Functions after editing anything in apps/*/cloudfront/
+npm run deploy:edge -- platform --dry-run
+npm run deploy:edge -- platform
 ```
+
+`deploy:edge` publishes every entry in the app's `edge` array: `revealip-ip-api` (`/api/ip`) and `tools-uri-rewrite` (directory URLs → hub hash routes).
 
 ## Config fields (not secrets)
 
@@ -101,23 +99,19 @@ npm run deploy:edge -- revealip
 | `awsProfile` | Local only — CLI profile for the **NeoNema tools account** (`neonema-tools`) |
 | `s3SyncDelete` | `true` removes S3 objects not in local `public/` — use with care |
 | `invalidatePaths` | Usually `["/*"]` |
-| `edge.cloudfrontFunctionName` | RevealIP only — function name in CloudFront → Functions |
+| `edge` | One object or an array of `{ cloudfrontFunctionName, functionSource }` — names must match CloudFront → Functions |
 
 Find distribution ID: **CloudFront** → **Distributions** → copy **ID** column.
-
-## Legacy per-app deploy (interim)
-
-During migration, RevealIP and JSON may still live in **legacy per-app AWS accounts**. Use a different `awsProfile` per interim app entry in `deploy.config.json` until cutover completes. After cutover, all deploys use **`neonema-tools`** in the NeoNema tools account only.
 
 ## What is NOT required in the repo
 
 - AWS access keys or secret tokens
 - GitHub secrets for production deploy (OIDC replaces static keys)
-- AdSense or Cloudflare tokens
+- Cloudflare tokens
 
-## Full RevealIP release
+## Full release
 
-1. `npm run brand:check`
+1. `npm run brand:check && npm run test:json-converters && npm run build`
 2. Merge to `main` (CI deploy) or `npm run deploy -- platform` locally
-3. If `cloudfront/ip-api-function.js` changed: `npm run deploy:edge -- revealip` (local; not in CI workflow yet)
-4. Run [device-test-checklist.md](./device-test-checklist.md) against production
+3. If anything under `apps/*/cloudfront/` changed: `npm run deploy:edge -- platform` (local only — not in the CI workflow)
+4. Run the device and accessibility pass in [platform/TOOL_CHECKLIST.md](../platform/TOOL_CHECKLIST.md) against production

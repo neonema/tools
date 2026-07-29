@@ -2,11 +2,11 @@
 
 This guide matches the pattern used for NeoNema static utilities: a **private S3 bucket** as the origin, **CloudFront** in front with **Origin Access Control (OAC)**, and optional **custom domain + ACM**.
 
-In this monorepo, upload from `apps/<app-name>/public/` (for example `apps/json/public/` or `apps/revealip/public/`). Most apps are fully static. **RevealIP** also needs a CloudFront Function for `/api/ip` — see [revealip-cloudfront-function.md](./revealip-cloudfront-function.md).
+In this monorepo the deployable tree is `dist/`, assembled by `npm run build` from the hub and every tool. Two CloudFront Functions sit on the distribution — see [edge-functions.md](./edge-functions.md).
 
 **Console drift:** AWS moves CloudFront UI labels often. Section **C** follows the current **standard distribution** wizard and links to AWS’s own getting started page—use that page side-by-side if a button name differs in your account.
 
-**Related docs:** after AWS is working, use [cloudflare-dns.md](./cloudflare-dns.md) to point your Cloudflare-managed domain at CloudFront, and [adsense.md](./adsense.md) if you run Google AdSense.
+**Related docs:** after AWS is working, use [cloudflare-dns.md](./cloudflare-dns.md) to point your Cloudflare-managed domain at CloudFront.
 
 ## Prerequisites
 

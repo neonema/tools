@@ -1,5 +1,5 @@
 {
-  "_comment": "Target: platform entry deploys dist/ to tools.neonema.com (P1) using AWS profile neonema-tools (NeoNema tools account). Per-app entries are interim until cutover.",
+  "_comment": "Copy to deploy.config.json (gitignored) and fill in real values. The platform entry deploys dist/ to tools.neonema.com using the neonema-tools AWS profile.",
   "apps": {
     "platform": {
       "source": "dist",
@@ -9,32 +9,16 @@
       "awsProfile": "neonema-tools",
       "s3SyncDelete": false,
       "invalidatePaths": ["/*"],
-      "edge": {
-        "cloudfrontFunctionName": "revealip-ip-api",
-        "functionSource": "apps/revealip/cloudfront/ip-api-function.js"
-      }
-    },
-    "revealip": {
-      "source": "apps/revealip/public",
-      "s3Bucket": "YOUR_REVEALIP_BUCKET_NAME",
-      "s3Region": "us-east-1",
-      "cloudfrontDistributionId": "EXXXXXXXXXXXX",
-      "awsProfile": "revealip",
-      "s3SyncDelete": false,
-      "invalidatePaths": ["/*"],
-      "edge": {
-        "cloudfrontFunctionName": "revealip-ip-api",
-        "functionSource": "apps/revealip/cloudfront/ip-api-function.js"
-      }
-    },
-    "json": {
-      "source": "apps/json/public",
-      "s3Bucket": "YOUR_JSON_BUCKET_NAME",
-      "s3Region": "us-east-1",
-      "cloudfrontDistributionId": "EYYYYYYYYYYYY",
-      "awsProfile": "json",
-      "s3SyncDelete": false,
-      "invalidatePaths": ["/*"]
+      "edge": [
+        {
+          "cloudfrontFunctionName": "revealip-ip-api",
+          "functionSource": "apps/revealip/cloudfront/ip-api-function.js"
+        },
+        {
+          "cloudfrontFunctionName": "tools-uri-rewrite",
+          "functionSource": "apps/hub/cloudfront/uri-rewrite-function.js"
+        }
+      ]
     }
   }
 }

@@ -22,7 +22,7 @@ Each tool subtree must ship:
 
 | File | Requirement |
 |------|-------------|
-| `apps/<tool-id>/public/privacy-policy.html` | Tool-specific privacy copy (not template placeholders). Cover browser-only processing, third-party ads if enabled, and any data the tool touches. |
+| `apps/<tool-id>/public/privacy-policy.html` | Tool-specific privacy copy (not template placeholders). State that processing is browser-only and name anything the tool touches. |
 | `apps/<tool-id>/public/terms.html` | Tool-specific terms of service. |
 
 **Verify:**
@@ -39,28 +39,14 @@ ls apps/<tool-id>/public/privacy-policy.html apps/<tool-id>/public/terms.html
 
 ## `robots.txt`
 
-Include `apps/<tool-id>/public/robots.txt`. Default pattern (allow crawlers):
+Crawlers only read `robots.txt` from the origin root, so **`apps/hub/public/robots.txt`** is the file that governs the whole site:
 
 ```txt
 User-agent: *
 Allow: /
-
-User-agent: Mediapartners-Google
-Allow: /
-
-User-agent: AdsBot-Google
-Allow: /
 ```
 
-If AdSense is enabled, keep the `Mediapartners-Google` and `AdsBot-Google` blocks so ad crawlers can reach the tool.  
-Do **not** reference legacy domains (`json-neonema.com`, `revealip-neonema.com`).
-
-**Verify:**
-
-```bash
-test -f apps/<tool-id>/public/robots.txt
-grep -iE "Allow:|Disallow:" apps/<tool-id>/public/robots.txt
-```
+A per-tool `apps/<tool-id>/public/robots.txt` is optional and inert — include one only for parity when a tool is also served standalone. Never reference legacy domains (`json-neonema.com`, `revealip-neonema.com`).
 
 ---
 
@@ -79,15 +65,15 @@ For fast iteration without a build step, use `npm run dev` instead. See [PREVIEW
 | `http://localhost:8765/#/<tool-id>` | Hub tab active; iframe loads the tool |
 | `http://localhost:8765/<tool-id>/` | Redirects to `/#/<tool-id>` (not a standalone landing page) |
 | `http://localhost:8765/<tool-id>/privacy-policy.html` | Legal page loads inside or outside iframe as designed |
-| Tab label & description | Match `apps/hub/hub.config.json` |
+| Tab label | Matches `apps/hub/hub.config.json` |
 
-Optional canonical (production SEO): hub-hash URL in tool `index.html`:
+Canonical URL (production SEO) in the tool's `index.html`:
 
 ```html
 <link rel="canonical" href="https://tools.neonema.com/#/<tool-id>" />
 ```
 
-See [DOMAIN_CUTOVER.md](./DOMAIN_CUTOVER.md#p34--canonical-tags--robotstxt) for details.
+See [DOMAIN_CUTOVER.md](./DOMAIN_CUTOVER.md#canonical-tags--robotstxt).
 
 ---
 
@@ -108,9 +94,9 @@ Test the tool UI at these widths (browser devtools or real devices):
 - No horizontal scrolling on the main tool view.
 - Primary controls and copy remain readable and tappable.
 - Footer links (Privacy, Terms) are visible and do not overlap content.
-- Ad slots (if present) stay within their container width.
+- Long or wrapping output (IPv6 strings, JSON blobs) stays inside its container.
 
-Tool-specific device notes may live in `docs/deploy/device-test-checklist.md`.
+Also worth one pass each: normal network, VPN on, and mobile data — RevealIP in particular behaves differently on each.
 
 ---
 
@@ -133,6 +119,8 @@ Quick pass — not a full audit:
 ## Platform constraints (final gate)
 
 - [ ] Tool logic runs in the browser — no `fetch()` to NeoNema-owned APIs unless documented in [ARCHITECTURE.md](./ARCHITECTURE.md).
+- [ ] No analytics, ad, or third-party tracking scripts.
+- [ ] Tool root path added to `apps/hub/cloudfront/uri-rewrite-function.js` and republished.
 - [ ] `HUB_TOOL_ID` in `index.html` matches the tool id in `hub.config.json` and `build.mjs`.
 - [ ] `npm run brand:check` still passes after all edits.
 
@@ -146,5 +134,4 @@ Quick pass — not a full audit:
 | [PREVIEW.md](./PREVIEW.md) | `npm run dev` vs `npm run preview`, smoke URLs |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Static-only rules, tab routing, edge exceptions |
 | [DOMAIN_CUTOVER.md](./DOMAIN_CUTOVER.md) | Canonical URLs, legacy redirects |
-| [docs/deploy/device-test-checklist.md](../deploy/device-test-checklist.md) | Extended device test notes (per-tool) |
-| [docs/deploy/adsense.md](../deploy/adsense.md) | AdSense, `ads.txt`, privacy copy |
+| [../STATUS.md](../STATUS.md) | Platform status and open items |

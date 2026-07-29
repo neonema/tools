@@ -75,8 +75,8 @@ Pick one hostname strategy (apex vs `www` vs subdomain) and keep **ACM + CloudFr
 ## F) Optional Cloudflare features
 
 - **Caching**: Cloudflare may cache HTML at the edge when proxied. For frequently updated static sites, consider **Cache Rules** to bypass cache for HTML or use short TTLs; you still rely on **CloudFront invalidation** for origin updates.
-- **Security**: **WAF**, **Bot Fight Mode**, etc.—test after enabling so you do not block legitimate users or Google’s crawlers (relevant for AdSense).
-- **ads.txt** and crawler access: ensure firewall rules do not block **Googlebot** or AdSense verification requests (see [`ADSENSE_STEP_BY_STEP.md`](ADSENSE_STEP_BY_STEP.md)).
+- **Security**: **WAF**, **Bot Fight Mode**, etc.—test after enabling so you do not block legitimate users or search crawlers.
+- **Crawler access**: ensure firewall rules do not block **Googlebot** or other search engine crawlers.
 
 ## Common mistakes
 

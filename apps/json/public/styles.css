@@ -514,31 +514,6 @@ button {
   color: var(--foreground);
 }
 
-.ad-box {
-  width: 100%;
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 32px 16px 24px;
-}
-
-.ad-box-label {
-  margin: 0 0 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  text-align: center;
-}
-
-.ad-box-slot {
-  width: 100%;
-  min-height: 120px;
-  border: 1px dashed var(--border);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--card) 40%, var(--background));
-}
-
 .footer {
   border-top: 1px solid var(--border);
   padding: 22px 16px 28px;
@@ -563,7 +538,6 @@ html.hub-embed body {
 
 html.hub-embed .header,
 html.hub-embed .hero,
-html.hub-embed .ad-box,
 html.hub-embed .footer {
   display: none;
 }
