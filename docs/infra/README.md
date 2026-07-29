@@ -55,4 +55,4 @@ Set `awsProfile` to `"neonema-tools"` in `deploy.config.json` (already the case 
 
 ## Legacy stacks
 
-Per-app RevealIP and JSON stacks in older AWS accounts are retired but not yet deleted — see [STATUS.md](../STATUS.md) and [platform/DOMAIN_CUTOVER.md](../platform/DOMAIN_CUTOVER.md) for the decommission checklist.
+Per-app RevealIP and JSON stacks lived in older AWS accounts. Those accounts are closed. Legacy hostnames 301 via Cloudflare; see [platform/DOMAIN_CUTOVER.md](../platform/DOMAIN_CUTOVER.md).

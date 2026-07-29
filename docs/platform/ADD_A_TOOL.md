@@ -32,7 +32,7 @@ Or copy manually and run `sync-brand` so `brand-tokens.css`, `NeoNema.png`, and 
 
 | File | What to change |
 |------|----------------|
-| `apps/<tool-id>/public/index.html` | `<title>`, meta description, headline copy; set `HUB_TOOL_ID` in the hub-redirect script |
+| `apps/<tool-id>/public/index.html` | `<title>`, meta description, headline copy; set `HUB_TOOL_ID` and the `rel="canonical"` href (`#/<tool-id>`) |
 | `apps/<tool-id>/public/app.js` | Tool logic (browser-only; no NeoNema APIs) |
 | `apps/<tool-id>/public/styles.css` | Layout only — keep brand tokens and locked header unchanged |
 | `apps/<tool-id>/public/privacy-policy.html` | Tool-specific privacy copy |
