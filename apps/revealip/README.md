@@ -28,7 +28,7 @@ Note: `/api/ip` only works through CloudFront (or a local mock endpoint).
 
 ## Deploy
 
-This tool deploys as part of the platform — `npm run build` copies `public/` into `dist/revealip/`, and a push to `main` ships it. See [docs/deploy/automated-deploy.md](../../docs/deploy/automated-deploy.md).
+This tool deploys as part of the platform — `npm run build` copies `public/` into `dist/revealip/`, and a push to `main` ships it. See [docs/DEPLOY.md](../../docs/DEPLOY.md).
 
 The `/api/ip` edge function is published separately, only when `cloudfront/ip-api-function.js` changes:
 
@@ -36,4 +36,4 @@ The `/api/ip` edge function is published separately, only when `cloudfront/ip-ap
 npm run deploy:edge -- platform
 ```
 
-Public entry is `https://tools.neonema.com/#/revealip`. Setup details: [docs/deploy/edge-functions.md](../../docs/deploy/edge-functions.md).
+Public entry is `https://tools.neonema.com/#/revealip`. Setup details: [docs/DEPLOY.md](../../docs/DEPLOY.md#edge-functions).

@@ -51,10 +51,8 @@ Design decisions that are settled: single origin, iframe tab panels, hub-only pu
 
 ## Related docs
 
-- [platform/ARCHITECTURE.md](./platform/ARCHITECTURE.md) — hosting model, static-only rules, tab routing
-- [platform/ADD_A_TOOL.md](./platform/ADD_A_TOOL.md) — how to add a tool
-- [platform/TOOL_CHECKLIST.md](./platform/TOOL_CHECKLIST.md) — pre-ship checks
-- [platform/PREVIEW.md](./platform/PREVIEW.md) — local preview modes
-- [platform/DOMAIN_CUTOVER.md](./platform/DOMAIN_CUTOVER.md) — legacy redirects and decommission
-- [deploy/](./deploy/) — AWS, Cloudflare, and deploy runbooks
-- [infra/README.md](./infra/README.md) — AWS accounts and CLI profile
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — hosting model, static-only rules, edge functions, tab routing
+- [ADD_A_TOOL.md](./ADD_A_TOOL.md) — scaffold, register, preview, pre-ship checks
+- [DEPLOY.md](./DEPLOY.md) — CI, local fallback, edge function publishing
+- [INFRA.md](./INFRA.md) — AWS accounts, DNS, legacy domains, rebuild notes
+- [../AGENTS.md](../AGENTS.md) — agent instructions and product rules

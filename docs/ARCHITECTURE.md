@@ -1,9 +1,7 @@
-# NeoNema Tools Platform — Architecture
+# Architecture
 
-Canonical reference for how NeoNema utility products are hosted, built, and constrained.
-**Production:** `https://tools.neonema.com`
-
-Current state and open items: [STATUS.md](../STATUS.md).
+How NeoNema utility products are hosted, built, and constrained.
+**Production:** `https://tools.neonema.com` — current state in [STATUS.md](./STATUS.md).
 
 ---
 
@@ -26,6 +24,7 @@ dist/
   index.html              ← apps/hub/public/index.html
   app.js, styles.css      ← apps/hub/public/*
   hub.config.json         ← apps/hub/hub.config.json
+  robots.txt              ← apps/hub/public/robots.txt   (governs the whole origin)
   json/                   ← apps/json/public/*
   revealip/               ← apps/revealip/public/*
 ```
@@ -54,7 +53,7 @@ dist/
 
 ## Edge functions
 
-Two CloudFront Functions run on the production distribution. Both are published with `npm run deploy:edge -- platform`.
+Two CloudFront Functions run on the production distribution. Both are published with `npm run deploy:edge -- platform` — see [DEPLOY.md](./DEPLOY.md).
 
 ### `revealip-ip-api` — the documented exception
 
@@ -64,7 +63,7 @@ Do not add similar edge infrastructure to other apps unless explicitly requested
 
 ### `tools-uri-rewrite` — directory URLs and hub-only entry
 
-S3 REST origins only apply a **default root object** at `/`, so directory URLs need rewriting. The function (`apps/hub/cloudfront/uri-rewrite-function.js`) on the default `*` behavior:
+S3 REST origins only apply a **default root object** at `/`, so directory URLs need rewriting. The function (`apps/hub/cloudfront/uri-rewrite-function.js`) runs on the default `*` behavior:
 
 | Request | Behavior |
 |---------|----------|
@@ -79,7 +78,8 @@ S3 REST origins only apply a **default root object** at `/`, so directory URLs n
 | Layer | Behavior |
 |-------|----------|
 | `tools-uri-rewrite` | `301` from tool root paths to the hub hash route |
-| Tool `index.html` | `location.replace` to `/#/<tool-id>` on a top-level visit (belt-and-braces if the edge function is stale) |
+| Tool `index.html` | `location.replace` to `/#/<tool-id>` on a top-level visit — belt-and-braces if the published function is stale |
+| Tool `index.html` canonical | `https://tools.neonema.com/#/<tool-id>` so search consolidates on the hub URL |
 | Hub iframe | Loads `/json/index.html` etc. unchanged, detected via `window.self !== window.top` |
 
 `npm run dev:json` / `dev:revealip` still work — standalone dev servers serve the tool at `/`, which does not match the redirect path check.
@@ -94,7 +94,7 @@ The hub (`apps/hub/`) is a lightweight static shell:
 - Horizontal tab bar driven by `hub.config.json` — each tool registered explicitly, see [ADD_A_TOOL.md](./ADD_A_TOOL.md)
 - Client-side hash routes: `#/json`, `#/revealip`
 - Deep links and legacy-domain redirects land on the correct tab
-- Tool panels load in **iframes** (`src="/json/index.html"`). Chosen for speed of shipping and because it keeps tools unchanged; revisit inlined modules only if iframe polish becomes a real blocker.
+- Tool panels load in **iframes** (`src="/json/index.html"`). Chosen for speed of shipping and because it leaves tools unchanged; revisit inlined modules only if iframe polish becomes a real blocker.
 
 ---
 
@@ -107,40 +107,13 @@ The hub (`apps/hub/`) is a lightweight static shell:
 | `json-neonema.com`, `www.json-neonema.com` | 301 → `https://tools.neonema.com/#/json` |
 | `neonema.com` | Company marketing site (separate repo + AWS account) |
 
-There is no hosted staging environment — see [STATUS.md](../STATUS.md) for why.
-
----
-
-## AWS accounts
-
-NeoNema uses **two AWS accounts** — tools and company site — with DNS in Cloudflare routing each hostname to the right CloudFront distribution. This repo deploys **only** to the tools account.
-
-| Account | Hostnames | Owned by |
-|---------|-----------|----------|
-| **NeoNema tools** | `tools.neonema.com` | This repo |
-| **NeoNema company** | `neonema.com` | Separate company-site repo |
-
-No cross-account S3 origins: each CloudFront distribution reads buckets in its own account via OAC.
-
-```
-NeoNema tools AWS account          (local CLI: --profile neonema-tools)
-├── S3: neonema-tools-prod                   (private, OAC-only)
-├── CloudFront: tools-prod                   (EGT0I63QAM75Z → tools.neonema.com)
-├── ACM (us-east-1): tools.neonema.com
-├── CloudFront Function: revealip-ip-api     (/api/ip)
-├── CloudFront Function: tools-uri-rewrite   (directory URLs → hub hash / index.html)
-└── IAM: github-neonema-tools-deploy         (GitHub OIDC, deploy on push to main)
-```
-
-**Local deploy profile:** set `awsProfile` to `"neonema-tools"` in `deploy.config.json`. See [infra/README.md](../infra/README.md).
+There is no hosted staging environment — see [STATUS.md](./STATUS.md) for why. AWS accounts, DNS, and credentials: [INFRA.md](./INFRA.md).
 
 ---
 
 ## Related docs
 
-- [STATUS.md](../STATUS.md) — what is live, open, and out of scope
-- [ADD_A_TOOL.md](./ADD_A_TOOL.md) — adding a tool
-- [DOMAIN_CUTOVER.md](./DOMAIN_CUTOVER.md) — legacy domain redirects and decommission
-- [deploy/README.md](../deploy/README.md) — S3 + CloudFront runbooks
-- [deploy/automated-deploy.md](../deploy/automated-deploy.md) — CI and local deploy
-- [infra/README.md](../infra/README.md) — AWS accounts and CLI profile
+- [STATUS.md](./STATUS.md) — what is live, open, and out of scope
+- [ADD_A_TOOL.md](./ADD_A_TOOL.md) — building and shipping a tool
+- [DEPLOY.md](./DEPLOY.md) — CI, local deploy, edge function publishing
+- [INFRA.md](./INFRA.md) — AWS accounts, DNS, legacy domains

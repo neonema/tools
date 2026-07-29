@@ -30,7 +30,7 @@ npm run dev       # fast — no build; serves apps/ directly
 npm run preview   # prod-like — builds dist/ then serves it (pre-merge smoke tests)
 ```
 
-See [docs/platform/PREVIEW.md](docs/platform/PREVIEW.md) for smoke URLs and the RevealIP `/api/ip` caveat.
+See [docs/ADD_A_TOOL.md](docs/ADD_A_TOOL.md#6-preview-locally) for smoke URLs and the RevealIP `/api/ip` caveat.
 
 **Single-tool dev** (focused work, port 8080):
 
@@ -51,7 +51,7 @@ npm run sync-brand -- json  # sync a single app
 
 ## Deploy
 
-Production deploys run from GitHub Actions on push to `main`. Local deploys are the fallback and need the **`neonema-tools`** AWS CLI profile — see [docs/infra/README.md](docs/infra/README.md).
+Production deploys run from GitHub Actions on push to `main`. Local deploys are the fallback and need the **`neonema-tools`** AWS CLI profile — see [docs/INFRA.md](docs/INFRA.md).
 
 ```bash
 aws configure --profile neonema-tools              # once: credentials for tools account
@@ -62,23 +62,20 @@ npm run deploy -- platform
 npm run deploy:edge -- platform   # only when a cloudfront/*.js function changes
 ```
 
-See [docs/deploy/automated-deploy.md](docs/deploy/automated-deploy.md).
+See [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Documentation
 
-- [Platform status](docs/STATUS.md) — live state, open items, non-goals
-- [Local preview](docs/platform/PREVIEW.md) — `npm run dev` vs `npm run preview`
-- [Platform architecture](docs/platform/ARCHITECTURE.md) — single-origin model, static-only rules, tab routing
-- [Add a tool](docs/platform/ADD_A_TOOL.md) — the runbook for shipping a new utility
-- [Pre-ship checklist](docs/platform/TOOL_CHECKLIST.md) — legal pages, device and accessibility smoke
-- [Deployment guides](docs/deploy/) — AWS, Cloudflare, automated deploy
-- [Infrastructure](docs/infra/) — two-account model, `neonema-tools` AWS profile
-- [AGENTS.md](AGENTS.md) — LLM agent instructions
-- [LLM_PRODUCT_RULES.md](LLM_PRODUCT_RULES.md) — product and design rules
+- [Status](docs/STATUS.md) — what is live, what is open, what we are not building
+- [Architecture](docs/ARCHITECTURE.md) — single-origin model, static-only rules, edge functions, tab routing
+- [Add a tool](docs/ADD_A_TOOL.md) — scaffold, register, preview, pre-ship checks
+- [Deploy](docs/DEPLOY.md) — CI, local fallback, edge function publishing
+- [Infrastructure](docs/INFRA.md) — AWS accounts, DNS, rebuild notes
+- [AGENTS.md](AGENTS.md) — agent instructions and product rules
 
 ## Adding a new utility
 
-Follow [docs/platform/ADD_A_TOOL.md](docs/platform/ADD_A_TOOL.md). A tool is not live until it is registered in **both** `apps/hub/hub.config.json` and `scripts/build.mjs` — the hub does not discover apps automatically.
+Follow [docs/ADD_A_TOOL.md](docs/ADD_A_TOOL.md). A tool is not live until it is registered in `apps/hub/hub.config.json`, `scripts/build.mjs`, and the edge redirect function — the hub does not discover apps automatically.
 
 ```bash
 npm run scaffold -- <tool-id> "<Tool Label>"

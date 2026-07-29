@@ -28,7 +28,7 @@ npm run test:json-converters
 
 ## Deploy
 
-This tool deploys as part of the platform — `npm run build` copies `public/` into `dist/json/`, and a push to `main` ships it. See [docs/deploy/automated-deploy.md](../../docs/deploy/automated-deploy.md).
+This tool deploys as part of the platform — `npm run build` copies `public/` into `dist/json/`, and a push to `main` ships it. See [docs/DEPLOY.md](../../docs/DEPLOY.md).
 
 Public entry is `https://tools.neonema.com/#/json`; `/json/` serves iframe assets only.
 
