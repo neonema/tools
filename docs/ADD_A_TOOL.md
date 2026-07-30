@@ -85,7 +85,6 @@ Republish with `npm run deploy:edge -- platform` after merging. Skipping this le
 |------|---------|----------|
 | **Fast dev** | `npm run dev` | Iterating on hub tabs, styles, or tool UI — no build step |
 | **Prod-like** | `npm run preview` | Pre-merge smoke tests — builds `dist/` and serves the exact tree CI deploys |
-| **Single tool** | `npm run dev:<tool-id>` | Focused work without the hub shell, at `http://localhost:8080/` |
 
 Hub preview runs on port **8765** (`PORT=9000 npm run dev` to change it).
 

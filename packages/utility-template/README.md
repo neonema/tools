@@ -20,13 +20,7 @@ Reusable starter for **one-page utility websites** under the NeoNema brand.
 
 ## Local preview
 
-From the monorepo root:
-
-```bash
-npm run dev:template
-```
-
-Then open [http://localhost:8080](http://localhost:8080).
+The template is not served on its own — the dev server only mounts registered apps under `apps/`. Scaffold it into a real app first, add the `MOUNTS` entry described in [docs/ADD_A_TOOL.md](../../docs/ADD_A_TOOL.md#3-register-in-the-build), then run `npm run dev` from the monorepo root and open `http://localhost:8765/#/<your-app-name>`.
 
 ## How to create a new utility
 

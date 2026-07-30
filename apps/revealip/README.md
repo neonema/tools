@@ -19,10 +19,10 @@ Static IP display site for deployment on S3 with CloudFront.
 From the monorepo root:
 
 ```bash
-npm run dev:revealip
+npm run dev
 ```
 
-Open [http://localhost:8080](http://localhost:8080).
+Open [http://localhost:8765/#/revealip](http://localhost:8765/#/revealip) — the hub loads this tool in its iframe, the same way production does.
 
 Note: `/api/ip` only works through CloudFront (or a local mock endpoint).
 

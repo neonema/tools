@@ -82,7 +82,7 @@ S3 REST origins only apply a **default root object** at `/`, so directory URLs n
 | Tool `index.html` canonical | `https://tools.neonema.com/#/<tool-id>` so search consolidates on the hub URL |
 | Hub iframe | Loads `/json/index.html` etc. unchanged, detected via `window.self !== window.top` |
 
-`npm run dev:json` / `dev:revealip` still work — standalone dev servers serve the tool at `/`, which does not match the redirect path check.
+`npm run dev` mounts tools at `/json/` and `/revealip/`, so the redirect path check fires locally too — a top-level visit lands on the hub route, matching production. Work on a tool through its hub route (`/#/json`), where it loads in the iframe and picks up `hub-embed`.
 
 ---
 

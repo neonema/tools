@@ -15,10 +15,10 @@ NeoNema-branded, privacy-first JSON workstation. All processing runs in the brow
 From the monorepo root:
 
 ```bash
-npm run dev:json
+npm run dev
 ```
 
-Open [http://localhost:8080](http://localhost:8080).
+Open [http://localhost:8765/#/json](http://localhost:8765/#/json) — the hub loads this tool in its iframe, the same way production does.
 
 ## Dev scripts
 

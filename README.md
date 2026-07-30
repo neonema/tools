@@ -32,13 +32,7 @@ npm run preview   # prod-like — builds dist/ then serves it (pre-merge smoke t
 
 See [docs/ADD_A_TOOL.md](docs/ADD_A_TOOL.md#6-preview-locally) for smoke URLs and the RevealIP `/api/ip` caveat.
 
-**Single-tool dev** (focused work, port 8080):
-
-```bash
-npm run dev:revealip
-npm run dev:json
-npm run dev:template
-```
+**Single-tool dev** (focused work): use `npm run dev` and open the tool's hub route — <http://localhost:8765/#/json> or <http://localhost:8765/#/revealip>. Tools are mounted at their production path prefixes, so visiting `/json/` at top level redirects to the hub route exactly as production does.
 
 ## Quality checks
 
