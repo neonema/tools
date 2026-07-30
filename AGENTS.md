@@ -14,7 +14,7 @@ Mandatory instructions for AI/LLM agents and contributors working in this reposi
 |------|---------|
 | `apps/hub/` | Tools hub shell — tab bar and hash router for tools.neonema.com |
 | `apps/<tool>/public/` | One deployable static tool per folder |
-| `packages/brand/` | Canonical tokens, header lock, parent logo — copy into apps, never symlink |
+| `packages/brand/` | Canonical tokens, header lock, NeoNema logo — copy into apps, never symlink |
 | `packages/utility-template/` | Starting point for new tools |
 | `scripts/` | Build, deploy, scaffold, brand sync and check |
 | `docs/` | Status, architecture, and runbooks |
@@ -82,18 +82,19 @@ Never introduce a conflicting visual language or an ad-hoc color set.
 - Typography: Outfit with a system sans fallback.
 - `--primary` carries key actions and highlights.
 - The locked header block must stay identical to `packages/brand/header-lock.css` — `npm run brand:check` enforces this.
+- Header branding is **NeoNema only** — no per-tool logos or “A product of” dual-brand headers.
 - After brand changes run `npm run sync-brand`, then `npm run brand:check`.
 
 ## 5) Brand language
 
-- Parent brand is **NeoNema**; each tool is presented as a NeoNema utility product.
+- Brand is **NeoNema**; tools are NeoNema utilities under the company logo, not separate product brands.
 
 ## 6) Traffic and discoverability
 
 Current focus is **bringing users to the site**, not monetizing them.
 
 - Ship real utility value on every page: clear headline, working tool, obvious outcome.
-- Accurate `<title>`, meta description, canonical URL, and favicon per tool.
+- Accurate `<title>`, meta description, canonical URL, and favicon (`NeoNema.png`) per tool.
 - Fast and mobile-friendly; no layout shift on load.
 - Keep copy clear and utility-first.
 - Do **not** add Google AdSense, `ads.txt`, ad slots, or any ad placement. The tools are not monetized, and ad scripts would break the privacy promise in section 2.

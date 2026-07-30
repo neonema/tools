@@ -60,15 +60,9 @@ const requiredLockedSnippets = [
   "padding: 4px 16px;",
   ".brand img.brand-main {",
   "height: 50px;",
-  ".brand img.brand-sub {",
-  "height: 36px;",
-  ".divider {",
-  "height: 48px;",
   "@media (max-width: 768px) {",
   "padding: 4px 12px;",
   "height: 40px;",
-  "height: 28px;",
-  "height: 38px;",
 ];
 
 function discoverAppPublicDirs() {

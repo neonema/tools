@@ -90,7 +90,7 @@ S3 REST origins only apply a **default root object** at `/`, so directory URLs n
 
 The hub (`apps/hub/`) is a lightweight static shell:
 
-- Fixed NeoNema header (shared brand lock)
+- Fixed NeoNema header (shared brand lock; company logo only — tools do not ship separate product logos)
 - Horizontal tab bar driven by `hub.config.json` — each tool registered explicitly, see [ADD_A_TOOL.md](./ADD_A_TOOL.md)
 - Client-side hash routes: `#/json`, `#/revealip`
 - Deep links and legacy-domain redirects land on the correct tab

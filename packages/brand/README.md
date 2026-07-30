@@ -6,7 +6,7 @@ Canonical source for shared NeoNema design assets used across utility sites.
 
 - `brand-tokens.css` — locked CSS custom properties (`:root` palette)
 - `header-lock.css` — reference copy of the locked header block (for scaffolding)
-- `NeoNema.png` — parent brand logo
+- `NeoNema.png` — company brand logo (used in every header and as favicon)
 
 ## Usage (copy at scaffold time)
 
@@ -28,5 +28,17 @@ Each app's `public/styles.css` must:
 
 1. Import tokens: `@import url("./brand-tokens.css");`
 2. Include the locked header block between `BRAND_LOCK_START` and `BRAND_LOCK_END` markers (see `header-lock.css` or `packages/utility-template/public/styles.css`)
+
+Header markup uses the NeoNema logo only — do not add per-tool logos or dual-brand attribution.
+
+```html
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+    </div>
+  </div>
+</header>
+```
 
 Run `npm run brand:check` from the repo root to verify all apps comply.

@@ -45,35 +45,6 @@ body {
   height: 50px;
 }
 
-.brand img.brand-sub {
-  height: 36px;
-  opacity: 0.9;
-}
-
-.brand-parent {
-  display: flex;
-  align-items: center;
-}
-
-.brand-attribution {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--muted);
-  letter-spacing: 0.02em;
-  line-height: 1;
-}
-
-.divider {
-  width: 1px;
-  height: 48px;
-  background: var(--border);
-  flex-shrink: 0;
-}
-
 @media (max-width: 768px) {
   .header-inner {
     padding: 4px 12px;
@@ -83,21 +54,8 @@ body {
     gap: 8px;
   }
 
-  .brand-attribution {
-    font-size: 0.75rem;
-    gap: 6px;
-  }
-
   .brand img.brand-main {
     height: 40px;
-  }
-
-  .brand img.brand-sub {
-    height: 28px;
-  }
-
-  .divider {
-    height: 38px;
   }
 }
 /* BRAND_LOCK_END */

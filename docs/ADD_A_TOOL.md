@@ -27,7 +27,7 @@ The scaffold creates the app only. Steps 3–5 are always manual.
 
 | File | What to change |
 |------|----------------|
-| `public/index.html` | `<title>`, meta description, headline copy, `HUB_TOOL_ID`, and the `rel="canonical"` href (`#/<tool-id>`) |
+| `public/index.html` | `<title>`, meta description, headline copy, `HUB_TOOL_ID`, and the `rel="canonical"` href (`#/<tool-id>`). Keep the NeoNema-only header; do not add a tool logo. |
 | `public/app.js` | Tool logic — browser-only, no NeoNema APIs, no third-party scripts |
 | `public/styles.css` | Layout only; leave brand tokens and the locked header block untouched |
 | `public/privacy-policy.html` | Real privacy copy for this tool, not template placeholders |
@@ -113,7 +113,7 @@ npm run build
 npm run test:json-converters   # if the tool has tests
 ```
 
-`brand:check` verifies palette tokens, the locked header block, and `NeoNema.png` against `packages/brand/`.
+`brand:check` verifies palette tokens, the locked header block, and `NeoNema.png` against `packages/brand/`. Headers use the company logo only — no per-tool brand assets.
 
 ### Legal pages
 

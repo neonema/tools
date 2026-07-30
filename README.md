@@ -18,7 +18,7 @@
 
 | Package | Path | Description |
 |---------|------|-------------|
-| Brand | `packages/brand/` | Canonical design tokens, header lock, parent logo |
+| Brand | `packages/brand/` | Canonical design tokens, header lock, NeoNema logo |
 | Utility template | `packages/utility-template/` | Scaffold for new one-page utilities |
 
 ## Local development
