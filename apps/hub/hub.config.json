@@ -1,15 +1,15 @@
 {
-  "defaultTool": "json",
+  "defaultTool": "revealip",
   "tools": [
-    {
-      "id": "json",
-      "label": "JSON Toolkit",
-      "path": "/json/index.html"
-    },
     {
       "id": "revealip",
       "label": "RevealIP",
       "path": "/revealip/index.html"
+    },
+    {
+      "id": "json",
+      "label": "JSON Toolkit",
+      "path": "/json/index.html"
     }
   ]
 }
