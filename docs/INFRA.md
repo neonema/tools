@@ -68,10 +68,10 @@ Cloudflare may cache HTML at the edge when proxied; CloudFront invalidation only
 
 | Zone | Match | Action |
 |------|-------|--------|
-| `json-neonema.com` | `(http.host eq "json-neonema.com") or (http.host eq "www.json-neonema.com")` | 301 → `https://tools.neonema.com/#/json` |
-| `revealip-neonema.com` | `(http.host eq "revealip-neonema.com") or (http.host eq "www.revealip-neonema.com")` | 301 → `https://tools.neonema.com/#/revealip` |
+| `json-neonema.com` | `(http.host eq "json-neonema.com") or (http.host eq "www.json-neonema.com")` | 301 → `https://tools.neonema.com/json/` |
+| `revealip-neonema.com` | `(http.host eq "revealip-neonema.com") or (http.host eq "www.revealip-neonema.com")` | 301 → `https://tools.neonema.com/revealip/` |
 
-Query strings are not preserved; all legacy paths collapse to the tool's tab. Each zone needs a proxied `www` CNAME to the apex for the `www` variants to resolve.
+Query strings are not preserved; all legacy paths collapse to the tool's path URL. Each zone needs a proxied `www` CNAME to the apex for the `www` variants to resolve. Update the Cloudflare Redirect Rules if they still point at `/#/...`.
 
 ```bash
 for host in json-neonema.com www.json-neonema.com revealip-neonema.com www.revealip-neonema.com; do

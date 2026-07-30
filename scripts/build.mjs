@@ -1,8 +1,9 @@
-import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 
 const rootDir = resolve(import.meta.dirname, "..");
 const distDir = resolve(rootDir, "dist");
+const SITE_ORIGIN = "https://tools.neonema.com";
 
 /** @type {{ label: string; source: string; dest: string }[]} */
 const APPS = [
@@ -37,5 +38,18 @@ if (!existsSync(hubConfigPath)) {
 }
 cpSync(hubConfigPath, join(distDir, "hub.config.json"));
 console.log("  ✓ hub.config.json → /");
+
+/** @type {{ tools?: { id: string }[] }} */
+const hubConfig = JSON.parse(readFileSync(hubConfigPath, "utf8"));
+const toolIds = Array.isArray(hubConfig.tools) ? hubConfig.tools.map((t) => t.id).filter(Boolean) : [];
+
+const sitemapUrls = [`${SITE_ORIGIN}/`, ...toolIds.map((id) => `${SITE_ORIGIN}/${id}/`)];
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemapUrls.map((loc) => `  <url><loc>${loc}</loc></url>`).join("\n")}
+</urlset>
+`;
+writeFileSync(join(distDir, "sitemap.xml"), sitemap);
+console.log("  ✓ sitemap.xml → /");
 
 console.log("build: dist/ ready");

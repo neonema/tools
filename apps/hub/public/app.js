@@ -31,8 +31,8 @@ function getToolIdFromHash() {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-function hashForTool(toolId) {
-  return `#/${encodeURIComponent(toolId)}`;
+function pathForTool(toolId) {
+  return `/${encodeURIComponent(toolId)}/`;
 }
 
 function setActiveTab(toolId) {
@@ -46,6 +46,11 @@ function setActiveTab(toolId) {
     const isActive = tab.dataset.toolId === toolId;
     tab.classList.toggle("active", isActive);
     tab.setAttribute("aria-selected", isActive ? "true" : "false");
+    if (isActive) {
+      tab.setAttribute("aria-current", "page");
+    } else {
+      tab.removeAttribute("aria-current");
+    }
   });
 
   showToolFrame(toolId);
@@ -152,35 +157,32 @@ function showToolFrame(toolId) {
   startHubHeartbeat();
 }
 
-function navigateToTool(toolId, { replace = false } = {}) {
+/**
+ * In-session hub UX: switch the iframe without leaving `/`.
+ * Tab `href`s point at path URLs so crawlers, middle-click, and open-in-new-tab
+ * hit the indexable tool page.
+ */
+function activateToolInHub(toolId) {
   if (!hubConfig || !getToolById(toolId)) return;
-
-  const nextHash = hashForTool(toolId);
-
-  if (location.hash === nextHash) {
-    setActiveTab(toolId);
-    return;
+  if (location.hash) {
+    history.replaceState(null, "", location.pathname + location.search);
   }
-
-  if (replace) {
-    history.replaceState({ toolId }, "", nextHash);
-    setActiveTab(toolId);
-    return;
-  }
-
-  location.hash = nextHash;
+  setActiveTab(toolId);
 }
 
-function applyRouteFromHash() {
-  const toolId = getToolIdFromHash();
-  if (toolId && getToolById(toolId)) {
-    setActiveTab(toolId);
+function applyInitialRoute() {
+  const hashToolId = getToolIdFromHash();
+  if (hashToolId && getToolById(hashToolId)) {
+    // Legacy /#/<tool-id> bookmarks: stay on the hub and clear the hash.
+    // Do not location.replace to /<tool-id>/ here — a stale edge 301 or
+    // cached tool page that still redirects path → hash would loop forever.
+    activateToolInHub(hashToolId);
     return;
   }
 
   const fallbackId = getDefaultToolId();
   if (fallbackId) {
-    navigateToTool(fallbackId, { replace: true });
+    setActiveTab(fallbackId);
   }
 }
 
@@ -188,15 +190,21 @@ function renderTabs(config) {
   tabList.replaceChildren();
 
   for (const tool of config.tools) {
-    const tab = document.createElement("button");
-    tab.type = "button";
+    const tab = document.createElement("a");
     tab.className = "hub-tab";
+    tab.href = pathForTool(tool.id);
     tab.role = "tab";
     tab.dataset.toolId = tool.id;
     tab.textContent = tool.label;
     tab.setAttribute("aria-selected", "false");
     tab.setAttribute("aria-controls", "tool-panel");
-    tab.addEventListener("click", () => navigateToTool(tool.id));
+    tab.addEventListener("click", (event) => {
+      if (event.defaultPrevented) return;
+      if (event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      activateToolInHub(tool.id);
+    });
     tabList.appendChild(tab);
   }
 }
@@ -214,8 +222,7 @@ async function initHub() {
     }
 
     renderTabs(hubConfig);
-    applyRouteFromHash();
-    window.addEventListener("hashchange", applyRouteFromHash);
+    applyInitialRoute();
   } catch (error) {
     tabList.replaceChildren();
     const message = document.createElement("p");

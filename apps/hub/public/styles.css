@@ -102,6 +102,7 @@ body > .header {
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 500;
+  text-decoration: none;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
 }

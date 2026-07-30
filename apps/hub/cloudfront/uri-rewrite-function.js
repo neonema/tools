@@ -10,18 +10,8 @@ function handler(event) {
     return request;
   }
 
-  var hubToolMatch = uri.match(/^\/(json|revealip|utc)\/?$/);
-  if (hubToolMatch) {
-    var host = request.headers.host.value;
-    return {
-      statusCode: 301,
-      statusDescription: "Moved Permanently",
-      headers: {
-        location: { value: "https://" + host + "/#/" + hubToolMatch[1] },
-      },
-    };
-  }
-
+  // S3 REST origins only apply a default root object at "/".
+  // Rewrite directory URLs (including tool roots like /json/) to index.html.
   if (uri.lastIndexOf(".") > uri.lastIndexOf("/")) {
     return request;
   }

@@ -18,7 +18,7 @@ From the monorepo root:
 npm run dev
 ```
 
-Open [http://localhost:8765/#/json](http://localhost:8765/#/json) — the hub loads this tool in its iframe, the same way production does.
+Open [http://localhost:8765/json/](http://localhost:8765/json/) — or use the hub at `/` which embeds this tool in an iframe.
 
 ## Dev scripts
 
@@ -30,7 +30,7 @@ npm run test:json-converters
 
 This tool deploys as part of the platform — `npm run build` copies `public/` into `dist/json/`, and a push to `main` ships it. See [docs/DEPLOY.md](../../docs/DEPLOY.md).
 
-Public entry is `https://tools.neonema.com/#/json`; `/json/` serves iframe assets only.
+Public entry is `https://tools.neonema.com/json/`.
 
 ## Roadmap
 

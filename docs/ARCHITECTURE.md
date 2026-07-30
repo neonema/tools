@@ -11,10 +11,10 @@ All tools ship from **one S3 bucket** and **one CloudFront distribution**. Each 
 
 ```
 tools.neonema.com/              → apps/hub/public/          (tab shell + tool picker)
-tools.neonema.com/#/json        → JSON Toolkit (hub tab; public entry)
-tools.neonema.com/#/revealip    → RevealIP (hub tab; public entry)
-tools.neonema.com/json/...      → apps/json/public/         (iframe assets only — not a public landing URL)
-tools.neonema.com/revealip/...  → apps/revealip/public/     (iframe assets only — not a public landing URL)
+tools.neonema.com/json/         → apps/json/public/         (indexable tool page; public entry)
+tools.neonema.com/revealip/     → apps/revealip/public/     (indexable tool page; public entry)
+tools.neonema.com/utc/          → apps/utc/public/          (indexable tool page; public entry)
+tools.neonema.com/#/<tool-id>   → hub shows that tool tab, then clears the hash (legacy bookmarks)
 ```
 
 `scripts/build.mjs` assembles the deployable tree into `dist/`:
@@ -25,8 +25,10 @@ dist/
   app.js, styles.css      ← apps/hub/public/*
   hub.config.json         ← apps/hub/hub.config.json
   robots.txt              ← apps/hub/public/robots.txt   (governs the whole origin)
+  sitemap.xml             ← generated from hub.config.json
   json/                   ← apps/json/public/*
   revealip/               ← apps/revealip/public/*
+  utc/                    ← apps/utc/public/*
 ```
 
 **Why one origin:** one ACM certificate, one invalidation target, one deploy workflow, simpler DNS. Tools stay independent folders in the monorepo (`apps/<name>/`).
@@ -61,28 +63,27 @@ RevealIP cannot detect the viewer's public IP purely in the browser. `/api/ip` i
 
 Do not add similar edge infrastructure to other apps unless explicitly requested and documented here.
 
-### `tools-uri-rewrite` — directory URLs and hub-only entry
+### `tools-uri-rewrite` — directory URLs
 
 S3 REST origins only apply a **default root object** at `/`, so directory URLs need rewriting. The function (`apps/hub/cloudfront/uri-rewrite-function.js`) runs on the default `*` behavior:
 
 | Request | Behavior |
 |---------|----------|
-| `/json`, `/json/`, `/revealip`, `/revealip/` | `301` → `/#/<tool-id>` |
-| Other directory paths | Rewrite to `<path>/index.html` |
 | `/api/*`, paths with a file extension | Pass through |
+| Directory paths (including `/json/`, `/revealip/`, `/utc/`) | Rewrite to `<path>/index.html` |
 
-**Add every new tool root path to that redirect list and republish**, otherwise the tool gets a second public URL.
+Tool root paths are **public, indexable pages** — they must return `200` with full HTML, not redirect to a hash route.
 
-### Layered hub-only entry
+### Indexable paths + hub chrome
 
 | Layer | Behavior |
 |-------|----------|
-| `tools-uri-rewrite` | `301` from tool root paths to the hub hash route |
-| Tool `index.html` | `location.replace` to `/#/<tool-id>` on a top-level visit — belt-and-braces if the published function is stale |
-| Tool `index.html` canonical | `https://tools.neonema.com/#/<tool-id>` so search consolidates on the hub URL |
-| Hub iframe | Loads `/json/index.html` etc. unchanged, detected via `window.self !== window.top` |
+| Tool `index.html` | Served at `/<tool-id>/`; canonical points at that path |
+| Hub iframe | Loads `/<tool-id>/index.html`; detects embed via `window.self !== window.top` and applies `hub-embed` |
+| Hub tabs | Real `<a href="/<tool-id>/">` links; left-click switches the iframe in-session without leaving `/` |
+| Legacy `#/<tool-id>` | Hub clears the hash and shows that tool in the iframe (no hard navigation — avoids loops with stale path→hash redirects) |
 
-`npm run dev` mounts tools at `/json/` and `/revealip/`, so the redirect path check fires locally too — a top-level visit lands on the hub route, matching production. Work on a tool through its hub route (`/#/json`), where it loads in the iframe and picks up `hub-embed`.
+`npm run dev` mounts tools at `/json/`, `/revealip/`, and `/utc/`. Work on a tool at its path URL or through the hub at `/`.
 
 ---
 
@@ -92,8 +93,7 @@ The hub (`apps/hub/`) is a lightweight static shell:
 
 - Fixed NeoNema header (shared brand lock; company logo only — tools do not ship separate product logos)
 - Horizontal tab bar driven by `hub.config.json` — each tool registered explicitly, see [ADD_A_TOOL.md](./ADD_A_TOOL.md)
-- Client-side hash routes: `#/json`, `#/revealip`
-- Deep links and legacy-domain redirects land on the correct tab
+- Tabs link to path URLs (`/json/`, …); in-session clicks keep the hub shell and swap iframes
 - Tool panels load in **iframes** (`src="/json/index.html"`). Chosen for speed of shipping and because it leaves tools unchanged; revisit inlined modules only if iframe polish becomes a real blocker.
 
 ---
@@ -103,8 +103,8 @@ The hub (`apps/hub/`) is a lightweight static shell:
 | Hostname | Role |
 |----------|------|
 | `tools.neonema.com` | Tools hub + all tools (production) |
-| `revealip-neonema.com`, `www.revealip-neonema.com` | 301 → `https://tools.neonema.com/#/revealip` |
-| `json-neonema.com`, `www.json-neonema.com` | 301 → `https://tools.neonema.com/#/json` |
+| `revealip-neonema.com`, `www.revealip-neonema.com` | 301 → `https://tools.neonema.com/revealip/` |
+| `json-neonema.com`, `www.json-neonema.com` | 301 → `https://tools.neonema.com/json/` |
 | `neonema.com` | Company marketing site (separate repo + AWS account) |
 
 There is no hosted staging environment — see [STATUS.md](./STATUS.md) for why. AWS accounts, DNS, and credentials: [INFRA.md](./INFRA.md).

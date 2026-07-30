@@ -8,7 +8,7 @@
       name="description"
       content="Validate, format, and lint JSON in one focused tab. Private, browser-only, and simple."
     />
-    <link rel="canonical" href="https://tools.neonema.com/#/json" />
+    <link rel="canonical" href="https://tools.neonema.com/json/" />
     <link rel="icon" type="image/png" href="./NeoNema.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,10 +20,6 @@
       (function () {
         if (window.self !== window.top) {
           document.documentElement.classList.add("hub-embed");
-          return;
-        }
-        if (/^\/json(?:\/index\.html)?\/?$/.test(location.pathname)) {
-          location.replace("/#/json");
         }
       })();
     </script>

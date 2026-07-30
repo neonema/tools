@@ -10,9 +10,9 @@ From the monorepo root:
 npm run dev
 ```
 
-Open [http://localhost:8765/#/utc](http://localhost:8765/#/utc).
+Open [http://localhost:8765/utc/](http://localhost:8765/utc/).
 
 ## Deploy
 
 Ships with the platform build (`dist/utc/`). Public entry:
-`https://tools.neonema.com/#/utc`. See [docs/DEPLOY.md](../../docs/DEPLOY.md).
+`https://tools.neonema.com/utc/`. See [docs/DEPLOY.md](../../docs/DEPLOY.md).

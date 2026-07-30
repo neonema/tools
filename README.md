@@ -2,7 +2,7 @@
 
 **Canonical repository** for all NeoNema utility products, shared brand assets, deploy automation, and platform docs.
 
-- **Production:** [tools.neonema.com](https://tools.neonema.com) — single origin hosting the hub and every tool (`#/json`, `#/revealip`, …).
+- **Production:** [tools.neonema.com](https://tools.neonema.com) — single origin hosting the hub and every tool (`/json/`, `/revealip/`, `/utc/`, …).
 - **Privacy:** tools run entirely in the browser. No accounts, no analytics, no ads, no user data stored or relayed.
 - **Status:** [docs/STATUS.md](docs/STATUS.md) — what is live, what is open, what is deliberately not built.
 
@@ -10,8 +10,9 @@
 
 | App | Path | Description |
 |-----|------|-------------|
-| Hub | `apps/hub/` | Tab shell and router for tools.neonema.com |
+| Hub | `apps/hub/` | Tab shell for tools.neonema.com |
 | RevealIP | `apps/revealip/` | Public IPv4/IPv6 display (edge function for `/api/ip`) |
+| UTC | `apps/utc/` | Live local and UTC clocks |
 | JSON Toolkit | `apps/json/` | Browser-based JSON validate, diff, JSONPath, converters |
 
 ## Packages
@@ -32,7 +33,7 @@ npm run preview   # prod-like — builds dist/ then serves it (pre-merge smoke t
 
 See [docs/ADD_A_TOOL.md](docs/ADD_A_TOOL.md#6-preview-locally) for smoke URLs and the RevealIP `/api/ip` caveat.
 
-**Single-tool dev** (focused work): use `npm run dev` and open the tool's hub route — <http://localhost:8765/#/json> or <http://localhost:8765/#/revealip>. Tools are mounted at their production path prefixes, so visiting `/json/` at top level redirects to the hub route exactly as production does.
+**Single-tool dev** (focused work): use `npm run dev` and open the tool path — <http://localhost:8765/json/> or <http://localhost:8765/revealip/>. The hub at `/` still embeds tools in iframes for tab switching; legacy `/#/<tool-id>` opens that hub tab.
 
 ## Quality checks
 

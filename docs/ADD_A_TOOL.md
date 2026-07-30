@@ -2,7 +2,7 @@
 
 End-to-end runbook for shipping a new utility: scaffold → implement → register → preview → pre-ship checks → deploy.
 
-**The hub does not auto-discover apps.** A tool is invisible until it is registered in `hub.config.json`, `scripts/build.mjs`, and the edge redirect function.
+**The hub does not auto-discover apps.** A tool is invisible until it is registered in `hub.config.json`, `scripts/build.mjs`, and (for local preview) `scripts/dev.mjs`.
 
 Related: [ARCHITECTURE.md](./ARCHITECTURE.md), [AGENTS.md](../AGENTS.md).
 
@@ -21,13 +21,13 @@ cp -R packages/utility-template apps/<tool-id>
 npm run sync-brand -- <tool-id>
 ```
 
-The scaffold creates the app only. Steps 3–5 are always manual.
+The scaffold creates the app only. Steps 3–4 are always manual.
 
 ## 2. Implement the tool
 
 | File | What to change |
 |------|----------------|
-| `public/index.html` | `<title>`, meta description, headline copy, `HUB_TOOL_ID`, and the `rel="canonical"` href (`#/<tool-id>`). Keep the NeoNema-only header; do not add a tool logo. |
+| `public/index.html` | `<title>`, meta description, headline copy, and the `rel="canonical"` href (`/<tool-id>/`). Keep the NeoNema-only header; do not add a tool logo. |
 | `public/app.js` | Tool logic — browser-only, no NeoNema APIs, no third-party scripts |
 | `public/styles.css` | Layout only; leave brand tokens and the locked header block untouched |
 | `public/privacy-policy.html` | Real privacy copy for this tool, not template placeholders |
@@ -43,7 +43,7 @@ Add an entry to the `APPS` array in `scripts/build.mjs`:
 { label: "<tool-id>", source: "apps/<tool-id>/public", dest: "<tool-id>" },
 ```
 
-This copies the tool to `dist/<tool-id>/` so the hub iframe can load `/<tool-id>/index.html`.
+This copies the tool to `dist/<tool-id>/` so both the public path and the hub iframe can load `/<tool-id>/index.html`. The build also regenerates `sitemap.xml` from `hub.config.json`.
 
 For fast local dev (`npm run dev`), add a matching mount in `scripts/dev.mjs` `MOUNTS`:
 
@@ -65,21 +65,13 @@ Add a tool object to `apps/hub/hub.config.json`:
 }
 ```
 
-Tabs render from this config at runtime — never add per-tool markup to the hub HTML. Set `"defaultTool"` if this tab should open at `/` with no hash.
+Tabs render from this config at runtime — never add per-tool markup to the hub HTML. Set `"defaultTool"` if this tab should open at `/` when no tool is selected. Optionally add the tool to the hub `noscript` link list in `apps/hub/public/index.html`.
 
-## 5. Add the tool root to the edge redirect
-
-`apps/hub/cloudfront/uri-rewrite-function.js` 301s tool root paths to the hub. Add the new id:
-
-```javascript
-var hubToolMatch = uri.match(/^\/(json|revealip|<tool-id>)\/?$/);
-```
-
-Republish with `npm run deploy:edge -- platform` after merging. Skipping this leaves the tool reachable at a second public URL.
+The edge function only rewrites directories to `index.html` — **no per-tool redirect list**. After editing `apps/hub/cloudfront/uri-rewrite-function.js` for other reasons, republish with `npm run deploy:edge -- platform`.
 
 ---
 
-## 6. Preview locally
+## 5. Preview locally
 
 | Mode | Command | Use when |
 |------|---------|----------|
@@ -91,17 +83,17 @@ Hub preview runs on port **8765** (`PORT=9000 npm run dev` to change it).
 | URL | Expected |
 |-----|----------|
 | `http://localhost:8765/` | Hub loads with the default tab from `hub.config.json` |
-| `http://localhost:8765/#/<tool-id>` | Tab active; iframe loads the tool |
-| `http://localhost:8765/<tool-id>/` | Redirects to `/#/<tool-id>` via the `index.html` guard (the edge 301 is production-only) |
+| `http://localhost:8765/<tool-id>/` | Full tool page (`200`); canonical is this path |
+| `http://localhost:8765/#/<tool-id>` | Hub shows that tool tab and clears the hash |
 | `http://localhost:8765/<tool-id>/privacy-policy.html` | Legal page loads |
 
-Tab labels should match `hub.config.json`.
+Tab labels should match `hub.config.json`. Hub tabs are real links to `/<tool-id>/`; left-click keeps the hub shell and swaps the iframe.
 
 **RevealIP `/api/ip` caveat:** local preview does not run the CloudFront Function, so IP detection fails unless you mock the endpoint. Test it through deployed CloudFront or the function **Test** tab in the AWS console.
 
 ---
 
-## 7. Pre-ship checks
+## 6. Pre-ship checks
 
 Run before merging.
 
@@ -129,7 +121,7 @@ ls apps/<tool-id>/public/privacy-policy.html apps/<tool-id>/public/terms.html
 
 ### `robots.txt`
 
-Crawlers only read `robots.txt` from the origin root, so **`apps/hub/public/robots.txt`** governs the whole site. A per-tool copy is optional and inert. Never reference legacy domains.
+Crawlers only read `robots.txt` from the origin root, so **`apps/hub/public/robots.txt`** governs the whole site. A per-tool copy is optional and inert. Never reference legacy domains. Confirm it points at `sitemap.xml`.
 
 ### Device / responsive smoke
 
@@ -158,15 +150,15 @@ Worth one pass each on normal network, VPN, and mobile data — RevealIP behaves
 
 - [ ] Logic runs in the browser — no `fetch()` to NeoNema-owned APIs unless documented in [ARCHITECTURE.md](./ARCHITECTURE.md)
 - [ ] No analytics, ad, or third-party tracking scripts
-- [ ] `HUB_TOOL_ID`, `hub.config.json` id, and `build.mjs` dest all match
-- [ ] Canonical URL points at `https://tools.neonema.com/#/<tool-id>`
-- [ ] Tool root added to `uri-rewrite-function.js`
+- [ ] Hub config id and `build.mjs` dest match
+- [ ] Canonical URL points at `https://tools.neonema.com/<tool-id>/`
+- [ ] Tool appears in built `dist/sitemap.xml`
 
 ---
 
-## 8. Ship
+## 7. Ship
 
-Merge to `main` — GitHub Actions builds and deploys. Then republish the edge function so the tool root 301s:
+Merge to `main` — GitHub Actions builds and deploys. If you changed an edge function, republish:
 
 ```bash
 npm run deploy:edge -- platform
@@ -183,6 +175,6 @@ Details and the local deploy fallback: [DEPLOY.md](./DEPLOY.md).
 | Brand palette & header | `packages/brand/`, [AGENTS.md](../AGENTS.md) |
 | Tool template | `packages/utility-template/` |
 | Hub tab list | `apps/hub/hub.config.json` |
-| Build tree | `scripts/build.mjs` → `dist/` |
+| Build tree + sitemap | `scripts/build.mjs` → `dist/` |
 | Hub routing | `apps/hub/public/app.js` |
-| Edge redirect | `apps/hub/cloudfront/uri-rewrite-function.js` |
+| Directory rewrite | `apps/hub/cloudfront/uri-rewrite-function.js` |

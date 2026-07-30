@@ -139,22 +139,25 @@ Look for clusters with decent volume (1K–50K/mo) where page 1 is weak, ad-ridd
 
 ## 3. SEO Fixes
 
-### Critical — current architecture blocks per-tool ranking
+### Critical — path URLs as the SEO surface (implemented 2026-07-30)
 
-Tool pages redirect standalone visits to hash routes (`apps/json/public/index.html`, the inline
-script around line 26) and set `<link rel="canonical" href="https://tools.neonema.com/#/json">`.
-Google ignores URL fragments, so `/#/json` is just the homepage to a crawler. Effectively all three
-tools canonicalize to a single page and none can rank for their own keywords. Highest-impact fix
-available:
+Previously, tool pages redirected standalone visits to hash routes and set
+`<link rel="canonical" href="https://tools.neonema.com/#/json">`. Google ignores URL
+fragments, so `/#/json` was just the homepage to a crawler.
 
-1. **Give every tool a real, crawlable path** (`/json/`, `/utc/`, `/revealip/`) that renders full
-   content at that URL — no redirect to a hash route. The hub tabs can stay, but make them real
-   links to real paths and hijack clicks client-side via the History API for SPA feel.
-   Independent per-tool ranking is the entire growth model of it-tools, codebeautify, et al.
-2. **Canonical per tool** pointing at the real path, not the fragment.
-3. **Add `sitemap.xml`** — none exists in `dist/` today. List every tool URL, reference it from
-   `robots.txt`, and submit the site in Google Search Console.
+**Current model (hub + indexable tool pages):**
 
+1. **Every tool has a real, crawlable path** (`/json/`, `/utc/`, `/revealip/`) that renders
+   full content at that URL — no redirect to a hash route. Hub tabs are real `<a href>` links
+   to those paths; left-click keeps the hub shell and swaps iframes.
+2. **Canonical per tool** points at the path (`https://tools.neonema.com/json/`), not a fragment.
+3. **`sitemap.xml`** is generated at build from `hub.config.json` and referenced from `robots.txt`.
+   Submit it in Google Search Console after deploy.
+4. **Legacy `/#/<tool-id>`** opens that tool on the hub and clears the hash (no hard
+   navigation to the path, which avoided a refresh loop with stale path→hash clients).
+   Prefer linking to `/<tool-id>/` going forward.
+
+Remaining on-page work below still applies.
 ### On-page, per tool
 
 4. **Title pattern: primary keyword first.**
@@ -192,5 +195,5 @@ available:
 
 Head terms (`what is my ip`, `json formatter`) are dominated by high-authority sites. Wins come from
 the long tail (`jwt decoder offline`, `json to yaml no upload`, `epoch converter milliseconds`) and
-from having many decent pages rather than three great ones. Ship tools in clusters, fix hash routing
-first, and let Search Console data decide which clusters to deepen.
+from having many decent pages rather than three great ones. Ship tools in clusters, keep path
+routing healthy, and let Search Console data decide which clusters to deepen.

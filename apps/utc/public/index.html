@@ -8,7 +8,7 @@
       name="description"
       content="Live local and UTC clocks in your browser. See your timezone offset and whether daylight saving is in effect. Private, no signup."
     />
-    <link rel="canonical" href="https://tools.neonema.com/#/utc" />
+    <link rel="canonical" href="https://tools.neonema.com/utc/" />
     <link rel="icon" type="image/png" href="./NeoNema.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,10 +20,6 @@
       (function () {
         if (window.self !== window.top) {
           document.documentElement.classList.add("hub-embed");
-          return;
-        }
-        if (/^\/utc(?:\/index\.html)?\/?$/.test(location.pathname)) {
-          location.replace("/#/utc");
         }
       })();
     </script>

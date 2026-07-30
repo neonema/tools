@@ -15,6 +15,7 @@ const MIME = {
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
   ".txt": "text/plain; charset=utf-8",
+  ".xml": "application/xml; charset=utf-8",
 };
 
 if (!existsSync(rootDir)) {
@@ -57,6 +58,7 @@ await listenOnPort(server, port, "preview");
 
 console.log("NeoNema tools preview (built dist/)");
 console.log(`  http://localhost:${port}/`);
-console.log(`  http://localhost:${port}/#/json`);
-console.log(`  http://localhost:${port}/#/revealip`);
-console.log(`  http://localhost:${port}/#/utc`);
+console.log(`  http://localhost:${port}/json/`);
+console.log(`  http://localhost:${port}/revealip/`);
+console.log(`  http://localhost:${port}/utc/`);
+console.log("  (legacy /#/<tool-id> opens that hub tab)");

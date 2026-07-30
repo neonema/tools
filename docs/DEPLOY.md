@@ -98,7 +98,8 @@ This publishes every entry in the `edge` array. A stale published version fails 
 
 ```bash
 curl -s  "https://tools.neonema.com/api/ip"                              # JSON with ipv4/ipv6/preferred
-curl -sI "https://tools.neonema.com/json/" | grep -iE "HTTP/|location:"  # expect 301 → /#/json
+curl -sI "https://tools.neonema.com/json/" | grep -iE "HTTP/|location:"  # expect 200 (no Location)
+curl -s  "https://tools.neonema.com/sitemap.xml" | head                  # hub + tool paths
 ```
 
 ### Distribution wiring

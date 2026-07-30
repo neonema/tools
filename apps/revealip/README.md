@@ -22,7 +22,7 @@ From the monorepo root:
 npm run dev
 ```
 
-Open [http://localhost:8765/#/revealip](http://localhost:8765/#/revealip) — the hub loads this tool in its iframe, the same way production does.
+Open [http://localhost:8765/revealip/](http://localhost:8765/revealip/) — or use the hub at `/` which embeds this tool in an iframe.
 
 Note: `/api/ip` only works through CloudFront (or a local mock endpoint).
 
@@ -36,4 +36,4 @@ The `/api/ip` edge function is published separately, only when `cloudfront/ip-ap
 npm run deploy:edge -- platform
 ```
 
-Public entry is `https://tools.neonema.com/#/revealip`. Setup details: [docs/DEPLOY.md](../../docs/DEPLOY.md#edge-functions).
+Public entry is `https://tools.neonema.com/revealip/`. Setup details: [docs/DEPLOY.md](../../docs/DEPLOY.md#edge-functions).

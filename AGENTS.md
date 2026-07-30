@@ -12,7 +12,7 @@ Mandatory instructions for AI/LLM agents and contributors working in this reposi
 
 | Path | Purpose |
 |------|---------|
-| `apps/hub/` | Tools hub shell — tab bar and hash router for tools.neonema.com |
+| `apps/hub/` | Tools hub shell — tab bar and iframe panels for tools.neonema.com |
 | `apps/<tool>/public/` | One deployable static tool per folder |
 | `packages/brand/` | Canonical tokens, header lock, NeoNema logo — copy into apps, never symlink |
 | `packages/utility-template/` | Starting point for new tools |
@@ -49,7 +49,7 @@ Mandatory instructions for AI/LLM agents and contributors working in this reposi
 - Build each tool as a **single-page utility**.
 - Keep the flow direct: headline → tool → output → trust/legal links.
 - No unnecessary navigation. The hub provides cross-tool navigation; tools do not.
-- Public entry is the hub (`tools.neonema.com/#/<tool-id>`), not standalone `/tool-id/` landing pages.
+- Public entry is the tool path (`tools.neonema.com/<tool-id>/`). The hub at `/` provides cross-tool navigation; legacy `/#/<tool-id>` opens that hub tab and clears the hash.
 - Preserve the one-page flow unless the user explicitly asks for multi-page expansion.
 
 ## 2) Privacy posture
