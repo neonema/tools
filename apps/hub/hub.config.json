@@ -7,6 +7,11 @@
       "path": "/revealip/index.html"
     },
     {
+      "id": "utc",
+      "label": "UTC",
+      "path": "/utc/index.html"
+    },
+    {
       "id": "json",
       "label": "JSON Toolkit",
       "path": "/json/index.html"

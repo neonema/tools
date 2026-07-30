@@ -10,6 +10,12 @@ const iframeByToolId = new Map();
 /** @type {Map<string, ResizeObserver>} */
 const resizeObserverByToolId = new Map();
 
+/** @type {string | null} */
+let activeToolId = null;
+
+/** @type {ReturnType<typeof setInterval> | null} */
+let heartbeatIntervalId = null;
+
 function getToolById(id) {
   return hubConfig?.tools.find((tool) => tool.id === id) ?? null;
 }
@@ -65,9 +71,56 @@ function observeToolFrame(frame, toolId) {
   resizeObserverByToolId.set(toolId, observer);
 }
 
+function notifyToolShown(frame) {
+  try {
+    frame.contentWindow?.postMessage(
+      { source: "neonema-hub", type: "tool-shown" },
+      window.location.origin,
+    );
+  } catch {
+    // Cross-origin or unloaded frame — ignore.
+  }
+}
+
+/**
+ * Drive live tools from the parent page. Same-origin iframes often have
+ * timers frozen (height:0 / display:none / background throttling); calling
+ * into the child from the hub interval keeps clocks ticking.
+ */
+function pulseActiveTool() {
+  if (!activeToolId) return;
+  const frame = iframeByToolId.get(activeToolId);
+  if (!frame || frame.hidden) return;
+
+  const win = frame.contentWindow;
+  if (!win) return;
+
+  try {
+    if (typeof win.neonemaToolHeartbeat === "function") {
+      win.neonemaToolHeartbeat();
+      return;
+    }
+  } catch {
+    // Fall through to postMessage.
+  }
+
+  try {
+    win.postMessage({ source: "neonema-hub", type: "heartbeat" }, window.location.origin);
+  } catch {
+    // Unloaded frame — ignore.
+  }
+}
+
+function startHubHeartbeat() {
+  if (heartbeatIntervalId != null) return;
+  heartbeatIntervalId = setInterval(pulseActiveTool, 250);
+}
+
 function showToolFrame(toolId) {
   const tool = getToolById(toolId);
   if (!tool) return;
+
+  activeToolId = toolId;
 
   for (const [id, frame] of iframeByToolId) {
     frame.hidden = id !== toolId;
@@ -83,6 +136,10 @@ function showToolFrame(toolId) {
     frame.addEventListener("load", () => {
       resizeToolFrame(frame);
       observeToolFrame(frame, toolId);
+      if (!frame.hidden) {
+        notifyToolShown(frame);
+        pulseActiveTool();
+      }
     });
     toolPanel.appendChild(frame);
     iframeByToolId.set(toolId, frame);
@@ -90,6 +147,9 @@ function showToolFrame(toolId) {
 
   frame.hidden = false;
   resizeToolFrame(frame);
+  notifyToolShown(frame);
+  pulseActiveTool();
+  startHubHeartbeat();
 }
 
 function navigateToTool(toolId, { replace = false } = {}) {

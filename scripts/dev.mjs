@@ -21,6 +21,7 @@ const MIME = {
 const MOUNTS = [
   { mount: "/json", dir: "apps/json/public" },
   { mount: "/revealip", dir: "apps/revealip/public" },
+  { mount: "/utc", dir: "apps/utc/public" },
 ];
 
 function resolvePublic(appRel, urlPath) {
@@ -76,3 +77,4 @@ console.log("NeoNema tools dev server (no build step)");
 console.log(`  http://localhost:${port}/`);
 console.log(`  http://localhost:${port}/#/json`);
 console.log(`  http://localhost:${port}/#/revealip`);
+console.log(`  http://localhost:${port}/#/utc`);

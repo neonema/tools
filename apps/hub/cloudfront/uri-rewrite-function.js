@@ -10,7 +10,7 @@ function handler(event) {
     return request;
   }
 
-  var hubToolMatch = uri.match(/^\/(json|revealip)\/?$/);
+  var hubToolMatch = uri.match(/^\/(json|revealip|utc)\/?$/);
   if (hubToolMatch) {
     var host = request.headers.host.value;
     return {

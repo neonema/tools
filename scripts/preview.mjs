@@ -59,3 +59,4 @@ console.log("NeoNema tools preview (built dist/)");
 console.log(`  http://localhost:${port}/`);
 console.log(`  http://localhost:${port}/#/json`);
 console.log(`  http://localhost:${port}/#/revealip`);
+console.log(`  http://localhost:${port}/#/utc`);

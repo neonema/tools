@@ -9,6 +9,7 @@ const APPS = [
   { label: "hub", source: "apps/hub/public", dest: "" },
   { label: "json", source: "apps/json/public", dest: "json" },
   { label: "revealip", source: "apps/revealip/public", dest: "revealip" },
+  { label: "utc", source: "apps/utc/public", dest: "utc" },
 ];
 
 if (existsSync(distDir)) {
