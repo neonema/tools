@@ -15,6 +15,11 @@
       "id": "json",
       "label": "JSON Toolkit",
       "path": "/json/index.html"
+    },
+    {
+      "id": "word-token-counter",
+      "label": "Word/Token Counter",
+      "path": "/word-token-counter/index.html"
     }
   ]
 }

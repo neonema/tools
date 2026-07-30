@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Word/Token Counter — Words, Characters &amp; Estimated Tokens | NeoNema</title>
+    <meta
+      name="description"
+      content="Count words, characters, and estimated LLM tokens as you type. Live totals stay pinned at the top. Runs in your browser — nothing is uploaded."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/word-token-counter/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Word/Token Counter</h1>
+        <p class="hero-copy">
+          Paste or type text. Counts update live and stay visible as you scroll. Nothing leaves your
+          browser.
+        </p>
+      </section>
+
+      <section class="stats-bar" aria-label="Live word, character, and token counts" aria-live="polite">
+        <div class="stat">
+          <span id="word-count" class="stat-value">0</span>
+          <span class="stat-label">Words</span>
+        </div>
+        <div class="stat">
+          <span id="char-count" class="stat-value">0</span>
+          <span class="stat-label">Characters</span>
+        </div>
+        <div class="stat">
+          <span id="token-count" class="stat-value">0</span>
+          <span class="stat-label">≈ Tokens</span>
+        </div>
+      </section>
+
+      <p class="token-note">
+        Token count is a rough estimate. The actual value may differ depending on the model.
+      </p>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Text input</h2>
+        <label for="source-input" class="primary-label">Your text</label>
+        <textarea
+          id="source-input"
+          placeholder="Paste or type text here…"
+          spellcheck="true"
+        ></textarea>
+        <div class="actions">
+          <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

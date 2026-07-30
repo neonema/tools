@@ -23,6 +23,7 @@ const MOUNTS = [
   { mount: "/json", dir: "apps/json/public" },
   { mount: "/revealip", dir: "apps/revealip/public" },
   { mount: "/utc", dir: "apps/utc/public" },
+  { mount: "/word-token-counter", dir: "apps/word-token-counter/public" },
 ];
 
 function resolvePublic(appRel, urlPath) {
@@ -79,4 +80,5 @@ console.log(`  http://localhost:${port}/`);
 console.log(`  http://localhost:${port}/json/`);
 console.log(`  http://localhost:${port}/revealip/`);
 console.log(`  http://localhost:${port}/utc/`);
+console.log(`  http://localhost:${port}/word-token-counter/`);
 console.log("  (legacy /#/<tool-id> opens that hub tab)");

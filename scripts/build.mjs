@@ -11,6 +11,7 @@ const APPS = [
   { label: "json", source: "apps/json/public", dest: "json" },
   { label: "revealip", source: "apps/revealip/public", dest: "revealip" },
   { label: "utc", source: "apps/utc/public", dest: "utc" },
+  { label: "word-token-counter", source: "apps/word-token-counter/public", dest: "word-token-counter" },
 ];
 
 if (existsSync(distDir)) {

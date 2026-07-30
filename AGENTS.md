@@ -84,6 +84,7 @@ Never introduce a conflicting visual language or an ad-hoc color set.
 - The locked header block must stay identical to `packages/brand/header-lock.css` — `npm run brand:check` enforces this.
 - Header branding is **NeoNema only** — no per-tool logos or “A product of” dual-brand headers.
 - After brand changes run `npm run sync-brand`, then `npm run brand:check`.
+- **Center the tool column.** Hero copy, tool cards, stats bars, and supporting notes sit in a centered column (`align-items: center` on the main container; `text-align: center` on headlines and short notes). Form fields inside a card stay left-aligned for reading/typing. Match JSON Toolkit / UTC — do not left-dock the whole tool against the page edge.
 
 ## 5) Brand language
 
