@@ -65,7 +65,15 @@ Add a tool object to `apps/hub/hub.config.json`:
 }
 ```
 
-Tabs render from this config at runtime — never add per-tool markup to the hub HTML. Set `"defaultTool"` if this tab should open at `/` when no tool is selected. Optionally add the tool to the hub `noscript` link list in `apps/hub/public/index.html`.
+Tabs render from this config at runtime — the only per-tool markup in the hub HTML is the `noscript` fallback. Set `"defaultTool"` if this tab should open at `/` when no tool is selected.
+
+Then add the tool to the `noscript` link list in `apps/hub/public/index.html`:
+
+```html
+<li><a href="/<tool-id>/">Tool Label</a></li>
+```
+
+`npm run build` compares that list against `hub.config.json` and fails if they drift.
 
 The edge function only rewrites directories to `index.html` — **no per-tool redirect list**. After editing `apps/hub/cloudfront/uri-rewrite-function.js` for other reasons, republish with `npm run deploy:edge -- platform`.
 

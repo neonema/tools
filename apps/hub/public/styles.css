@@ -122,6 +122,31 @@ body > .header {
   font-size: 0.9375rem;
 }
 
+/* No-JS fallback: the tab bar never renders, so these are the only tool links. */
+.hub-noscript-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hub-noscript-links a {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.hub-noscript-links a:hover {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+
 .hub-main {
   flex: 1;
   display: flex;

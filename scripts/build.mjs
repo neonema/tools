@@ -43,13 +43,36 @@ console.log("  ✓ hub.config.json → /");
 const hubConfig = JSON.parse(readFileSync(hubConfigPath, "utf8"));
 const toolIds = Array.isArray(hubConfig.tools) ? hubConfig.tools.map((t) => t.id).filter(Boolean) : [];
 
-const sitemapUrls = [`${SITE_ORIGIN}/`, ...toolIds.map((id) => `${SITE_ORIGIN}/${id}/`)];
+const XML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" };
+const escapeXml = (value) => value.replace(/[&<>"']/g, (char) => XML_ESCAPES[char]);
+
+const sitemapUrls = [
+  `${SITE_ORIGIN}/`,
+  ...toolIds.map((id) => `${SITE_ORIGIN}/${encodeURIComponent(id)}/`),
+];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${sitemapUrls.map((loc) => `  <url><loc>${loc}</loc></url>`).join("\n")}
+${sitemapUrls.map((loc) => `  <url><loc>${escapeXml(loc)}</loc></url>`).join("\n")}
 </urlset>
 `;
 writeFileSync(join(distDir, "sitemap.xml"), sitemap);
 console.log("  ✓ sitemap.xml → /");
+
+// The hub <noscript> list is the crawlable fallback when JS is off, so it cannot be
+// rendered from hub.config.json at runtime. Fail the build if the two drift apart.
+const hubIndex = readFileSync(join(distDir, "index.html"), "utf8");
+const noscriptBlock = hubIndex.match(/<noscript>([\s\S]*?)<\/noscript>/)?.[1] ?? "";
+const linkedIds = [...noscriptBlock.matchAll(/href="\/([^/"]+)\/"/g)].map((match) => match[1]);
+
+const missingIds = toolIds.filter((id) => !linkedIds.includes(id));
+const staleIds = linkedIds.filter((id) => !toolIds.includes(id));
+if (missingIds.length || staleIds.length) {
+  console.error("build: hub <noscript> links are out of sync with hub.config.json");
+  if (missingIds.length) console.error(`  missing: ${missingIds.join(", ")}`);
+  if (staleIds.length) console.error(`  stale:   ${staleIds.join(", ")}`);
+  console.error("  fix apps/hub/public/index.html: <li><a href=\"/<tool-id>/\">Label</a></li>");
+  process.exit(1);
+}
+console.log("  ✓ hub noscript links match hub.config.json");
 
 console.log("build: dist/ ready");

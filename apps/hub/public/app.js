@@ -45,7 +45,6 @@ function setActiveTab(toolId) {
   tabs.forEach((tab) => {
     const isActive = tab.dataset.toolId === toolId;
     tab.classList.toggle("active", isActive);
-    tab.setAttribute("aria-selected", isActive ? "true" : "false");
     if (isActive) {
       tab.setAttribute("aria-current", "page");
     } else {
@@ -157,6 +156,13 @@ function showToolFrame(toolId) {
   startHubHeartbeat();
 }
 
+/** Drop legacy `#/<tool-id>` routes only — leave unrelated fragments alone. */
+function clearLegacyHash() {
+  if (/^#\//.test(location.hash)) {
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+}
+
 /**
  * In-session hub UX: switch the iframe without leaving `/`.
  * Tab `href`s point at path URLs so crawlers, middle-click, and open-in-new-tab
@@ -164,9 +170,7 @@ function showToolFrame(toolId) {
  */
 function activateToolInHub(toolId) {
   if (!hubConfig || !getToolById(toolId)) return;
-  if (location.hash) {
-    history.replaceState(null, "", location.pathname + location.search);
-  }
+  clearLegacyHash();
   setActiveTab(toolId);
 }
 
@@ -180,9 +184,11 @@ function applyInitialRoute() {
     return;
   }
 
+  // Unknown `#/whatever` falls back to the default tool; clear it so the URL
+  // does not keep advertising a route the hub ignored.
   const fallbackId = getDefaultToolId();
   if (fallbackId) {
-    setActiveTab(fallbackId);
+    activateToolInHub(fallbackId);
   }
 }
 
@@ -190,14 +196,14 @@ function renderTabs(config) {
   tabList.replaceChildren();
 
   for (const tool of config.tools) {
+    // Plain links, not ARIA tabs: they really do navigate (middle-click, new
+    // tab, no-JS), so the native link role is the honest one. Active state is
+    // announced with aria-current, set in setActiveTab().
     const tab = document.createElement("a");
     tab.className = "hub-tab";
     tab.href = pathForTool(tool.id);
-    tab.role = "tab";
     tab.dataset.toolId = tool.id;
     tab.textContent = tool.label;
-    tab.setAttribute("aria-selected", "false");
-    tab.setAttribute("aria-controls", "tool-panel");
     tab.addEventListener("click", (event) => {
       if (event.defaultPrevented) return;
       if (event.button !== 0) return;
