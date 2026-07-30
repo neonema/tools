@@ -29,7 +29,7 @@ gh run watch
 
 | File | Purpose |
 |------|---------|
-| `deploy.config.prod.json` | Prod bucket, distribution ID, region, invalidation paths, edge functions |
+| `deploy.config.prod.json` | Prod bucket, distribution ID, region, invalidation paths, edge functions — also the template for local config |
 | `infra/iam/github-neonema-tools-deploy-*.json` | OIDC trust policy + IAM permissions |
 
 CI assumes `arn:aws:iam::029727239472:role/github-neonema-tools-deploy`. There is no `awsProfile` in the prod config — OIDC supplies credentials.
@@ -43,13 +43,13 @@ Use when CI is unavailable or you want a dry run before merging.
 **Prerequisites:** AWS CLI v2, and the `neonema-tools` profile configured for the tools account — see [INFRA.md](./INFRA.md).
 
 ```bash
-cp deploy.config.example.json deploy.config.json   # once; gitignored
+cp deploy.config.prod.json deploy.config.json   # once; gitignored
 npm run build
 npm run deploy -- platform --dry-run
 npm run deploy -- platform
 ```
 
-The `platform` entry in `deploy.config.json` should set `"awsProfile": "neonema-tools"`. To deploy with ambient credentials against the committed prod config instead:
+The two configs are identical except for one field: add `"awsProfile": "neonema-tools"` to the `platform` entry in `deploy.config.json` so the AWS CLI picks the right credentials. The prod config deliberately omits it — CI has ambient OIDC credentials and must not be handed a `--profile`. To deploy against the committed prod config directly:
 
 ```bash
 DEPLOY_CONFIG=deploy.config.prod.json npm run deploy -- platform

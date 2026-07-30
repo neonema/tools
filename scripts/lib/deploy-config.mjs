@@ -8,7 +8,7 @@ export function loadDeployConfig() {
 
   if (!existsSync(configPath)) {
     console.error(`deploy: missing ${configPath}`);
-    console.error("Copy deploy.config.example.json to deploy.config.json and fill in your AWS values.");
+    console.error("Copy deploy.config.prod.json to deploy.config.json and add \"awsProfile\": \"neonema-tools\".");
     process.exit(1);
   }
 

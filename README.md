@@ -55,7 +55,7 @@ Production deploys run from GitHub Actions on push to `main`. Local deploys are 
 
 ```bash
 aws configure --profile neonema-tools              # once: credentials for tools account
-cp deploy.config.example.json deploy.config.json   # once: fill in bucket + distribution IDs
+cp deploy.config.prod.json deploy.config.json      # once: then add "awsProfile": "neonema-tools"
 npm run build                                      # assemble dist/
 npm run deploy -- platform --dry-run
 npm run deploy -- platform
