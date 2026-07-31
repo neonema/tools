@@ -20,6 +20,21 @@
       "id": "word-token-counter",
       "label": "Word/Token Counter",
       "path": "/word-token-counter/index.html"
+    },
+    {
+      "id": "base64",
+      "label": "Base64",
+      "path": "/base64/index.html"
+    },
+    {
+      "id": "url-encode",
+      "label": "URL Encode",
+      "path": "/url-encode/index.html"
+    },
+    {
+      "id": "jwt",
+      "label": "JWT Decoder",
+      "path": "/jwt/index.html"
     }
   ]
 }

@@ -24,6 +24,9 @@ const MOUNTS = [
   { mount: "/revealip", dir: "apps/revealip/public" },
   { mount: "/utc", dir: "apps/utc/public" },
   { mount: "/word-token-counter", dir: "apps/word-token-counter/public" },
+  { mount: "/base64", dir: "apps/base64/public" },
+  { mount: "/url-encode", dir: "apps/url-encode/public" },
+  { mount: "/jwt", dir: "apps/jwt/public" },
 ];
 
 function resolvePublic(appRel, urlPath) {
@@ -81,4 +84,7 @@ console.log(`  http://localhost:${port}/json/`);
 console.log(`  http://localhost:${port}/revealip/`);
 console.log(`  http://localhost:${port}/utc/`);
 console.log(`  http://localhost:${port}/word-token-counter/`);
+console.log(`  http://localhost:${port}/base64/`);
+console.log(`  http://localhost:${port}/url-encode/`);
+console.log(`  http://localhost:${port}/jwt/`);
 console.log("  (legacy /#/<tool-id> opens that hub tab)");

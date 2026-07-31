@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Base64 Encode &amp; Decode — Free, Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Encode text to Base64 or decode Base64 to text in your browser. Nothing is uploaded. Free, private, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/base64/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Base64 Encode &amp; Decode</h1>
+        <p class="hero-copy">
+          Convert text to Base64 or Base64 back to text. Everything runs in your browser — nothing is
+          uploaded.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Base64 converter</h2>
+
+        <label for="source-input">Input</label>
+        <textarea
+          id="source-input"
+          placeholder="Paste text to encode, or Base64 to decode…"
+          spellcheck="false"
+          autocomplete="off"
+        ></textarea>
+
+        <div class="actions">
+          <button id="encode-btn" type="button">Encode</button>
+          <button id="decode-btn" type="button">Decode</button>
+          <button id="copy-btn" type="button" class="ghost-btn">Copy Result</button>
+          <button id="swap-btn" type="button" class="ghost-btn">Swap</button>
+          <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+
+        <label for="result-output">Result</label>
+        <textarea id="result-output" readonly placeholder="Result appears here" spellcheck="false"></textarea>
+        <p id="status" class="status" aria-live="polite"></p>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Encoding and decoding happen on your device. NeoNema never sees your input.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
