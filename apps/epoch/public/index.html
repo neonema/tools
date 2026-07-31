@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Epoch / Unix Timestamp Converter — Free, Private | NeoNema</title>
+    <meta
+      name="description"
+      content="Convert Unix timestamps to dates and dates to epoch seconds or milliseconds. Live current epoch. Runs in your browser — nothing uploaded."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/epoch/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Epoch / Unix Timestamp Converter</h1>
+        <p class="hero-copy">
+          Convert Unix time to human dates and back. Seconds or milliseconds. Everything stays in your
+          browser.
+        </p>
+      </section>
+
+      <section class="now-bar" aria-label="Current Unix time" aria-live="off">
+        <div class="now-item">
+          <span class="now-label">Seconds</span>
+          <span id="now-seconds" class="now-value">—</span>
+          <button id="copy-seconds-btn" type="button" class="ghost-btn now-copy" aria-label="Copy current seconds">
+            Copy
+          </button>
+        </div>
+        <div class="now-item">
+          <span class="now-label">Milliseconds</span>
+          <span id="now-millis" class="now-value">—</span>
+          <button id="copy-millis-btn" type="button" class="ghost-btn now-copy" aria-label="Copy current milliseconds">
+            Copy
+          </button>
+        </div>
+      </section>
+
+      <section class="tool-card" aria-labelledby="from-epoch-title">
+        <h2 id="from-epoch-title">Timestamp → date</h2>
+        <p class="tool-description">
+          Paste a Unix timestamp. Values with 13+ digits are treated as milliseconds.
+        </p>
+
+        <label for="epoch-input">Unix timestamp</label>
+        <input
+          id="epoch-input"
+          type="text"
+          inputmode="numeric"
+          placeholder="e.g. 1735689600 or 1735689600000"
+          spellcheck="false"
+          autocomplete="off"
+        />
+
+        <div class="actions">
+          <button id="use-now-btn" type="button" class="ghost-btn">Use now</button>
+          <button id="clear-epoch-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+
+        <p id="epoch-status" class="status" aria-live="polite"></p>
+
+        <div id="epoch-results" class="result-grid" hidden>
+          <div class="result-row">
+            <span class="result-label">Unit detected</span>
+            <span id="detected-unit" class="result-value"></span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">UTC</span>
+            <span id="epoch-utc" class="result-value"></span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Local</span>
+            <span id="epoch-local" class="result-value"></span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">ISO 8601</span>
+            <span id="epoch-iso" class="result-value"></span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Relative</span>
+            <span id="epoch-relative" class="result-value"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="tool-card" aria-labelledby="to-epoch-title">
+        <h2 id="to-epoch-title">Date → timestamp</h2>
+        <p class="tool-description">Pick a local date and time, or paste an ISO 8601 string.</p>
+
+        <label for="datetime-input">Local date &amp; time</label>
+        <input id="datetime-input" type="datetime-local" step="1" />
+
+        <label for="iso-input">Or ISO 8601</label>
+        <input
+          id="iso-input"
+          type="text"
+          placeholder="2025-01-01T00:00:00.000Z"
+          spellcheck="false"
+          autocomplete="off"
+        />
+
+        <div class="actions">
+          <button id="convert-date-btn" type="button">Convert</button>
+          <button id="clear-date-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+
+        <p id="date-status" class="status" aria-live="polite"></p>
+
+        <div id="date-results" class="result-grid" hidden>
+          <div class="result-row">
+            <span class="result-label">Seconds</span>
+            <span id="out-seconds" class="result-value"></span>
+            <button id="copy-out-seconds-btn" type="button" class="ghost-btn row-copy" aria-label="Copy seconds">
+              Copy
+            </button>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Milliseconds</span>
+            <span id="out-millis" class="result-value"></span>
+            <button id="copy-out-millis-btn" type="button" class="ghost-btn row-copy" aria-label="Copy milliseconds">
+              Copy
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Conversion runs on your device. NeoNema never sees the timestamps you enter.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

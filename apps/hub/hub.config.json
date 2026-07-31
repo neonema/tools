@@ -12,6 +12,11 @@
       "path": "/utc/index.html"
     },
     {
+      "id": "epoch",
+      "label": "Epoch",
+      "path": "/epoch/index.html"
+    },
+    {
       "id": "json",
       "label": "JSON Toolkit",
       "path": "/json/index.html"
