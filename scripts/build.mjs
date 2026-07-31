@@ -12,6 +12,7 @@ const APPS = [
   { label: "revealip", source: "apps/revealip/public", dest: "revealip" },
   { label: "utc", source: "apps/utc/public", dest: "utc" },
   { label: "epoch", source: "apps/epoch/public", dest: "epoch" },
+  { label: "cron", source: "apps/cron/public", dest: "cron" },
   { label: "word-token-counter", source: "apps/word-token-counter/public", dest: "word-token-counter" },
   { label: "base64", source: "apps/base64/public", dest: "base64" },
   { label: "url-encode", source: "apps/url-encode/public", dest: "url-encode" },

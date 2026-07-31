@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cron Expression Generator &amp; Parser — Free, Private | NeoNema</title>
+    <meta
+      name="description"
+      content="Build or decode Unix cron schedules — every hour, daily at 2am, weekly, and more. Human-readable explanation and next run times. Runs in your browser."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/cron/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Cron Expression Generator</h1>
+        <p class="hero-copy">
+          Build common job schedules — every few hours, daily at a time, weekly — or paste a cron
+          expression to see what it means. Standard 5-field Unix cron.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="expr-title">
+        <h2 id="expr-title">Expression</h2>
+        <label for="cron-input" class="visually-hidden">Cron expression</label>
+        <div class="expr-row">
+          <input
+            id="cron-input"
+            type="text"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="0 2 * * *"
+            aria-describedby="field-hint"
+          />
+          <button id="copy-btn" type="button" class="ghost-btn">Copy</button>
+          <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+        <p id="field-hint" class="field-hint">
+          <span>minute</span><span>hour</span><span>day</span><span>month</span><span>weekday</span>
+        </p>
+
+        <p id="status" class="status" aria-live="polite"></p>
+        <p id="description" class="description" aria-live="polite"></p>
+
+        <div id="parts" class="parts" hidden></div>
+
+        <h3 id="next-title" class="subhead">Next runs <span class="subhead-note">(local time)</span></h3>
+        <ol id="next-list" class="next-list" aria-labelledby="next-title"></ol>
+      </section>
+
+      <section class="tool-card" aria-labelledby="presets-title">
+        <h2 id="presets-title">Common schedules</h2>
+        <p class="tool-description">Click a preset used for recurring jobs and pipelines.</p>
+        <div id="preset-list" class="preset-list" role="group" aria-label="Cron presets"></div>
+      </section>
+
+      <section class="tool-card" aria-labelledby="builder-title">
+        <h2 id="builder-title">Build a schedule</h2>
+        <p class="tool-description">Pick how often it should run, then fine-tune the time.</p>
+
+        <label for="freq-select">Frequency</label>
+        <select id="freq-select">
+          <option value="minutes">Every N minutes</option>
+          <option value="hours">Every N hours</option>
+          <option value="daily" selected>Every day at a time</option>
+          <option value="weekdays">Weekdays (Mon–Fri) at a time</option>
+          <option value="weekly">Once a week</option>
+          <option value="monthly">Once a month</option>
+        </select>
+
+        <div id="builder-fields" class="builder-fields"></div>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Parsing and next-run calculation happen on your device. NeoNema never sees your expressions.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -17,6 +17,11 @@
       "path": "/epoch/index.html"
     },
     {
+      "id": "cron",
+      "label": "Cron",
+      "path": "/cron/index.html"
+    },
+    {
       "id": "json",
       "label": "JSON Toolkit",
       "path": "/json/index.html"
