@@ -79,7 +79,8 @@ Tool root paths are **public, indexable pages** — they must return `200` with 
 | Layer | Behavior |
 |-------|----------|
 | Tool `index.html` | Served at `/<tool-id>/`; canonical points at that path |
-| Hub iframe | Loads `/<tool-id>/index.html`; detects embed via `window.self !== window.top` and applies `hub-embed` |
+| Tool tab bar | Baked into every tool page at build time (`scripts/lib/tool-nav.mjs`) from `hub.config.json`, so a direct visit to `/utc/` shows the same top-level nav as `/`. Plain `<a href="/<tool-id>/">` links — full page loads, no JS needed, real internal linking for crawlers |
+| Hub iframe | Loads `/<tool-id>/index.html`; detects embed via `window.self !== window.top` and applies `hub-embed`. Tools hide `.header` under that class, so the injected nav never double-renders inside the hub |
 | Hub tabs | Real `<a href="/<tool-id>/">` links; left-click switches the iframe in-session without leaving `/` |
 | Legacy `#/<tool-id>` | Hub clears the hash and shows that tool in the iframe (no hard navigation — avoids loops with stale path→hash redirects) |
 

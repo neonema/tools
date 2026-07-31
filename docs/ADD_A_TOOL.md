@@ -67,6 +67,8 @@ Add a tool object to `apps/hub/hub.config.json`:
 
 Tabs render from this config at runtime — the only per-tool markup in the hub HTML is the `noscript` fallback. Set `"defaultTool"` if this tab should open at `/` when no tool is selected.
 
+Registering here also gets the tool a tab in the nav bar injected into **every** tool page (`scripts/lib/tool-nav.mjs`), so no per-tool markup is needed for that. The injection requires the tool page to keep the standard `.header-inner > .brand` header block — the build fails if it is missing.
+
 Then add the tool to the `noscript` link list in `apps/hub/public/index.html`:
 
 ```html
@@ -95,7 +97,7 @@ Hub preview runs on port **8765** (`PORT=9000 npm run dev` to change it).
 | `http://localhost:8765/#/<tool-id>` | Hub shows that tool tab and clears the hash |
 | `http://localhost:8765/<tool-id>/privacy-policy.html` | Legal page loads |
 
-Tab labels should match `hub.config.json`. Hub tabs are real links to `/<tool-id>/`; left-click keeps the hub shell and swaps the iframe.
+Tab labels should match `hub.config.json`. Hub tabs are real links to `/<tool-id>/`; left-click keeps the hub shell and swaps the iframe. On a standalone tool page the same tabs are plain links — clicking one is a full page load to the next tool.
 
 **RevealIP `/api/ip` caveat:** local preview does not run the CloudFront Function, so IP detection fails unless you mock the endpoint. Test it through deployed CloudFront or the function **Test** tab in the AWS console.
 

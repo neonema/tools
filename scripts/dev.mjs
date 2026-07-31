@@ -1,7 +1,8 @@
 import http from "node:http";
 import { readFileSync, existsSync, statSync } from "node:fs";
-import { resolve, join, extname, normalize } from "node:path";
+import { resolve, join, extname, normalize, sep } from "node:path";
 import { listenOnPort } from "./lib/listen-dev-server.mjs";
+import { injectToolNav } from "./lib/tool-nav.mjs";
 
 const rootDir = resolve(import.meta.dirname, "..");
 const port = Number(process.env.PORT) || 8765;
@@ -47,33 +48,53 @@ function resolvePublic(appRel, urlPath) {
   return existsSync(filePath) && statSync(filePath).isFile() ? filePath : null;
 }
 
+/** @returns {{ filePath: string; toolId: string | null } | null} */
 function resolveFile(urlPath) {
   if (urlPath === "/hub.config.json") {
-    return resolve(rootDir, "apps/hub/hub.config.json");
+    return { filePath: resolve(rootDir, "apps/hub/hub.config.json"), toolId: null };
   }
 
   for (const { mount, dir } of MOUNTS) {
     if (urlPath === mount || urlPath.startsWith(`${mount}/`)) {
       const rel = urlPath.slice(mount.length) || "/";
-      return resolvePublic(dir, rel);
+      const filePath = resolvePublic(dir, rel);
+      return filePath ? { filePath, toolId: mount.slice(1) } : null;
     }
   }
 
-  return resolvePublic("apps/hub/public", urlPath === "/" ? "/index.html" : urlPath);
+  const filePath = resolvePublic("apps/hub/public", urlPath === "/" ? "/index.html" : urlPath);
+  return filePath ? { filePath, toolId: null } : null;
 }
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url || "/", `http://localhost:${port}`);
-  const filePath = resolveFile(url.pathname);
+  const resolved = resolveFile(url.pathname);
 
-  if (!filePath) {
+  if (!resolved) {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Not found");
     return;
   }
 
-  const body = readFileSync(filePath);
+  const { filePath, toolId } = resolved;
   const ext = extname(filePath);
+
+  // Mirror the build: tool entry pages are served with the hub tab bar baked in.
+  if (toolId && filePath.endsWith(`${sep}index.html`)) {
+    let html;
+    try {
+      html = injectToolNav(readFileSync(filePath, "utf8"), toolId);
+    } catch (error) {
+      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end(String(error.message));
+      return;
+    }
+    res.writeHead(200, { "Content-Type": MIME[ext] });
+    res.end(html);
+    return;
+  }
+
+  const body = readFileSync(filePath);
   res.writeHead(200, { "Content-Type": MIME[ext] || "application/octet-stream" });
   res.end(body);
 });

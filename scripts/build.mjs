@@ -1,5 +1,6 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { injectToolNav, readHubTools } from "./lib/tool-nav.mjs";
 
 const rootDir = resolve(import.meta.dirname, "..");
 const distDir = resolve(rootDir, "dist");
@@ -36,6 +37,35 @@ for (const app of APPS) {
   cpSync(src, dest, { recursive: true });
   console.log(`  ✓ ${app.label} → ${app.dest ? `${app.dest}/` : "/"}`);
 }
+
+// Standalone tool pages get the hub tab bar baked in, so a direct visit to
+// `/utc/` shows the same top-level nav as `/`. Inside the hub iframe the whole
+// header is hidden (html.hub-embed), so this never double-renders.
+const hubTools = readHubTools();
+const hubToolIds = new Set(hubTools.map((tool) => tool.id));
+
+for (const app of APPS) {
+  if (!app.dest || !hubToolIds.has(app.dest)) continue;
+
+  const indexPath = resolve(distDir, app.dest, "index.html");
+  if (!existsSync(indexPath)) {
+    console.error(`build: ${app.label} has no index.html to inject nav into`);
+    process.exit(1);
+  }
+
+  try {
+    writeFileSync(indexPath, injectToolNav(readFileSync(indexPath, "utf8"), app.dest, hubTools));
+  } catch (error) {
+    console.error(`build: ${error.message}`);
+    process.exit(1);
+  }
+}
+
+const unregistered = APPS.filter((app) => app.dest && !hubToolIds.has(app.dest)).map((a) => a.dest);
+if (unregistered.length) {
+  console.log(`  ! not in hub.config.json, shipped without nav: ${unregistered.join(", ")}`);
+}
+console.log(`  ✓ tool nav injected into ${hubToolIds.size} tool pages`);
 
 const hubConfigPath = resolve(rootDir, "apps/hub/hub.config.json");
 if (!existsSync(hubConfigPath)) {

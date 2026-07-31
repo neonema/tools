@@ -1,0 +1,74 @@
+/*
+ * Cross-tool nav for standalone tool pages (`/utc/`, `/json/`, …).
+ *
+ * Inlined into every tool's index.html at build time by scripts/lib/tool-nav.mjs
+ * so the tab bar is real HTML for crawlers and needs no JS. Inside the hub
+ * iframe it never shows: each tool already hides `.header` under `html.hub-embed`.
+ *
+ * Class names are `tool-nav-*`, distinct from the hub's own `hub-tab*`, so the
+ * two chrome layers can diverge without stepping on each other.
+ */
+
+.header-inner:has(.tool-nav) {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.header-inner:has(.tool-nav) .brand {
+  flex-shrink: 0;
+}
+
+.tool-nav {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.tool-nav-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+.tool-nav-tab {
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.tool-nav-tab:hover {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+
+.tool-nav-tab[aria-current="page"] {
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  border-color: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .header-inner:has(.tool-nav) {
+    gap: 12px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .tool-nav-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .tool-nav-tab {
+    flex: 0 0 auto;
+  }
+}
