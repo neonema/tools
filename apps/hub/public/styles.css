@@ -91,9 +91,13 @@ body > .header {
   flex-wrap: nowrap;
   justify-content: flex-start;
   gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .hub-tab {
+  flex: 0 0 auto;
   background: transparent;
   color: var(--foreground);
   border: 1px solid var(--border);
@@ -102,6 +106,7 @@ body > .header {
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 500;
+  white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -185,16 +190,6 @@ body > .header {
     gap: 12px;
     padding-top: 6px;
     padding-bottom: 6px;
-  }
-
-  .hub-tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-  }
-
-  .hub-tab {
-    flex: 0 0 auto;
   }
 
 }
