@@ -22,6 +22,7 @@ const MIME = {
 /** @type {{ mount: string; dir: string }[]} */
 const MOUNTS = [
   { mount: "/json", dir: "apps/json/public" },
+  { mount: "/column-to-list", dir: "apps/column-to-list/public" },
   { mount: "/revealip", dir: "apps/revealip/public" },
   { mount: "/utc", dir: "apps/utc/public" },
   { mount: "/epoch", dir: "apps/epoch/public" },

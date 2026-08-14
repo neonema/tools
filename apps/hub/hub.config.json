@@ -27,6 +27,11 @@
       "path": "/json/index.html"
     },
     {
+      "id": "column-to-list",
+      "label": "Column to List",
+      "path": "/column-to-list/index.html"
+    },
+    {
       "id": "word-token-counter",
       "label": "Word/Token Counter",
       "path": "/word-token-counter/index.html"

@@ -10,6 +10,7 @@ const SITE_ORIGIN = "https://tools.neonema.com";
 const APPS = [
   { label: "hub", source: "apps/hub/public", dest: "" },
   { label: "json", source: "apps/json/public", dest: "json" },
+  { label: "column-to-list", source: "apps/column-to-list/public", dest: "column-to-list" },
   { label: "revealip", source: "apps/revealip/public", dest: "revealip" },
   { label: "utc", source: "apps/utc/public", dest: "utc" },
   { label: "epoch", source: "apps/epoch/public", dest: "epoch" },
