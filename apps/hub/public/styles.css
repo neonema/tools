@@ -180,6 +180,24 @@ body > .header {
   display: none;
 }
 
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 22px 16px 28px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: var(--foreground);
+}
+
 @media (max-width: 768px) {
   .hub-header-inner {
     gap: 12px;
