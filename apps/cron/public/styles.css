@@ -414,8 +414,7 @@ html.hub-embed body {
 
 html.hub-embed .header,
 html.hub-embed .hero,
-html.hub-embed .footer,
-html.hub-embed .privacy-note {
+html.hub-embed .footer {
   display: none;
 }
 

@@ -109,6 +109,42 @@ function extractLockedBlock(stylesCss) {
   return stylesCss.slice(start, end + lockEnd.length);
 }
 
+// The hub is a tab shell with no tool page of its own; each embedded tool
+// supplies the privacy note.
+const privacyNoteExemptApps = new Set(["hub"]);
+
+function checkPrivacyNote({ name, publicDir }, stylesCss) {
+  if (privacyNoteExemptApps.has(name)) return;
+
+  const indexPath = join(publicDir, "index.html");
+  let indexHtml = "";
+  try {
+    indexHtml = readFileSync(indexPath, "utf8");
+  } catch {
+    fail(`${name}: missing public/index.html`);
+  }
+
+  if (!indexHtml.includes('class="privacy-note"')) {
+    fail(`${name}: index.html must include the privacy note (<p class="privacy-note">)`);
+  }
+
+  if (!indexHtml.includes("Private by design.")) {
+    fail(`${name}: privacy note must open with "Private by design."`);
+  }
+
+  if (!indexHtml.includes("NeoNema never")) {
+    fail(`${name}: privacy note must state what NeoNema never sees/logs`);
+  }
+
+  if (/html\.hub-embed[^{]*\.privacy-note/.test(stylesCss)) {
+    fail(`${name}: styles.css must not hide .privacy-note in hub-embed mode`);
+  }
+
+  if (!/\.privacy-note\s*[,{]/.test(stylesCss)) {
+    fail(`${name}: styles.css must style .privacy-note`);
+  }
+}
+
 function checkApp({ name, publicDir }) {
   const tokensPath = join(publicDir, "brand-tokens.css");
   const stylesPath = join(publicDir, "styles.css");
@@ -182,6 +218,8 @@ function checkApp({ name, publicDir }) {
   if (!stylesCss.includes("body {") || !stylesCss.includes("background: var(--background);")) {
     fail(`${name}: body background must remain tied to var(--background)`);
   }
+
+  checkPrivacyNote({ name, publicDir }, stylesCss);
 
   console.log(`  ✓ ${name}`);
 }

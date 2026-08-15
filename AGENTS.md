@@ -59,6 +59,9 @@ The product's main differentiator — a hard requirement, not marketing copy.
 - Everything runs in the browser. User input never reaches NeoNema infrastructure.
 - No analytics, no ad networks, no trackers, no cookies beyond what the tool itself needs.
 - Say so plainly on the page, and make sure `privacy-policy.html` describes what the tool actually does — no boilerplate, no placeholders.
+- Every tool page carries the canonical privacy note as the last child of `<main>`, and it stays visible inside hub tabs (never hidden by `hub-embed` CSS). `npm run brand:check` enforces this. Pattern:
+  `<p class="privacy-note"><span class="privacy-bold">Private by design.</span> <activity> happens on your device. NeoNema never sees what you paste.</p>`
+  Adapt only the middle clause to the tool ("Rendering happens…", "Encoding and decoding happen…") and the tail object ("what you paste" / "what you enter" / "what you type"). RevealIP is the one exception in wording — its IP is read at the network edge, so its note says "NeoNema never logs or stores it."
 
 ## 3) Mandatory NeoNema palette
 
