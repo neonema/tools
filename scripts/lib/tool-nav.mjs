@@ -14,7 +14,8 @@ const hubConfigPath = resolve(rootDir, "apps/hub/hub.config.json");
 const navCssPath = resolve(rootDir, "packages/brand/tool-nav.css");
 
 /** Matches `.header-inner` through the end of the `.brand` block it opens with. */
-const BRAND_BLOCK = /<div class="header-inner">\s*<div class="brand">[\s\S]*?<\/div>/;
+const BRAND_BLOCK =
+  /<div class="header-inner(?: header-inner--with-nav)?">\s*<div class="brand">[\s\S]*?<\/div>/;
 
 const HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" };
 const escapeHtml = (value) => String(value).replace(/[&<>"]/g, (char) => HTML_ESCAPES[char]);
@@ -69,6 +70,7 @@ export function injectToolNav(html, activeToolId, tools = readHubTools()) {
   const css = readFileSync(navCssPath, "utf8").trim();
 
   return html
+    .replace('<div class="header-inner">', '<div class="header-inner header-inner--with-nav">')
     .replace(BRAND_BLOCK, (block) => `${block}\n${renderToolNav(tools, activeToolId)}`)
     .replace("</head>", `  <style>\n${css}\n    </style>\n  </head>`);
 }

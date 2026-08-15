@@ -69,10 +69,13 @@ body > .header {
 
 .hub-header-inner {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 20px;
   padding-top: 8px;
   padding-bottom: 8px;
+  min-width: 0;
+  width: 100%;
 }
 
 .hub-header-inner .brand {
@@ -80,7 +83,7 @@ body > .header {
 }
 
 .hub-nav {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   min-width: 0;
   border: none;
   background: none;
@@ -89,15 +92,20 @@ body > .header {
 .hub-tabs {
   display: flex;
   flex-wrap: nowrap;
+  align-items: center;
   justify-content: flex-start;
   gap: 8px;
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
 }
 
 .hub-tab {
+  display: inline-flex;
+  align-items: center;
   flex: 0 0 auto;
+  box-sizing: border-box;
   background: transparent;
   color: var(--foreground);
   border: 1px solid var(--border);
@@ -106,7 +114,11 @@ body > .header {
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 500;
+  line-height: 1.2;
   white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  min-width: max-content;
   text-decoration: none;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
