@@ -32,6 +32,11 @@
       "path": "/column-to-list/index.html"
     },
     {
+      "id": "mermaid",
+      "label": "Mermaid Preview",
+      "path": "/mermaid/index.html"
+    },
+    {
       "id": "word-token-counter",
       "label": "Word/Token Counter",
       "path": "/word-token-counter/index.html"

@@ -23,6 +23,7 @@ const MIME = {
 const MOUNTS = [
   { mount: "/json", dir: "apps/json/public" },
   { mount: "/column-to-list", dir: "apps/column-to-list/public" },
+  { mount: "/mermaid", dir: "apps/mermaid/public" },
   { mount: "/revealip", dir: "apps/revealip/public" },
   { mount: "/utc", dir: "apps/utc/public" },
   { mount: "/epoch", dir: "apps/epoch/public" },
@@ -109,6 +110,7 @@ console.log(`  http://localhost:${port}/revealip/`);
 console.log(`  http://localhost:${port}/utc/`);
 console.log(`  http://localhost:${port}/epoch/`);
 console.log(`  http://localhost:${port}/cron/`);
+console.log(`  http://localhost:${port}/mermaid/`);
 console.log(`  http://localhost:${port}/word-token-counter/`);
 console.log(`  http://localhost:${port}/base64/`);
 console.log(`  http://localhost:${port}/url-encode/`);

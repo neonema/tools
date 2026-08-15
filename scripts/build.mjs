@@ -11,6 +11,7 @@ const APPS = [
   { label: "hub", source: "apps/hub/public", dest: "" },
   { label: "json", source: "apps/json/public", dest: "json" },
   { label: "column-to-list", source: "apps/column-to-list/public", dest: "column-to-list" },
+  { label: "mermaid", source: "apps/mermaid/public", dest: "mermaid" },
   { label: "revealip", source: "apps/revealip/public", dest: "revealip" },
   { label: "utc", source: "apps/utc/public", dest: "utc" },
   { label: "epoch", source: "apps/epoch/public", dest: "epoch" },

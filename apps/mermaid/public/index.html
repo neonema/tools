@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mermaid Preview — Paste Markdown &amp; Render Diagrams | NeoNema</title>
+    <meta
+      name="description"
+      content="Paste Markdown or Mermaid source and preview diagrams in your browser. Nothing is uploaded."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/mermaid/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Mermaid Preview</h1>
+        <p class="hero-copy">
+          Paste a Markdown file or a Mermaid diagram. Previews render on this page. Nothing leaves
+          your browser.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Mermaid diagram preview</h2>
+
+        <label for="source-input">Markdown or Mermaid</label>
+        <textarea
+          id="source-input"
+          placeholder="Paste a Markdown file with ```mermaid blocks, or paste a diagram directly…"
+          spellcheck="false"
+          autocomplete="off"
+        ></textarea>
+
+        <div class="actions">
+          <button id="copy-svg-btn" type="button">Copy SVG</button>
+          <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+
+        <p id="status" class="status" aria-live="polite"></p>
+
+        <h2 class="preview-heading">Preview</h2>
+        <div id="preview" class="preview" aria-live="polite">
+          <p class="preview-empty">Diagrams appear here after you paste source.</p>
+        </div>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Rendering happens on your device. NeoNema never sees what you paste.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./vendor/mermaid.min.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
