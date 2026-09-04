@@ -27,9 +27,9 @@ The scaffold creates the app only. Steps 3–4 are always manual.
 
 | File | What to change |
 |------|----------------|
-| `public/index.html` | `<title>`, meta description, headline copy, and the `rel="canonical"` href (`/<tool-id>/`). Keep the NeoNema-only header; do not add a tool logo. |
+| `public/index.html` | `<title>`, meta description, headline copy, and the `rel="canonical"` href (`/<tool-id>/`). Keep the NeoNema-only header; do not add a tool logo. Keep the `privacy-note` paragraph as the last child of `<main>` and adapt only its middle clause — canonical pattern in [AGENTS.md](../AGENTS.md) §2. |
 | `public/app.js` | Tool logic — browser-only, no NeoNema APIs, no third-party scripts |
-| `public/styles.css` | Layout only; leave brand tokens and the locked header block untouched |
+| `public/styles.css` | Layout only; leave brand tokens and the locked header block untouched. Never add `.privacy-note` to the `hub-embed` hide list — the note must stay visible inside hub tabs |
 | `public/privacy-policy.html` | Real privacy copy for this tool, not template placeholders |
 | `public/terms.html` | Real terms for this tool |
 
@@ -96,6 +96,7 @@ Hub preview runs on port **8765** (`PORT=9000 npm run dev` to change it).
 | `http://localhost:8765/<tool-id>/` | Full tool page (`200`); canonical is this path |
 | `http://localhost:8765/#/<tool-id>` | Hub shows that tool tab and clears the hash |
 | `http://localhost:8765/<tool-id>/privacy-policy.html` | Legal page loads |
+| `http://localhost:8765/#/<tool-id>` | "Private by design." note visible inside the hub tab |
 
 Tab labels should match `hub.config.json`. Hub tabs are real links to `/<tool-id>/`; left-click keeps the hub shell and swaps the iframe. On a standalone tool page the same tabs are plain links — clicking one is a full page load to the next tool.
 
@@ -115,7 +116,7 @@ npm run build
 npm run test:json-converters   # if the tool has tests
 ```
 
-`brand:check` verifies palette tokens, the locked header block, and `NeoNema.png` against `packages/brand/`. Headers use the company logo only — no per-tool brand assets.
+`brand:check` verifies palette tokens, the locked header block, `NeoNema.png` against `packages/brand/`, and the "Private by design." privacy note — the note must exist on every tool page, state what NeoNema never sees, and never be hidden in hub-embed mode. Headers use the company logo only — no per-tool brand assets.
 
 ### Legal pages
 
@@ -128,6 +129,7 @@ ls apps/<tool-id>/public/privacy-policy.html apps/<tool-id>/public/terms.html
 - Footer links open both pages.
 - Copy names the real product and hostname — no `UtilityName` placeholders.
 - Privacy copy states browser-only processing and names anything the tool touches.
+- The on-page "Private by design." note matches what the privacy policy claims.
 
 ### `robots.txt`
 

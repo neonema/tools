@@ -3,7 +3,7 @@
 **Canonical repository** for all NeoNema utility products, shared brand assets, deploy automation, and platform docs.
 
 - **Production:** [tools.neonema.com](https://tools.neonema.com) — single origin hosting the hub and every tool (`/json/`, `/revealip/`, `/utc/`, …).
-- **Privacy:** tools run entirely in the browser. No accounts, no analytics, no ads, no user data stored or relayed.
+- **Privacy:** tools run entirely in the browser. No accounts, no analytics, no ads, no user data stored or relayed. Every tool page carries a "Private by design." note stating this, enforced by `npm run brand:check`.
 - **Status:** [docs/STATUS.md](docs/STATUS.md) — what is live, what is open, what is deliberately not built.
 
 ## Apps

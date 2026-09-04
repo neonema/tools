@@ -49,6 +49,7 @@ dist/
 - Tools process data **in the browser only**.
 - No `fetch()` to NeoNema-owned APIs.
 - Each tool subtree ships `privacy-policy.html` and `terms.html`.
+- Each tool page displays the canonical "Private by design." note (pattern in [AGENTS.md](../AGENTS.md) §2), visible both standalone and inside hub tabs. `npm run brand:check` enforces it.
 - No ad or analytics scripts. The platform is not monetized.
 
 ---

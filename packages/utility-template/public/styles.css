@@ -206,3 +206,23 @@ button {
 
 @media (max-width: 768px) {
 }
+
+/* Hub-embed mode: the hub loads this page in a tab and hides page chrome.
+   The privacy note must stay visible — never add it to this hide list. */
+html.hub-embed body {
+  min-height: auto;
+}
+
+html.hub-embed .header,
+html.hub-embed .hero,
+html.hub-embed .footer {
+  display: none;
+}
+
+html.hub-embed .container {
+  padding: 0 16px 24px;
+}
+
+html.hub-embed .tool-card {
+  margin-top: 0;
+}
