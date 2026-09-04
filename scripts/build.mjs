@@ -20,6 +20,7 @@ const APPS = [
   { label: "base64", source: "apps/base64/public", dest: "base64" },
   { label: "url-encode", source: "apps/url-encode/public", dest: "url-encode" },
   { label: "jwt", source: "apps/jwt/public", dest: "jwt" },
+  { label: "password", source: "apps/password/public", dest: "password" },
 ];
 
 if (existsSync(distDir)) {

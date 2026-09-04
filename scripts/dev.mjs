@@ -32,6 +32,7 @@ const MOUNTS = [
   { mount: "/base64", dir: "apps/base64/public" },
   { mount: "/url-encode", dir: "apps/url-encode/public" },
   { mount: "/jwt", dir: "apps/jwt/public" },
+  { mount: "/password", dir: "apps/password/public" },
 ];
 
 function resolvePublic(appRel, urlPath) {
@@ -115,4 +116,5 @@ console.log(`  http://localhost:${port}/word-token-counter/`);
 console.log(`  http://localhost:${port}/base64/`);
 console.log(`  http://localhost:${port}/url-encode/`);
 console.log(`  http://localhost:${port}/jwt/`);
+console.log(`  http://localhost:${port}/password/`);
 console.log("  (legacy /#/<tool-id> opens that hub tab)");

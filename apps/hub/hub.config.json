@@ -22,6 +22,11 @@
       "path": "/cron/index.html"
     },
     {
+      "id": "password",
+      "label": "Password",
+      "path": "/password/index.html"
+    },
+    {
       "id": "json",
       "label": "JSON Toolkit",
       "path": "/json/index.html"
