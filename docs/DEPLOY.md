@@ -11,10 +11,14 @@ Production deploys run from **GitHub Actions** on push to `main`. Local scripts 
 Merging to `main` triggers [`.github/workflows/deploy-prod.yml`](../.github/workflows/deploy-prod.yml):
 
 1. `npm run brand:check`
-2. `npm run test:json-converters`
-3. `npm run build`
+2. `npm run test:json-converters` and `npm run test:password`
+3. `npm run build` (stamps every page with `GITHUB_SHA` and writes `version.json`)
 4. Assume the AWS role via **OIDC** — no long-lived keys in GitHub secrets
 5. `npm run deploy -- platform` using [`deploy.config.prod.json`](../deploy.config.prod.json)
+
+Deploys run under the `production` concurrency group, so two pushes to `main` cannot sync at the same time. Actions are pinned to commit SHAs; Dependabot proposes bumps weekly.
+
+**Public repo notes:** the OIDC trust policy names `repo:yuhahaha/neonema-tools:ref:refs/heads/main` only, and GitHub never issues an OIDC token to a workflow triggered by a pull request from a fork. Nothing a contributor pushes can deploy; only a merge to `main` does.
 
 Any failing step blocks the deploy, so a red `brand:check` means nothing ships. Check runs after merging:
 
@@ -100,6 +104,7 @@ This publishes every entry in the `edge` array. A stale published version fails 
 curl -s  "https://tools.neonema.com/api/ip"                              # JSON with ipv4/ipv6/preferred
 curl -sI "https://tools.neonema.com/json/" | grep -iE "HTTP/|location:"  # expect 200 (no Location)
 curl -s  "https://tools.neonema.com/sitemap.xml" | head                  # hub + tool paths
+curl -s  "https://tools.neonema.com/version.json"                        # commit that is live
 ```
 
 ### Distribution wiring
@@ -126,7 +131,7 @@ aws cloudfront create-function \
 
 ## Full release
 
-1. `npm run brand:check && npm run test:json-converters && npm run build`
+1. `npm run brand:check && npm run test:json-converters && npm run test:password && npm run build`
 2. Merge to `main`, or `npm run deploy -- platform` locally
 3. If anything under `apps/*/cloudfront/` changed: `npm run deploy:edge -- platform`
 4. Run the device and accessibility pass from [ADD_A_TOOL.md](./ADD_A_TOOL.md#7-pre-ship-checks) against production

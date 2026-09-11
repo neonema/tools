@@ -26,6 +26,7 @@ dist/
   hub.config.json         ← apps/hub/hub.config.json
   robots.txt              ← apps/hub/public/robots.txt   (governs the whole origin)
   sitemap.xml             ← generated from hub.config.json
+  version.json            ← { commit, builtAt } of this build
   json/                   ← apps/json/public/*
   revealip/               ← apps/revealip/public/*
   utc/                    ← apps/utc/public/*
@@ -84,6 +85,7 @@ Tool root paths are **public, indexable pages** — they must return `200` with 
 | Hub iframe | Loads `/<tool-id>/index.html`; detects embed via `window.self !== window.top` and applies `hub-embed`. Tools hide `.header` under that class, so the injected nav never double-renders inside the hub |
 | Hub tabs | Real `<a href="/<tool-id>/">` links; left-click switches the iframe in-session without leaving `/` |
 | Legacy `#/<tool-id>` | Hub clears the hash and shows that tool in the iframe (no hard navigation — avoids loops with stale path→hash redirects) |
+| Build stamp | `scripts/lib/build-stamp.mjs` writes `Build <short-sha>` into the last `<footer>` of every page at build time, linked to the commit on GitHub, and emits `/version.json`. Tool footers are hidden inside hub tabs, so there the hub's own footer carries the stamp |
 
 `npm run dev` mounts tools at `/json/`, `/revealip/`, and `/utc/`. Work on a tool at its path URL or through the hub at `/`.
 
@@ -107,7 +109,7 @@ The hub (`apps/hub/`) is a lightweight static shell:
 | `tools.neonema.com` | Tools hub + all tools (production) |
 | `revealip-neonema.com`, `www.revealip-neonema.com` | 301 → `https://tools.neonema.com/revealip/` |
 | `json-neonema.com`, `www.json-neonema.com` | 301 → `https://tools.neonema.com/json/` |
-| `neonema.com` | Company marketing site (separate repo + AWS account) |
+| `neonema.com` | Company site (separate private repo + AWS account) |
 
 There is no hosted staging environment — see [STATUS.md](./STATUS.md) for why. AWS accounts, DNS, and credentials: [INFRA.md](./INFRA.md).
 

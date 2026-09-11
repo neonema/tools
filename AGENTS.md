@@ -2,6 +2,8 @@
 
 Mandatory instructions for AI/LLM agents and contributors working in this repository.
 
+This repository is public. Everything committed here is visible to everyone. Do not add strategy notes, research, prompts, personal notes, or anything about accounts other than the tools AWS account. Contributor policy: [CONTRIBUTING.md](CONTRIBUTING.md). License: [LICENSE](LICENSE) and [TRADEMARK.md](TRADEMARK.md).
+
 ## Core product direction
 
 - Build **utility websites** for NeoNema. Default scope is **one page per tool**.
@@ -38,7 +40,8 @@ Mandatory instructions for AI/LLM agents and contributors working in this reposi
 - **Build:** `scripts/build.mjs` assembles `apps/hub/public` plus each tool's `public/` into `dist/` with path prefixes (`/json/`, `/revealip/`).
 - **Deploy:** push to `main` deploys via GitHub Actions. `npm run deploy -- platform` is the local fallback and uses the `neonema-tools` AWS CLI profile.
 - **Edge functions:** `npm run deploy:edge -- platform` publishes `revealip-ip-api` and `tools-uri-rewrite`. Republish after editing anything under `apps/*/cloudfront/`. CI does not do this.
-- The company site (`neonema.com`) lives in a separate AWS account and repo. Never deploy to it from here.
+- The company site (`neonema.com`) lives in a separate AWS account and private repo. Never deploy to it from here, and never reference its account, bucket, or distribution here.
+- **Build stamp:** `scripts/build.mjs` writes the deployed commit into every page footer and emits `dist/version.json`. Do not remove the `<footer class="footer">` block from a tool page; the stamp is injected into it.
 
 ---
 
@@ -93,9 +96,7 @@ Never introduce a conflicting visual language or an ad-hoc color set.
 
 - Brand is **NeoNema**; tools are NeoNema utilities under the company logo, not separate product brands.
 
-## 6) Traffic and discoverability
-
-Current focus is **bringing users to the site**, not monetizing them.
+## 6) Page quality
 
 - Ship real utility value on every page: clear headline, working tool, obvious outcome.
 - Accurate `<title>`, meta description, canonical URL, and favicon (`NeoNema.png`) per tool.
@@ -110,7 +111,8 @@ Current focus is **bringing users to the site**, not monetizing them.
 ```bash
 npm run brand:check
 npm run test:json-converters
+npm run test:password
 npm run build
 ```
 
-All three must pass. `brand:check` is the first step in the deploy workflow — if it fails, nothing ships.
+All four must pass. `brand:check` is the first step in the deploy workflow — if it fails, nothing ships.

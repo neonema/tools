@@ -1,6 +1,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { injectToolNav, readHubTools } from "./lib/tool-nav.mjs";
+import { injectBuildStamp, resolveBuildCommit } from "./lib/build-stamp.mjs";
 
 const rootDir = resolve(import.meta.dirname, "..");
 const distDir = resolve(rootDir, "dist");
@@ -69,6 +70,25 @@ if (unregistered.length) {
   console.log(`  ! not in hub.config.json, shipped without nav: ${unregistered.join(", ")}`);
 }
 console.log(`  ✓ tool nav injected into ${hubToolIds.size} tool pages`);
+
+// Build stamp: every page footer names the deployed commit, and /version.json
+// reports it, so anyone can confirm which commit the CDN is serving.
+const buildCommit = resolveBuildCommit();
+for (const app of APPS) {
+  const indexPath = app.dest ? resolve(distDir, app.dest, "index.html") : resolve(distDir, "index.html");
+  if (!existsSync(indexPath)) continue;
+  try {
+    writeFileSync(indexPath, injectBuildStamp(readFileSync(indexPath, "utf8"), buildCommit));
+  } catch (error) {
+    console.error(`build: ${app.label}: ${error.message}`);
+    process.exit(1);
+  }
+}
+writeFileSync(
+  join(distDir, "version.json"),
+  `${JSON.stringify({ commit: buildCommit, builtAt: new Date().toISOString() }, null, 2)}\n`,
+);
+console.log(`  ✓ build stamp ${buildCommit.slice(0, 7)} → ${APPS.length} pages + version.json`);
 
 const hubConfigPath = resolve(rootDir, "apps/hub/hub.config.json");
 if (!existsSync(hubConfigPath)) {
