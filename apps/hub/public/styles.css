@@ -67,101 +67,10 @@ body > .header {
   box-shadow: 0 1px 0 var(--border);
 }
 
-.hub-header-inner {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 20px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  min-width: 0;
-  width: 100%;
-}
-
-.hub-header-inner .brand {
-  flex-shrink: 0;
-}
-
-.hub-nav {
-  flex: 1 1 auto;
-  min-width: 0;
-  border: none;
-  background: none;
-}
-
-.hub-tabs {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.hub-tab {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  box-sizing: border-box;
-  background: transparent;
-  color: var(--foreground);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 8px 14px;
-  font: inherit;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  line-height: 1.2;
-  white-space: nowrap;
-  word-break: keep-all;
-  overflow-wrap: normal;
-  min-width: max-content;
-  text-decoration: none;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.hub-tab:hover {
-  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
-}
-
-.hub-tab.active {
-  background: color-mix(in srgb, var(--primary) 16%, transparent);
-  border-color: var(--primary);
-}
-
 .hub-error {
   margin: 0;
   color: var(--muted);
   font-size: 0.9375rem;
-}
-
-/* No-JS fallback: the tab bar never renders, so these are the only tool links. */
-.hub-noscript-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 24px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.hub-noscript-links a {
-  display: inline-block;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 8px 14px;
-  color: var(--foreground);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.hub-noscript-links a:hover {
-  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
 }
 
 .hub-main {
@@ -215,13 +124,4 @@ body > .header {
 
 .tool-iframe[hidden] {
   display: none;
-}
-
-@media (max-width: 768px) {
-  .hub-header-inner {
-    gap: 12px;
-    padding-top: 6px;
-    padding-bottom: 6px;
-  }
-
 }

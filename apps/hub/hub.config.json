@@ -1,64 +1,82 @@
 {
   "defaultTool": "revealip",
+  "categories": [
+    { "id": "time", "label": "Time" },
+    { "id": "text", "label": "Text & Data" },
+    { "id": "encoding", "label": "Encoding" },
+    { "id": "network", "label": "Network & Security" }
+  ],
   "tools": [
     {
       "id": "revealip",
       "label": "RevealIP",
+      "category": "network",
       "path": "/revealip/index.html"
     },
     {
       "id": "utc",
       "label": "UTC",
+      "category": "time",
       "path": "/utc/index.html"
     },
     {
       "id": "epoch",
       "label": "Epoch",
+      "category": "time",
       "path": "/epoch/index.html"
     },
     {
       "id": "cron",
       "label": "Cron",
+      "category": "time",
       "path": "/cron/index.html"
     },
     {
       "id": "password",
       "label": "Password",
+      "category": "network",
       "path": "/password/index.html"
     },
     {
       "id": "json",
       "label": "JSON Toolkit",
+      "category": "text",
       "path": "/json/index.html"
     },
     {
       "id": "column-to-list",
       "label": "Column to List",
+      "category": "text",
       "path": "/column-to-list/index.html"
     },
     {
       "id": "mermaid",
       "label": "Mermaid Preview",
+      "category": "text",
       "path": "/mermaid/index.html"
     },
     {
       "id": "word-token-counter",
       "label": "Word/Token Counter",
+      "category": "text",
       "path": "/word-token-counter/index.html"
     },
     {
       "id": "base64",
       "label": "Base64",
+      "category": "encoding",
       "path": "/base64/index.html"
     },
     {
       "id": "url-encode",
       "label": "URL Encode",
+      "category": "encoding",
       "path": "/url-encode/index.html"
     },
     {
       "id": "jwt",
       "label": "JWT Decoder",
+      "category": "encoding",
       "path": "/jwt/index.html"
     }
   ]

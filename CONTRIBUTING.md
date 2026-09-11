@@ -24,7 +24,7 @@ Open an issue first. If agreed:
 
 1. `npm run scaffold -- <tool-id> "<Tool Label>"` copies the template into `apps/<tool-id>/` and syncs brand assets.
 2. Implement `public/index.html`, `app.js`, and `styles.css`. Write real copy in `privacy-policy.html` and `terms.html`.
-3. Register the tool by hand in `scripts/build.mjs` (`APPS`), `scripts/dev.mjs` (`MOUNTS`), `apps/hub/hub.config.json`, and the `noscript` list in `apps/hub/public/index.html`. There is no auto-discovery.
+3. Register the tool by hand in `scripts/build.mjs` (`APPS`), `scripts/dev.mjs` (`MOUNTS`), `apps/hub/hub.config.json` (give it a `category` from the `categories` list; the nav groups tools by it). There is no auto-discovery.
 4. `npm run dev` and open `http://localhost:8765/<tool-id>/`.
 
 ## Required checks

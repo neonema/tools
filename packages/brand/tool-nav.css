@@ -1,18 +1,21 @@
 /*
- * Cross-tool nav for standalone tool pages (`/utc/`, `/json/`, …).
+ * Cross-tool nav: one pill per category, each opening a menu of tools.
  *
- * Inlined into every tool's index.html at build time by scripts/lib/tool-nav.mjs
- * so the tab bar is real HTML for crawlers and needs no JS. Inside the hub
- * iframe it never shows: each tool already hides `.header` under `html.hub-embed`.
+ * Inlined into every entry page (the hub at `/` and each standalone tool at
+ * `/utc/`, `/json/`, …) at build time by scripts/lib/tool-nav.mjs, so the
+ * grouped links are real HTML for crawlers and the menus work without JS via
+ * <details>/<summary>. packages/brand/tool-nav.js adds the niceties (one menu
+ * open at a time, close on outside click / Escape). Inside the hub iframe the
+ * nav never shows: each tool hides `.header` under `html.hub-embed`.
  *
- * Class names are `tool-nav-*`, distinct from the hub's own `hub-tab*`, so the
- * two chrome layers can diverge without stepping on each other.
- *
- * `.header-inner--with-nav` is set at inject time so layout does not depend on
- * `:has()` (missing or incomplete in some browsers).
+ * `.header--with-nav` / `.header-inner--with-nav` are set at inject time so
+ * layout does not depend on `:has()` (missing or incomplete in some browsers).
  */
 
-.header-inner:has(.tool-nav),
+.header--with-nav {
+  z-index: 10;
+}
+
 .header-inner--with-nav {
   display: flex;
   flex-wrap: nowrap;
@@ -24,63 +27,164 @@
   width: 100%;
 }
 
-.header-inner:has(.tool-nav) .brand,
 .header-inner--with-nav .brand {
   flex-shrink: 0;
 }
 
 .tool-nav {
+  position: relative;
   flex: 1 1 auto;
   min-width: 0;
 }
 
-.tool-nav-tabs {
+.tool-nav-groups {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+}
+
+.tool-nav-group {
+  position: relative;
 }
 
 .tool-nav-tab {
   display: inline-flex;
   align-items: center;
-  flex: 0 0 auto;
+  gap: 8px;
   box-sizing: border-box;
   background: transparent;
   color: var(--foreground);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 8px 14px;
+  padding: 8px 12px 8px 14px;
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 500;
   line-height: 1.2;
   white-space: nowrap;
-  word-break: keep-all;
-  overflow-wrap: normal;
-  min-width: max-content;
-  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.tool-nav-tab:hover {
+.tool-nav-tab::-webkit-details-marker {
+  display: none;
+}
+
+.tool-nav-tab::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+
+.tool-nav-group[open] > .tool-nav-tab::after {
+  margin-top: 3px;
+  transform: rotate(-135deg);
+}
+
+.tool-nav-tab:hover,
+.tool-nav-group[open] > .tool-nav-tab {
   border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
 }
 
-.tool-nav-tab[aria-current="page"] {
+.tool-nav-tab:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.tool-nav-group.is-active > .tool-nav-tab {
   background: color-mix(in srgb, var(--primary) 16%, transparent);
   border-color: var(--primary);
 }
 
+/* Name of the tool you are on, shown inside its category pill. */
+.tool-nav-tab-current {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.tool-nav-tab-current:empty {
+  display: none;
+}
+
+.tool-nav-tab-current::before {
+  content: "· ";
+}
+
+.tool-nav-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 200px;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+.tool-nav-link {
+  display: block;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.tool-nav-link:hover,
+.tool-nav-link:focus-visible {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  outline: none;
+}
+
+.tool-nav-link[aria-current="page"] {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
 @media (max-width: 768px) {
-  .header-inner:has(.tool-nav),
   .header-inner--with-nav {
     gap: 12px;
     padding-top: 6px;
     padding-bottom: 6px;
+  }
+
+  .tool-nav-groups {
+    gap: 6px;
+  }
+
+  .tool-nav-tab {
+    padding: 7px 10px 7px 12px;
+    font-size: 0.875rem;
+  }
+
+  .tool-nav-tab-current {
+    display: none;
+  }
+
+  /* Menus span the whole nav under the pill row instead of hanging off one pill. */
+  .tool-nav-group {
+    position: static;
+  }
+
+  .tool-nav-menu {
+    right: 0;
   }
 }

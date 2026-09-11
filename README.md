@@ -25,7 +25,7 @@ How to verify: each tool is plain HTML, CSS, and JS under `apps/<tool>/public/`.
 | URL Encode | [`/url-encode/`](https://tools.neonema.com/url-encode/) | Percent-encode or decode strings |
 | JWT Decoder | [`/jwt/`](https://tools.neonema.com/jwt/) | Decode a JWT header and payload without the token leaving your device |
 
-The hub at `/` is a tab shell that loads each tool in an iframe. Tools are registered by hand in [`apps/hub/hub.config.json`](apps/hub/hub.config.json).
+The hub at `/` is a shell that loads each tool in an iframe. Tools and their categories are registered by hand in [`apps/hub/hub.config.json`](apps/hub/hub.config.json); the category nav is rendered into every page at build time.
 
 ## Run locally
 
@@ -58,7 +58,7 @@ Bug reports and tool requests are welcome as issues. Pull requests by prior disc
 | Path | Purpose |
 |------|---------|
 | `apps/<tool>/public/` | One deployable static tool per folder |
-| `apps/hub/` | Tab shell for the site root; `hub.config.json` is the tool registry |
+| `apps/hub/` | Shell for the site root; `hub.config.json` is the tool and category registry |
 | `packages/brand/` | Canonical palette, header lock, and logo, copied into every app |
 | `packages/utility-template/` | Starting point for a new tool |
 | `scripts/` | Build, dev server, deploy, scaffold, brand sync and check |

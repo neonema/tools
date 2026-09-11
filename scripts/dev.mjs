@@ -66,7 +66,7 @@ function resolveFile(urlPath) {
   }
 
   const filePath = resolvePublic("apps/hub/public", urlPath === "/" ? "/index.html" : urlPath);
-  return filePath ? { filePath, toolId: null } : null;
+  return filePath ? { filePath, toolId: null, isHub: true } : null;
 }
 
 const server = http.createServer((req, res) => {
@@ -79,11 +79,11 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const { filePath, toolId } = resolved;
+  const { filePath, toolId, isHub } = resolved;
   const ext = extname(filePath);
 
-  // Mirror the build: tool entry pages are served with the hub tab bar baked in.
-  if (toolId && filePath.endsWith(`${sep}index.html`)) {
+  // Mirror the build: entry pages (hub + each tool) are served with the category nav baked in.
+  if ((toolId || isHub) && filePath.endsWith(`${sep}index.html`)) {
     let html;
     try {
       html = injectToolNav(readFileSync(filePath, "utf8"), toolId);

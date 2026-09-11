@@ -1,7 +1,14 @@
-const tabList = document.getElementById("tool-tabs");
 const toolPanel = document.getElementById("tool-panel");
 
-/** @type {{ defaultTool: string; tools: { id: string; label: string; path: string }[] } | null} */
+/**
+ * The category nav (`.tool-nav`) is baked into this page at build time by
+ * scripts/lib/tool-nav.mjs, so its links work without JS. This script only
+ * intercepts clicks to swap iframes in place and keeps the active state in sync.
+ */
+const navLinks = Array.from(document.querySelectorAll(".tool-nav-link[data-tool-id]"));
+const navGroups = Array.from(document.querySelectorAll(".tool-nav-group"));
+
+/** @type {{ defaultTool: string; tools: { id: string; label: string; category: string; path: string }[] } | null} */
 let hubConfig = null;
 
 /** @type {Map<string, HTMLIFrameElement>} */
@@ -41,16 +48,20 @@ function setActiveTab(toolId) {
   const tool = getToolById(toolId);
   if (!tool) return;
 
-  const tabs = tabList.querySelectorAll(".hub-tab");
-  tabs.forEach((tab) => {
-    const isActive = tab.dataset.toolId === toolId;
-    tab.classList.toggle("active", isActive);
-    if (isActive) {
-      tab.setAttribute("aria-current", "page");
+  for (const link of navLinks) {
+    if (link.dataset.toolId === toolId) {
+      link.setAttribute("aria-current", "page");
     } else {
-      tab.removeAttribute("aria-current");
+      link.removeAttribute("aria-current");
     }
-  });
+  }
+
+  for (const group of navGroups) {
+    const isActive = group.dataset.category === tool.category;
+    group.classList.toggle("is-active", isActive);
+    const current = group.querySelector(".tool-nav-tab-current");
+    if (current) current.textContent = isActive ? tool.label : "";
+  }
 
   showToolFrame(toolId);
 }
@@ -192,26 +203,19 @@ function applyInitialRoute() {
   }
 }
 
-function renderTabs(config) {
-  tabList.replaceChildren();
-
-  for (const tool of config.tools) {
+function bindNavLinks() {
+  for (const link of navLinks) {
     // Plain links, not ARIA tabs: they really do navigate (middle-click, new
     // tab, no-JS), so the native link role is the honest one. Active state is
     // announced with aria-current, set in setActiveTab().
-    const tab = document.createElement("a");
-    tab.className = "hub-tab";
-    tab.href = pathForTool(tool.id);
-    tab.dataset.toolId = tool.id;
-    tab.textContent = tool.label;
-    tab.addEventListener("click", (event) => {
+    link.addEventListener("click", (event) => {
       if (event.defaultPrevented) return;
       if (event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (!getToolById(link.dataset.toolId)) return;
       event.preventDefault();
-      activateToolInHub(tool.id);
+      activateToolInHub(link.dataset.toolId);
     });
-    tabList.appendChild(tab);
   }
 }
 
@@ -227,14 +231,14 @@ async function initHub() {
       throw new Error("Hub config is missing tools");
     }
 
-    renderTabs(hubConfig);
+    bindNavLinks();
     applyInitialRoute();
   } catch (error) {
-    tabList.replaceChildren();
+    // The nav links still work as ordinary page loads; only in-place switching is lost.
     const message = document.createElement("p");
     message.className = "hub-error";
-    message.textContent = "Could not load tool list. Refresh the page or try again later.";
-    tabList.appendChild(message);
+    message.textContent = "Could not load the tool list. Pick a tool from the menu above, or refresh.";
+    toolPanel.replaceChildren(message);
     console.error("hub init failed:", error);
   }
 }

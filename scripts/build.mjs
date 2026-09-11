@@ -1,6 +1,6 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
-import { injectToolNav, readHubTools } from "./lib/tool-nav.mjs";
+import { injectToolNav, readHubConfig } from "./lib/tool-nav.mjs";
 import { injectBuildStamp, resolveBuildCommit } from "./lib/build-stamp.mjs";
 
 const rootDir = resolve(import.meta.dirname, "..");
@@ -42,23 +42,30 @@ for (const app of APPS) {
   console.log(`  ✓ ${app.label} → ${app.dest ? `${app.dest}/` : "/"}`);
 }
 
-// Standalone tool pages get the hub tab bar baked in, so a direct visit to
-// `/utc/` shows the same top-level nav as `/`. Inside the hub iframe the whole
-// header is hidden (html.hub-embed), so this never double-renders.
-const hubTools = readHubTools();
-const hubToolIds = new Set(hubTools.map((tool) => tool.id));
+// Every entry page gets the grouped category nav baked in: the hub at `/` and
+// each standalone tool, so a direct visit to `/utc/` shows the same nav as `/`.
+// Inside the hub iframe the whole header is hidden (html.hub-embed), so this
+// never double-renders. readHubConfig() also validates categories.
+let hubConfig;
+try {
+  hubConfig = readHubConfig();
+} catch (error) {
+  console.error(`build: ${error.message}`);
+  process.exit(1);
+}
+const hubToolIds = new Set(hubConfig.tools.map((tool) => tool.id));
 
 for (const app of APPS) {
-  if (!app.dest || !hubToolIds.has(app.dest)) continue;
+  if (app.dest && !hubToolIds.has(app.dest)) continue;
 
-  const indexPath = resolve(distDir, app.dest, "index.html");
+  const indexPath = app.dest ? resolve(distDir, app.dest, "index.html") : resolve(distDir, "index.html");
   if (!existsSync(indexPath)) {
     console.error(`build: ${app.label} has no index.html to inject nav into`);
     process.exit(1);
   }
 
   try {
-    writeFileSync(indexPath, injectToolNav(readFileSync(indexPath, "utf8"), app.dest, hubTools));
+    writeFileSync(indexPath, injectToolNav(readFileSync(indexPath, "utf8"), app.dest || null, hubConfig));
   } catch (error) {
     console.error(`build: ${error.message}`);
     process.exit(1);
@@ -69,7 +76,7 @@ const unregistered = APPS.filter((app) => app.dest && !hubToolIds.has(app.dest))
 if (unregistered.length) {
   console.log(`  ! not in hub.config.json, shipped without nav: ${unregistered.join(", ")}`);
 }
-console.log(`  ✓ tool nav injected into ${hubToolIds.size} tool pages`);
+console.log(`  ✓ category nav injected into hub + ${hubToolIds.size} tool pages`);
 
 // Build stamp: every page footer names the deployed commit, and /version.json
 // reports it, so anyone can confirm which commit the CDN is serving.
@@ -98,9 +105,7 @@ if (!existsSync(hubConfigPath)) {
 cpSync(hubConfigPath, join(distDir, "hub.config.json"));
 console.log("  ✓ hub.config.json → /");
 
-/** @type {{ tools?: { id: string }[] }} */
-const hubConfig = JSON.parse(readFileSync(hubConfigPath, "utf8"));
-const toolIds = Array.isArray(hubConfig.tools) ? hubConfig.tools.map((t) => t.id).filter(Boolean) : [];
+const toolIds = [...hubToolIds];
 
 const XML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" };
 const escapeXml = (value) => value.replace(/[&<>"']/g, (char) => XML_ESCAPES[char]);
@@ -116,22 +121,5 @@ ${sitemapUrls.map((loc) => `  <url><loc>${escapeXml(loc)}</loc></url>`).join("\n
 `;
 writeFileSync(join(distDir, "sitemap.xml"), sitemap);
 console.log("  ✓ sitemap.xml → /");
-
-// The hub <noscript> list is the crawlable fallback when JS is off, so it cannot be
-// rendered from hub.config.json at runtime. Fail the build if the two drift apart.
-const hubIndex = readFileSync(join(distDir, "index.html"), "utf8");
-const noscriptBlock = hubIndex.match(/<noscript>([\s\S]*?)<\/noscript>/)?.[1] ?? "";
-const linkedIds = [...noscriptBlock.matchAll(/href="\/([^/"]+)\/"/g)].map((match) => match[1]);
-
-const missingIds = toolIds.filter((id) => !linkedIds.includes(id));
-const staleIds = linkedIds.filter((id) => !toolIds.includes(id));
-if (missingIds.length || staleIds.length) {
-  console.error("build: hub <noscript> links are out of sync with hub.config.json");
-  if (missingIds.length) console.error(`  missing: ${missingIds.join(", ")}`);
-  if (staleIds.length) console.error(`  stale:   ${staleIds.join(", ")}`);
-  console.error("  fix apps/hub/public/index.html: <li><a href=\"/<tool-id>/\">Label</a></li>");
-  process.exit(1);
-}
-console.log("  ✓ hub noscript links match hub.config.json");
 
 console.log("build: dist/ ready");
