@@ -40,27 +40,29 @@ Open a tool at its path, for example `http://localhost:8765/json/`. RevealIP's `
 
 ## How deploys work
 
-A push to `main` runs the checks, builds `dist/`, and syncs it to S3 behind CloudFront through a GitHub OIDC role that only this repository's `main` branch can assume. There are no stored credentials anywhere. Details in [docs/DEPLOY.md](docs/DEPLOY.md).
+A push to `main` runs the checks, builds `dist/`, and syncs it to S3 behind CloudFront through a GitHub OIDC role that only this repository's `main` branch can assume. There are no stored credentials anywhere. Two CloudFront Functions (`apps/*/cloudfront/`) handle directory URLs and RevealIP's `/api/ip`; they are published separately by a maintainer.
 
 ## Contributing
 
-Bug reports and tool requests are welcome as issues. Pull requests by prior discussion only. See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/ADD_A_TOOL.md](docs/ADD_A_TOOL.md). Security or privacy findings: [SECURITY.md](SECURITY.md).
+Bug reports and tool requests are welcome as issues. Pull requests by prior discussion only. See [CONTRIBUTING.md](CONTRIBUTING.md). Security or privacy findings: [SECURITY.md](SECURITY.md).
 
 ## Privacy commitments
 
 - No analytics, no trackers, no ads, no consent banners
 - No accounts, no signups
 - Nothing you paste, type, or upload leaves your browser
-- One documented exception: RevealIP's `/api/ip` edge function returns the caller's IP address to the browser and stores nothing ([docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#edge-functions))
+- One documented exception: RevealIP's `/api/ip` edge function returns the caller's IP address to the browser and stores nothing (`apps/revealip/cloudfront/ip-api-function.js`)
 
-## Documentation
+## Repository layout
 
-- [docs/STATUS.md](docs/STATUS.md): what is live
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): single-origin model, static-only rules, edge functions, tab routing
-- [docs/ADD_A_TOOL.md](docs/ADD_A_TOOL.md): scaffold, register, preview, pre-ship checks
-- [docs/DEPLOY.md](docs/DEPLOY.md): CI, local fallback, edge function publishing
-- [docs/INFRA.md](docs/INFRA.md): AWS account shape, DNS, rebuild notes
-- [AGENTS.md](AGENTS.md): rules for agents and contributors
+| Path | Purpose |
+|------|---------|
+| `apps/<tool>/public/` | One deployable static tool per folder |
+| `apps/hub/` | Tab shell for the site root; `hub.config.json` is the tool registry |
+| `packages/brand/` | Canonical palette, header lock, and logo, copied into every app |
+| `packages/utility-template/` | Starting point for a new tool |
+| `scripts/` | Build, dev server, deploy, scaffold, brand sync and check |
+| `infra/iam/` | OIDC trust and deploy permissions for the tools AWS account |
 
 ## License
 

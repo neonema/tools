@@ -15,7 +15,7 @@ function usage() {
 Copies packages/utility-template/ to apps/<tool-id>/ and runs sync-brand.
 Does not modify hub.config.json or scripts/build.mjs.
 
-After scaffolding, follow docs/ADD_A_TOOL.md to register the tool.`);
+After scaffolding, register the tool in scripts/build.mjs, scripts/dev.mjs, apps/hub/hub.config.json, and the hub noscript list.`);
 }
 
 if (args.includes("--help") || args.includes("-h")) {
@@ -67,4 +67,4 @@ if (toolLabel) {
   console.log(`  label hint: "${toolLabel}" — update index.html title and hub.config.json when registering`);
 }
 console.log("Next: implement the tool and register in hub.config.json + scripts/build.mjs");
-console.log("See docs/ADD_A_TOOL.md");
+console.log("Register it in scripts/build.mjs, scripts/dev.mjs, apps/hub/hub.config.json, and the hub noscript list.");

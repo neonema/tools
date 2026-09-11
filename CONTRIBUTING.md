@@ -15,12 +15,17 @@ Every change must keep these true. `npm run brand:check` enforces most of them.
 - Static only: plain HTML, CSS, and JS. No frameworks, no bundlers, no npm runtime packages, no CDN scripts.
 - Browser-only processing: no `fetch()` to NeoNema-owned APIs. The one documented exception is RevealIP's `/api/ip` edge function.
 - No analytics, no ads, no trackers, no consent banners.
-- The NeoNema palette, header lock, and "Private by design." note stay exactly as specified in [AGENTS.md](AGENTS.md).
+- The NeoNema palette (`packages/brand/brand-tokens.css`), the locked header block (`packages/brand/header-lock.css`), and the "Private by design." note as the last child of `<main>` stay exactly as they are.
 - Each tool ships `privacy-policy.html` and `terms.html` that describe what the tool actually does.
 
 ## Adding a tool
 
-Follow [docs/ADD_A_TOOL.md](docs/ADD_A_TOOL.md). Registration is manual: a tool is invisible until it is listed in `apps/hub/hub.config.json`, `scripts/build.mjs`, and the hub `noscript` list.
+Open an issue first. If agreed:
+
+1. `npm run scaffold -- <tool-id> "<Tool Label>"` copies the template into `apps/<tool-id>/` and syncs brand assets.
+2. Implement `public/index.html`, `app.js`, and `styles.css`. Write real copy in `privacy-policy.html` and `terms.html`.
+3. Register the tool by hand in `scripts/build.mjs` (`APPS`), `scripts/dev.mjs` (`MOUNTS`), `apps/hub/hub.config.json`, and the `noscript` list in `apps/hub/public/index.html`. There is no auto-discovery.
+4. `npm run dev` and open `http://localhost:8765/<tool-id>/`.
 
 ## Required checks
 
