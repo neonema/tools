@@ -1,6 +1,6 @@
 # Infrastructure
 
-AWS accounts, credentials, DNS, and the notes you would need to rebuild the stack.
+AWS account shape, credentials model, DNS, and the notes needed to rebuild the stack. Nothing here is secret: the account ID, bucket, distribution ID, and role name are public identifiers, and the deploy model is OIDC with no stored keys.
 
 ---
 
@@ -11,7 +11,7 @@ NeoNema uses **two separate AWS accounts** — one per product boundary. DNS (Cl
 | AWS account | Hostnames | Repo | This repo? |
 |-------------|-----------|------|------------|
 | **NeoNema tools** | `tools.neonema.com` | `neonema-tools` | **Yes** — all deploy automation here |
-| **NeoNema company** | `neonema.com` (+ `www` if used) | Separate company-site repo | **No** |
+| **NeoNema company** | `neonema.com` | Separate private repo | **No** |
 
 Each account is self-contained: **private S3 bucket → CloudFront (OAC) → ACM cert in us-east-1 → IAM deploy role**. No cross-account S3 origins.
 
@@ -35,7 +35,7 @@ The IAM trust policy and permissions are checked in under [`infra/iam/`](../infr
 
 **CI:** GitHub Actions assumes `github-neonema-tools-deploy` via OIDC. No long-lived keys anywhere, no AWS secrets in the repo or in GitHub. Permissions are scoped to the prod bucket, CloudFront invalidation, and function publish.
 
-**Local:** deploys use the **`neonema-tools`** CLI profile.
+**Local:** maintainers deploy with the **`neonema-tools`** CLI profile. Contributors do not need AWS access; nothing in the build or preview touches AWS.
 
 ```bash
 aws configure --profile neonema-tools
@@ -54,6 +54,7 @@ Set `awsProfile` to `"neonema-tools"` in `deploy.config.json`. Deploy scripts pa
 | Record | Type | Target | Proxy |
 |--------|------|--------|-------|
 | `tools` (in `neonema.com`) | CNAME | CloudFront distribution domain (`d….cloudfront.net`) | Proxied |
+| `json-neonema.com`, `revealip-neonema.com` (legacy) | Redirect rules | 301 to `/json/` and `/revealip/` | Proxied |
 | ACM validation records | CNAME | Value ACM shows (`…acm-validations.aws.`) | DNS only |
 
 With the orange cloud on, set **SSL/TLS → Overview** to **Full (strict)** so Cloudflare validates CloudFront's certificate. Never use Flexible — CloudFront always speaks HTTPS.
@@ -62,22 +63,11 @@ Cloudflare may cache HTML at the edge when proxied; CloudFront invalidation only
 
 **Never point a site hostname at `*.s3.*.amazonaws.com`** — a private bucket returns `AccessDenied` XML to the browser. The traffic record always targets the CloudFront domain.
 
-### Legacy domains
+---
 
-`json-neonema.com` and `revealip-neonema.com` (plus `www`) are redirect-only. Their old AWS accounts are closed; Cloudflare Redirect Rules do all the work:
+## Public repository and deploys
 
-| Zone | Match | Action |
-|------|-------|--------|
-| `json-neonema.com` | `(http.host eq "json-neonema.com") or (http.host eq "www.json-neonema.com")` | 301 → `https://tools.neonema.com/json/` |
-| `revealip-neonema.com` | `(http.host eq "revealip-neonema.com") or (http.host eq "www.revealip-neonema.com")` | 301 → `https://tools.neonema.com/revealip/` |
-
-Query strings are not preserved; all legacy paths collapse to the tool's path URL. Each zone needs a proxied `www` CNAME to the apex for the `www` variants to resolve. Update the Cloudflare Redirect Rules if they still point at `/#/...`.
-
-```bash
-for host in json-neonema.com www.json-neonema.com revealip-neonema.com www.revealip-neonema.com; do
-  echo "=== $host ==="; curl -sI "https://$host/" | grep -iE "HTTP/|location:"
-done
-```
+The OIDC trust policy in [`infra/iam/github-neonema-tools-deploy-trust.json`](../infra/iam/github-neonema-tools-deploy-trust.json) names this repository and the `main` branch. GitHub never issues an OIDC token to a workflow run triggered by a pull request from a fork, so no fork can assume the deploy role. Only a push to `main` of this repository deploys.
 
 ---
 

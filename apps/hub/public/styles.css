@@ -180,6 +180,26 @@ body > .header {
   min-height: 0;
 }
 
+.hub-footer {
+  border-top: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 0.8125rem;
+}
+
+.hub-footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.hub-footer a:hover {
+  color: var(--foreground);
+}
+
 .tool-iframe {
   display: block;
   width: 100%;

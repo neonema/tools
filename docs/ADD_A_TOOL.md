@@ -112,9 +112,12 @@ Run before merging.
 
 ```bash
 npm run brand:check
+npm run test:json-converters
+npm run test:password
 npm run build
-npm run test:json-converters   # if the tool has tests
 ```
+
+Add a test script for your tool if it has non-trivial logic (see `apps/password/scripts/`) and wire it into both workflows.
 
 `brand:check` verifies palette tokens, the locked header block, `NeoNema.png` against `packages/brand/`, and the "Private by design." privacy note — the note must exist on every tool page, state what NeoNema never sees, and never be hidden in hub-embed mode. Headers use the company logo only — no per-tool brand assets.
 

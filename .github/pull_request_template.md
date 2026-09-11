@@ -1,5 +1,7 @@
 ## Summary
 
+<!-- PRs are accepted by prior discussion only. Link the issue. See CONTRIBUTING.md. -->
+
 <!-- What tool or change does this PR add? One or two sentences. -->
 
 -
@@ -15,6 +17,7 @@ If this PR adds or ships a tool, confirm the steps and pre-ship checks in [docs/
 - [ ] Tool appears in built `dist/sitemap.xml`
 - [ ] No analytics, ad, or third-party tracking scripts
 - [ ] `npm run brand:check` passes
+- [ ] `npm run test:json-converters` and `npm run test:password` pass
 - [ ] `npm run build` passes
 
 ## Test plan

@@ -1,0 +1,27 @@
+NeoNema Source-Available License
+
+Copyright (C) 2026 NeoNema. All rights reserved.
+
+This repository is published so that anyone can read the code and verify
+that the tools at tools.neonema.com run entirely in the browser and send
+nothing to NeoNema or to third parties.
+
+Permission is granted to view, read, download, and audit the source code in
+this repository, and to run it locally for the sole purpose of verifying its
+behavior. Reporting security or privacy issues found this way is welcome and
+encouraged (see SECURITY.md).
+
+No other rights are granted. You may not copy, modify, distribute, sublicense,
+sell, host, or otherwise use this code, in whole or in part, in any product,
+service, or project, whether commercial or not, without prior written
+permission from NeoNema. Commercial licenses are available on request; contact
+the address in SECURITY.md.
+
+The NeoNema name and logo are trademarks of NeoNema and are not licensed under
+any terms. See TRADEMARK.md.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+NEONEMA BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT
+OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OF THE SOFTWARE.
