@@ -4,7 +4,7 @@ The whole point of this repository is the promise that nothing you paste into a 
 
 **Preferred:** GitHub private vulnerability reporting on this repository (Security tab → Report a vulnerability).
 
-**Email:** `<CONTACT>`
+**Email:** `support@neonema.com`
 
 Please include the tool path (for example `/jwt/`), what you did, and what you observed. You should hear back within a week. Please do not open a public issue for anything that could expose users before it is fixed.
 
