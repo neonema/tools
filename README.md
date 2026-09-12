@@ -2,6 +2,8 @@
 
 Private, browser-only utilities. Live at **[tools.neonema.com](https://tools.neonema.com)**.
 
+This repository, `github.com/neonema/tools`, is the canonical source and the only one that deploys. An older copy under a personal account (`yuhahaha/neonema-tools`) is kept as an archive and is no longer updated.
+
 ## Why this is public
 
 Every tool runs entirely in your browser. This repository exists so you can verify that instead of trusting it.

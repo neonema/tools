@@ -5,7 +5,7 @@ import { execSync } from "node:child_process";
  * /version.json so anyone can confirm which commit tools.neonema.com serves.
  */
 
-export const REPO_URL = "https://github.com/yuhahaha/neonema-tools";
+export const REPO_URL = "https://github.com/neonema/tools";
 
 const STAMP_CSS = `.build-stamp { color: var(--muted); font-size: 0.8125rem; }
 .build-stamp a { color: var(--muted); text-decoration: none; }
