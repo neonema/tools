@@ -49,6 +49,7 @@ const syncArgs = [
   s3Target,
   "--region",
   app.s3Region,
+  "--only-show-errors",
   ...awsBaseArgs(app),
 ];
 
