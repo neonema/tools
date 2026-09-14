@@ -12,7 +12,7 @@
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
         },
         "StringLike": {
-          "token.actions.githubusercontent.com:sub": "repo:neonema/tools:ref:refs/heads/main"
+          "token.actions.githubusercontent.com:sub": "repo:neonema@328419829/tools@1367413619:ref:refs/heads/main"
         }
       }
     }
