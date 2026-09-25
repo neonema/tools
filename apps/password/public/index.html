@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Password Generator — Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Generate a cryptographically random password in your browser. Choose length, letters, numbers, and symbol groups. Nothing is uploaded. Free, private, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/password/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Password Generator</h1>
+        <p class="hero-copy">
+          Create a random password on your device. Cryptographically random, never sent anywhere.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Password generator</h2>
+
+        <label for="password-output">Generated password</label>
+        <textarea
+          id="password-output"
+          class="password-output"
+          rows="2"
+          readonly
+          spellcheck="false"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+        ></textarea>
+
+        <div class="actions">
+          <button id="copy-btn" type="button">Copy</button>
+          <button id="generate-btn" type="button" class="ghost-btn">Generate</button>
+        </div>
+
+        <p id="status" class="status" aria-live="polite"></p>
+
+        <div class="entropy">
+          <div class="entropy-track" aria-hidden="true">
+            <div id="entropy-fill" class="entropy-fill"></div>
+          </div>
+          <p id="entropy-line" class="entropy-line"></p>
+        </div>
+
+        <label for="length-number">Number of characters</label>
+        <div class="length-row">
+          <input
+            id="length-slider"
+            type="range"
+            min="8"
+            max="64"
+            value="20"
+            aria-label="Password length"
+          />
+          <input
+            id="length-number"
+            type="number"
+            min="8"
+            max="64"
+            value="20"
+            inputmode="numeric"
+          />
+        </div>
+
+        <fieldset class="option-fieldset">
+          <legend>Letters and numbers</legend>
+          <div class="option-grid">
+            <label class="checkbox-row" for="opt-lowercase">
+              <input id="opt-lowercase" type="checkbox" checked />
+              <span>Lowercase <code>a–z</code></span>
+            </label>
+            <label class="checkbox-row" for="opt-uppercase">
+              <input id="opt-uppercase" type="checkbox" checked />
+              <span>Uppercase <code>A–Z</code></span>
+            </label>
+            <label class="checkbox-row" for="opt-numbers">
+              <input id="opt-numbers" type="checkbox" checked />
+              <span>Numbers <code>0–9</code></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="option-fieldset">
+          <legend>Symbols</legend>
+          <p class="field-note">Not every site accepts every symbol. Turn groups on or off to match the policy.</p>
+          <div class="symbol-list">
+            <label class="checkbox-row" for="opt-common">
+              <input id="opt-common" type="checkbox" checked />
+              <span>
+                Common
+                <code class="glyph-list">!@#$%^&amp;*</code>
+              </span>
+            </label>
+            <label class="checkbox-row" for="opt-safe-extras">
+              <input id="opt-safe-extras" type="checkbox" checked />
+              <span>
+                Safe extras
+                <code class="glyph-list">-_.+=</code>
+              </span>
+            </label>
+            <label class="checkbox-row" for="opt-extra">
+              <input id="opt-extra" type="checkbox" />
+              <span>
+                Extra
+                <code class="glyph-list">()[]{},;:?/</code>
+              </span>
+            </label>
+            <label class="checkbox-row" for="opt-rarely">
+              <input id="opt-rarely" type="checkbox" />
+              <span>
+                Rarely accepted
+                <code class="glyph-list">'"\`|~&lt;&gt;</code>
+                <span class="glyph-note">and space</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <label class="checkbox-row exclude-row" for="opt-exclude-similar">
+          <input id="opt-exclude-similar" type="checkbox" />
+          <span>Exclude similar characters <code>0 O o 1 l I</code></span>
+        </label>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Generation happens on your device. NeoNema never sees the password.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./generate.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UTC - by NeoNema</title>
+    <meta
+      name="description"
+      content="Live local and UTC clocks in your browser. See your timezone offset and whether daylight saving is in effect. Private, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/utc/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Your time vs UTC</h1>
+        <p class="hero-copy">
+          Live clocks from your device. Nothing leaves your browser.
+        </p>
+      </section>
+
+      <section class="clocks" aria-label="Live clocks">
+        <article class="clock-card" aria-labelledby="local-label">
+          <p id="local-label" class="clock-label">Local time</p>
+          <p id="local-time" class="clock-time" aria-live="off">--:--:--</p>
+          <p id="local-date" class="clock-date"></p>
+        </article>
+
+        <article class="clock-card clock-card-primary" aria-labelledby="utc-label">
+          <p id="utc-label" class="clock-label">UTC</p>
+          <p id="utc-time" class="clock-time" aria-live="off">--:--:--</p>
+          <p id="utc-date" class="clock-date"></p>
+        </article>
+      </section>
+
+      <section class="meta" aria-live="polite">
+        <p id="dst-line" class="meta-line dst-line"></p>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Clocks run on your device. NeoNema never sees your data — nothing is uploaded.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js?v=3"></script>
+  </body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JWT Decoder — Decode JWT Tokens Locally | NeoNema</title>
+    <meta
+      name="description"
+      content="Decode JWT header and payload in your browser. Tokens never leave your device. Free, private alternative to uploading tokens online."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/jwt/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>JWT Decoder</h1>
+        <p class="hero-copy">
+          Paste a JSON Web Token to inspect its header and payload. Decoding runs locally — your
+          token is never sent to a server.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">JWT decoder</h2>
+
+        <label for="token-input">JWT</label>
+        <textarea
+          id="token-input"
+          placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          spellcheck="false"
+          autocomplete="off"
+        ></textarea>
+
+        <div class="actions">
+          <button id="sample-btn" type="button" class="ghost-btn">Load sample</button>
+          <button id="copy-header-btn" type="button" class="ghost-btn">Copy Header</button>
+          <button id="copy-payload-btn" type="button" class="ghost-btn">Copy Payload</button>
+          <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+
+        <p id="status" class="status" aria-live="polite"></p>
+
+        <div id="claims-meta" class="claims-meta" hidden></div>
+
+        <div class="panels">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Header</h3>
+            </div>
+            <pre id="header-output" class="panel-body" aria-live="polite"></pre>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Payload</h3>
+            </div>
+            <pre id="payload-output" class="panel-body" aria-live="polite"></pre>
+          </div>
+          <div class="panel panel-full">
+            <div class="panel-head">
+              <h3>Signature</h3>
+              <span class="panel-note">Not verified</span>
+            </div>
+            <pre id="signature-output" class="panel-body panel-body-mono" aria-live="polite"></pre>
+          </div>
+        </div>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Decoding happens on your device. NeoNema never sees what you paste. This tool does not
+        verify signatures — treat decoded claims as untrusted until your app validates them.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

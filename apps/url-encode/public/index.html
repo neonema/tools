@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL Encode &amp; Decode — Percent Encoding Online | NeoNema</title>
+    <meta
+      name="description"
+      content="URL-encode or decode strings with percent encoding in your browser. Private, free, nothing uploaded."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/url-encode/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>URL Encode &amp; Decode</h1>
+        <p class="hero-copy">
+          Percent-encode strings for query parameters, or decode messy URLs back to readable text.
+          Everything stays in your browser.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">URL encoder</h2>
+
+        <label for="source-input">Input</label>
+        <textarea
+          id="source-input"
+          placeholder="Paste text to encode, or a percent-encoded string to decode…"
+          spellcheck="false"
+          autocomplete="off"
+        ></textarea>
+
+        <div class="actions">
+          <button id="encode-btn" type="button">Encode</button>
+          <button id="decode-btn" type="button">Decode</button>
+          <button id="copy-btn" type="button" class="ghost-btn">Copy Result</button>
+          <button id="swap-btn" type="button" class="ghost-btn">Swap</button>
+          <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+
+        <label for="result-output">Result</label>
+        <textarea id="result-output" readonly placeholder="Result appears here" spellcheck="false"></textarea>
+        <p id="status" class="status" aria-live="polite"></p>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Encoding and decoding happen on your device. NeoNema never sees what you paste.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

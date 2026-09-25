@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Column to Comma-Separated List — Free, Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Convert a column of text to a comma-separated list, or split a list back into lines. Runs in your browser — nothing is uploaded."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/column-to-list/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Convert Column to Comma-Separated List</h1>
+        <p class="hero-copy">
+          Paste a column from Excel or a spreadsheet and join it into a list — or split a list back
+          into lines. Everything runs in your browser.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Column to list converter</h2>
+
+        <div class="tool-switcher" role="tablist" aria-label="Conversion direction">
+          <button
+            id="mode-to-list"
+            class="tool-tab active"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            data-mode="to-list"
+          >
+            Column → list
+          </button>
+          <button
+            id="mode-to-column"
+            class="tool-tab"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            data-mode="to-column"
+          >
+            List → column
+          </button>
+        </div>
+
+        <div class="settings-field delimiter-field">
+          <label for="delimiter">Delimiter</label>
+          <input id="delimiter" type="text" value="," autocomplete="off" spellcheck="false" />
+        </div>
+
+        <div class="preset-row" aria-label="Delimiter presets">
+          <span class="presets-label">Presets</span>
+          <button type="button" class="ghost-btn preset-btn" data-delimiter=",">Comma</button>
+          <button type="button" class="ghost-btn preset-btn" data-delimiter=", ">Comma space</button>
+          <button type="button" class="ghost-btn preset-btn" data-delimiter=";">Semicolon</button>
+          <button type="button" class="ghost-btn preset-btn" data-delimiter="|">Pipe</button>
+          <button type="button" class="ghost-btn preset-btn" data-delimiter="&#9;">Tab</button>
+        </div>
+
+        <label class="checkbox-label" for="collapse-empty">
+          <input id="collapse-empty" type="checkbox" checked />
+          Collapse empty lines
+        </label>
+
+        <label for="source-input" id="source-label">Column</label>
+        <textarea
+          id="source-input"
+          placeholder="Paste a column — one item per line"
+          spellcheck="false"
+          autocomplete="off"
+        ></textarea>
+
+        <div class="actions">
+          <button id="copy-btn" type="button">Copy result</button>
+          <button id="swap-btn" type="button" class="ghost-btn">Swap</button>
+          <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+
+        <label for="result-output" id="result-label">List</label>
+        <textarea
+          id="result-output"
+          readonly
+          placeholder="Joined list appears here"
+          spellcheck="false"
+        ></textarea>
+
+        <div class="settings-grid settings-grid-bottom">
+          <div class="settings-field">
+            <label for="item-prefix">Item prefix</label>
+            <input id="item-prefix" type="text" value="" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="settings-field">
+            <label for="item-suffix">Item suffix</label>
+            <input id="item-suffix" type="text" value="" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="settings-field">
+            <label for="result-prefix">Result prefix</label>
+            <input id="result-prefix" type="text" value="" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="settings-field">
+            <label for="result-suffix">Result suffix</label>
+            <input id="result-suffix" type="text" value="" autocomplete="off" spellcheck="false" />
+          </div>
+        </div>
+
+        <p id="status" class="status" aria-live="polite"></p>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Joining and splitting happen on your device. NeoNema never sees what you paste.
+      </p>
+
+      <section class="how-to" aria-labelledby="how-to-title">
+        <h2 id="how-to-title">How to use it</h2>
+        <ol>
+          <li>Copy a column of cells from Excel or Google Sheets.</li>
+          <li>Paste into the input box. Empty rows are dropped when collapse is on.</li>
+          <li>Copy the joined list and paste it wherever you need it.</li>
+        </ol>
+        <p>
+          Switch to <strong>List → column</strong> to split a delimited string back into one item
+          per line. Prefix and suffix fields wrap each item (for example <code>'</code> on both
+          sides) or the whole result (for example <code>(</code> and <code>)</code>).
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

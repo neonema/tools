@@ -1,0 +1,263 @@
+@import url("./brand-tokens.css");
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Outfit", system-ui, -apple-system, sans-serif;
+}
+
+/* BRAND_LOCK_START: Keep this section identical across all NeoNema properties. */
+.header {
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--header-bg) 84%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 4px 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand img {
+  display: block;
+  width: auto;
+  max-width: none;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.brand img.brand-main {
+  height: 50px;
+}
+
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 4px 12px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand img.brand-main {
+    height: 40px;
+  }
+}
+/* BRAND_LOCK_END */
+
+.container {
+  min-height: calc(100vh - 130px);
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 36px 16px 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero {
+  max-width: 760px;
+  width: 100%;
+  text-align: center;
+}
+
+.kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.82rem;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+}
+
+.hero-copy {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.clocks {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 760px;
+}
+
+.clock-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  padding: 20px;
+  text-align: center;
+}
+
+.clock-card-primary {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+
+.clock-label {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.clock-card-primary .clock-label {
+  color: var(--primary);
+}
+
+.clock-time {
+  margin: 10px 0 0;
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-date {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.meta {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 760px;
+  text-align: center;
+}
+
+.meta-line {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.dst-line {
+  font-weight: 600;
+}
+
+.dst-line[data-state="on"] {
+  color: var(--primary);
+}
+
+.dst-line[data-state="off"],
+.dst-line[data-state="none"] {
+  color: var(--muted);
+}
+
+.privacy-note {
+  width: 100%;
+  max-width: 760px;
+  margin: 16px auto 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.55;
+  text-align: center;
+}
+
+.privacy-bold {
+  display: block;
+  font-weight: 800;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 22px 16px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: var(--foreground);
+}
+
+.policy {
+  max-width: 760px;
+  margin: 48px auto;
+  padding: 0 16px;
+  line-height: 1.65;
+}
+
+.policy a {
+  color: var(--muted);
+}
+
+.policy a:hover {
+  color: var(--foreground);
+}
+
+@media (max-width: 768px) {
+  .container {
+    min-height: calc(100vh - 112px);
+    padding: 28px 12px 56px;
+    justify-content: flex-start;
+  }
+
+  .clocks {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .clock-card {
+    padding: 16px;
+  }
+
+  .footer {
+    gap: 14px;
+    padding: 20px 12px;
+  }
+}
+
+html.hub-embed body {
+  min-height: auto;
+}
+
+html.hub-embed .header,
+html.hub-embed .footer {
+  display: none;
+}
+
+html.hub-embed .container {
+  min-height: auto;
+  padding: 0 16px 24px;
+  justify-content: flex-start;
+}
+
+html.hub-embed .hero {
+  display: none;
+}
