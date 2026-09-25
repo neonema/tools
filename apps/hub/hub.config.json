@@ -4,7 +4,8 @@
     { "id": "time", "label": "Time" },
     { "id": "text", "label": "Text & Data" },
     { "id": "encoding", "label": "Encoding" },
-    { "id": "network", "label": "Network & Security" }
+    { "id": "network", "label": "Network & Security" },
+    { "id": "generators", "label": "Generators" }
   ],
   "tools": [
     {
@@ -78,6 +79,12 @@
       "label": "JWT Decoder",
       "category": "encoding",
       "path": "/jwt/index.html"
+    },
+    {
+      "id": "dice",
+      "label": "Dice",
+      "category": "generators",
+      "path": "/dice/index.html"
     }
   ]
 }

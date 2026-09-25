@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dice Roller — Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Roll one, two, or three dice in your browser. d4, d6, and d20. Nothing is uploaded. Free, private, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/dice/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Dice Roller</h1>
+        <p class="hero-copy">
+          Roll one, two, or three dice on your device. Pick a d4, d6, or d20.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Dice roller</h2>
+
+        <fieldset class="choice-fieldset">
+          <legend>Number of dice</legend>
+          <div class="choice-row count-row">
+            <label class="choice">
+              <input type="radio" name="count" value="1" checked />
+              <span>1</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="count" value="2" />
+              <span>2</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="count" value="3" />
+              <span>3</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="choice-fieldset">
+          <legend>Die</legend>
+          <div class="choice-row die-row">
+            <label class="choice">
+              <input type="radio" name="sides" value="4" />
+              <span>d4</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="sides" value="6" checked />
+              <span>d6</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="sides" value="20" />
+              <span>d20</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <label class="checkbox-row" for="show-sum">
+          <input id="show-sum" type="checkbox" checked />
+          <span>Show sum</span>
+        </label>
+
+        <div class="actions">
+          <button id="roll-btn" type="button">Roll</button>
+        </div>
+
+        <div class="result">
+          <p id="roll-summary" class="visually-hidden" aria-live="polite"></p>
+          <ul id="faces" class="faces" aria-hidden="true"></ul>
+          <p id="roll-total" class="roll-total" hidden></p>
+        </div>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Rolling happens on your device. NeoNema never sees the roll.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./roll.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
