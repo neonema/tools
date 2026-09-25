@@ -1,5 +1,5 @@
 {
-  "defaultTool": "revealip",
+  "defaultTool": "utc",
   "categories": [
     { "id": "time", "label": "Time" },
     { "id": "text", "label": "Text & Data" },
