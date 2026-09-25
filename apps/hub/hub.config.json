@@ -85,6 +85,12 @@
       "label": "Dice",
       "category": "generators",
       "path": "/dice/index.html"
+    },
+    {
+      "id": "qr",
+      "label": "QR Code",
+      "category": "generators",
+      "path": "/qr/index.html"
     }
   ]
 }

@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR Code Generator — Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Make a QR code for a URL, text, or Wi-Fi network in your browser. Download PNG or SVG. Nothing is uploaded. Free, private, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/qr/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>QR Code</h1>
+        <p class="hero-copy">
+          Make a code for text, a URL, or a Wi-Fi network on your device. Download a PNG or SVG.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">QR code generator</h2>
+
+        <fieldset class="choice-fieldset">
+          <legend>What to encode</legend>
+          <div class="choice-row mode-row">
+            <label class="choice">
+              <input type="radio" name="mode" value="text" checked />
+              <span>Text or URL</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="mode" value="wifi" />
+              <span>Wi-Fi</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div id="text-panel">
+          <label for="qr-text">Text or URL</label>
+          <textarea
+            id="qr-text"
+            rows="4"
+            spellcheck="false"
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            placeholder="https://example.com"
+          ></textarea>
+        </div>
+
+        <div id="wifi-panel" hidden>
+          <label for="wifi-ssid">Network name</label>
+          <input id="wifi-ssid" type="text" autocomplete="off" spellcheck="false" />
+
+          <label for="wifi-password">Password</label>
+          <input
+            id="wifi-password"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            autocapitalize="off"
+            autocorrect="off"
+          />
+
+          <fieldset class="choice-fieldset">
+            <legend>Security</legend>
+            <div class="choice-row security-row">
+              <label class="choice">
+                <input type="radio" name="security" value="WPA" checked />
+                <span>WPA/WPA2</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="security" value="WEP" />
+                <span>WEP</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="security" value="nopass" />
+                <span>None</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="checkbox-row" for="wifi-hidden">
+            <input id="wifi-hidden" type="checkbox" />
+            <span>Hidden network</span>
+          </label>
+        </div>
+
+        <fieldset class="choice-fieldset">
+          <legend>Error correction</legend>
+          <p class="field-note">Medium is a good default. Higher levels survive more damage and fit less text.</p>
+          <div class="choice-row ecc-row">
+            <label class="choice">
+              <input type="radio" name="ecc" value="L" />
+              <span>L · 7%</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="ecc" value="M" checked />
+              <span>M · 15%</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="ecc" value="Q" />
+              <span>Q · 25%</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="ecc" value="H" />
+              <span>H · 30%</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <p id="status" class="status" aria-live="polite"></p>
+
+        <div id="text-caption" class="caption-options">
+          <label class="checkbox-row" for="include-text">
+            <input id="include-text" type="checkbox" />
+            <span>Include the text</span>
+          </label>
+        </div>
+
+        <div id="wifi-caption" class="caption-options" hidden>
+          <label class="checkbox-row" for="include-network">
+            <input id="include-network" type="checkbox" />
+            <span>Include network name</span>
+          </label>
+          <label class="checkbox-row" for="include-password">
+            <input id="include-password" type="checkbox" />
+            <span>Include password</span>
+          </label>
+          <label class="checkbox-row" for="include-security">
+            <input id="include-security" type="checkbox" />
+            <span>Include security type</span>
+          </label>
+        </div>
+
+        <div id="preview" class="preview" aria-label="No QR code yet">
+          <p class="preview-empty">The code appears here.</p>
+        </div>
+
+        <div class="actions">
+          <button id="png-btn" type="button" disabled>Download PNG</button>
+          <button id="svg-btn" type="button" class="ghost-btn" disabled>Download SVG</button>
+        </div>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Encoding happens on your device. NeoNema never sees the text or the Wi-Fi password.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+    </footer>
+
+    <script src="./vendor/qrcodegen.js"></script>
+    <script src="./encode.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
