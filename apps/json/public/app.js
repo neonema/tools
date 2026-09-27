@@ -1,6 +1,7 @@
 const sourceInput = document.getElementById("source-input");
 const resultOutput = document.getElementById("result-output");
 const runBtn = document.getElementById("run-btn");
+const prettifyBtn = document.getElementById("prettify-btn");
 const secondaryBtn = document.getElementById("secondary-btn");
 const copyBtn = document.getElementById("copy-btn");
 const downloadBtn = document.getElementById("download-btn");
@@ -34,7 +35,7 @@ const statValueEls = {
 
 const TOOL_CONFIG = {
   vfl: {
-    caption: "Validate syntax, format output, and run lint checks in one tab.",
+    caption: "Validate syntax and run lint checks, or prettify and minify the JSON on its own.",
     runLabel: "Run Checks",
     secondaryLabel: "Minify JSON"
   },
@@ -196,6 +197,7 @@ function setActiveTool(tool, options = {}) {
     secondaryBtn.textContent = config.secondaryLabel;
   }
   secondaryBtn.hidden = !config.secondaryLabel;
+  if (prettifyBtn) prettifyBtn.hidden = tool !== "vfl";
   typeOptions.hidden = tool !== "typegen";
   comparePanel.hidden = tool !== "diff";
   jsonpathPanel.hidden = tool !== "jsonpath";
@@ -402,7 +404,7 @@ function formatJson(source, minify) {
   const output = minify ? JSON.stringify(parsed.value) : JSON.stringify(parsed.value, null, 2);
   resultOutput.value = output;
   renderStats(computeStats(parsed.value, output));
-  showStatus(minify ? "Minified successfully" : "Formatted successfully");
+  showStatus(minify ? "Minified successfully" : "Prettified successfully");
 }
 
 function detectDominantKeyStyle(keys) {
@@ -1677,6 +1679,13 @@ sampleButtons.forEach((btn) => {
 });
 
 runBtn.addEventListener("click", runPrimaryAction);
+if (prettifyBtn) {
+  prettifyBtn.addEventListener("click", () => {
+    const source = ensureSource();
+    if (!source) return;
+    formatJson(source, false);
+  });
+}
 secondaryBtn.addEventListener("click", runSecondaryAction);
 copyBtn.addEventListener("click", copyResult);
 downloadBtn.addEventListener("click", downloadResult);

@@ -6,7 +6,7 @@
     <title>JSON Utility Toolkit - by NeoNema</title>
     <meta
       name="description"
-      content="Validate, format, and lint JSON in one focused tab. Private, browser-only, and simple."
+      content="Validate, prettify, minify, and lint JSON in one focused tab. Private, browser-only, and simple."
     />
     <link rel="canonical" href="https://tools.neonema.com/json/" />
     <link rel="icon" type="image/png" href="./NeoNema.png" />
@@ -150,6 +150,7 @@
 
           <div class="actions">
             <button id="run-btn" type="button">Run Tool</button>
+            <button id="prettify-btn" type="button" class="ghost-btn" hidden>Prettify</button>
             <button id="secondary-btn" type="button" class="ghost-btn" hidden>Secondary Action</button>
             <button id="copy-btn" type="button" class="ghost-btn">Copy Result</button>
             <button id="download-btn" type="button" class="ghost-btn">Download Result</button>
@@ -167,7 +168,7 @@
           </div>
 
           <p id="tool-caption" class="tool-caption" hidden>
-            Validate syntax, format output, and run lint checks in one tab.
+            Validate syntax and run lint checks, or prettify and minify the JSON on its own.
           </p>
 
           <p id="status" class="status" aria-live="polite"></p>
