@@ -410,7 +410,11 @@ textarea {
 }
 
 #result-output {
+  field-sizing: content;
   min-height: 120px;
+  max-height: min(70vh, 36rem);
+  overflow: auto;
+  resize: none;
 }
 
 .actions {
@@ -510,6 +514,11 @@ html.hub-embed .tool-card {
   border-top: none;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+}
+
+html.hub-embed #result-output {
+  /* The hub sizes this iframe to the page, so a vh cap would grow with the frame. */
+  max-height: 36rem;
 }
 
 @media (max-width: 768px) {
