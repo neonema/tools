@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Refresh Rate Test — Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Measure how many frames per second this tab is drawing. Counted in your browser. Free, private, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/refresh-rate/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Refresh Rate</h1>
+        <p class="hero-copy">Count the frames this tab draws for two seconds.</p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Refresh rate test</h2>
+
+        <button id="measure-btn" class="primary-btn" type="button">Measure</button>
+
+        <div id="sweep" class="sweep" aria-hidden="true">
+          <div id="sweep-bar" class="sweep-bar"></div>
+        </div>
+
+        <div class="stat">
+          <p id="hz" class="stat-value">—</p>
+          <p class="stat-label">Hz</p>
+        </div>
+        <p id="detail" class="detail" aria-live="polite"></p>
+        <p class="field-hint">
+          This counts frames the browser actually draws. A background tab, a power-saving mode, or a
+          browser limit can report a lower rate than the screen's spec.
+        </p>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        The measurement happens on your device. NeoNema never sees the result.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="https://neonema.com/request.html">Request a feature</a>
+    </footer>
+
+    <script src="./refresh-rate.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

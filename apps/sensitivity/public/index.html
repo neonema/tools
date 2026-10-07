@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sensitivity Calculator — cm/360, Private | NeoNema</title>
+    <meta
+      name="description"
+      content="Convert DPI and in-game sensitivity to cm/360 and the same aim in other games. Calculated in your browser. Free, private, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/sensitivity/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Sensitivity</h1>
+        <p class="hero-copy">
+          Turn a DPI and an in-game sensitivity into centimeters per 360°, then see the same aim in
+          other games.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Sensitivity calculator</h2>
+
+        <label for="game">Game</label>
+        <select id="game"></select>
+
+        <label for="dpi">DPI</label>
+        <input id="dpi" type="number" inputmode="decimal" min="1" step="1" value="800" autocomplete="off" />
+
+        <label for="sens">Sensitivity</label>
+        <input
+          id="sens"
+          type="number"
+          inputmode="decimal"
+          min="0"
+          step="any"
+          value="1"
+          autocomplete="off"
+          aria-describedby="sens-hint"
+        />
+        <p id="sens-hint" class="field-hint"></p>
+
+        <div class="stat">
+          <p id="cm" class="stat-value">—</p>
+          <p class="stat-label">cm per 360°</p>
+        </div>
+        <p id="summary" class="visually-hidden" aria-live="polite"></p>
+        <p id="status" class="status" role="status"></p>
+
+        <dl class="facts">
+          <div>
+            <dt>Inches / 360°</dt>
+            <dd id="inches">—</dd>
+          </div>
+          <div>
+            <dt>Counts / 360°</dt>
+            <dd id="counts">—</dd>
+          </div>
+          <div>
+            <dt>eDPI</dt>
+            <dd id="edpi">—</dd>
+          </div>
+        </dl>
+        <p id="edpi-note" class="field-hint">eDPI only compares two setups in the same game.</p>
+
+        <h2 id="equiv-title" class="section-label">Same aim in other games</h2>
+        <p class="field-hint">
+          At this DPI, these sensitivities turn 360° in the same distance. Rainbow Six Siege is hip
+          fire at the default multiplier. Fortnite is the X-axis percent.
+        </p>
+        <table class="equiv" aria-labelledby="equiv-title">
+          <thead>
+            <tr>
+              <th scope="col">Game</th>
+              <th scope="col">Sensitivity</th>
+            </tr>
+          </thead>
+          <tbody id="equiv-body"></tbody>
+        </table>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        The calculation happens on your device. NeoNema never sees what you enter.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="https://neonema.com/request.html">Request a feature</a>
+    </footer>
+
+    <script src="./sensitivity.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

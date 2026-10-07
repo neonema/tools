@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Click Speed Test — Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Test your click speed in clicks per second over five or ten seconds. Runs in your browser. Free, private, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/click-speed/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Click Speed</h1>
+        <p class="hero-copy">Click as fast as you can for five or ten seconds.</p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Click speed test</h2>
+
+        <fieldset class="choice-fieldset">
+          <legend>Duration</legend>
+          <div class="choice-row duration-row">
+            <label class="choice">
+              <input type="radio" name="duration" value="5" checked />
+              <span>5 seconds</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="duration" value="10" />
+              <span>10 seconds</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <button id="stage" class="stage" type="button" data-state="idle">
+          <span id="stage-kicker" class="stage-kicker"></span>
+          <span id="stage-value" class="stage-value"></span>
+          <span id="stage-label" class="stage-label">Click to start</span>
+        </button>
+        <p id="summary" class="summary" hidden></p>
+        <p id="status" class="visually-hidden" aria-live="polite"></p>
+
+        <section id="recent" class="recent" hidden>
+          <h2 class="section-label">This session</h2>
+          <p id="average" class="average" hidden></p>
+          <ul id="attempts" class="attempts"></ul>
+        </section>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        The test happens on your device. NeoNema never sees your clicks.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="https://neonema.com/request.html">Request a feature</a>
+    </footer>
+
+    <script src="./click-speed.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

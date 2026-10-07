@@ -5,7 +5,8 @@
     { "id": "text", "label": "Text & Data" },
     { "id": "encoding", "label": "Encoding" },
     { "id": "network", "label": "Network & Security" },
-    { "id": "generators", "label": "Generators" }
+    { "id": "generators", "label": "Generators" },
+    { "id": "play", "label": "Play" }
   ],
   "tools": [
     {
@@ -91,6 +92,30 @@
       "label": "QR Code",
       "category": "generators",
       "path": "/qr/index.html"
+    },
+    {
+      "id": "sensitivity",
+      "label": "Sensitivity",
+      "category": "play",
+      "path": "/sensitivity/index.html"
+    },
+    {
+      "id": "reaction",
+      "label": "Reaction Time",
+      "category": "play",
+      "path": "/reaction/index.html"
+    },
+    {
+      "id": "click-speed",
+      "label": "Click Speed",
+      "category": "play",
+      "path": "/click-speed/index.html"
+    },
+    {
+      "id": "refresh-rate",
+      "label": "Refresh Rate",
+      "category": "play",
+      "path": "/refresh-rate/index.html"
     }
   ]
 }

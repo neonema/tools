@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reaction Time Test — Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Test your click reaction time in milliseconds. The timer runs in your browser. Free, private, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/reaction/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Reaction Time</h1>
+        <p class="hero-copy">Click when the page turns green. The time stays in this tab.</p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Reaction time test</h2>
+        <button id="stage" class="stage" type="button" data-state="idle">
+          <span id="stage-kicker" class="stage-kicker"></span>
+          <span id="stage-value" class="stage-value"></span>
+          <span id="stage-label" class="stage-label">Click to start</span>
+        </button>
+        <p id="status" class="visually-hidden" aria-live="assertive"></p>
+
+        <section id="recent" class="recent" hidden>
+          <h2 class="section-label">This session</h2>
+          <p id="average" class="average" hidden></p>
+          <ul id="attempts" class="attempts"></ul>
+        </section>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        The test happens on your device. NeoNema never sees your time.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="https://neonema.com/request.html">Request a feature</a>
+    </footer>
+
+    <script src="./reaction.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
