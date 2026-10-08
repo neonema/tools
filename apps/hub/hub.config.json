@@ -6,6 +6,7 @@
     { "id": "encoding", "label": "Encoding" },
     { "id": "network", "label": "Network & Security" },
     { "id": "generators", "label": "Generators" },
+    { "id": "files", "label": "Files" },
     { "id": "play", "label": "Play" }
   ],
   "tools": [
@@ -92,6 +93,12 @@
       "label": "QR Code",
       "category": "generators",
       "path": "/qr/index.html"
+    },
+    {
+      "id": "gerber",
+      "label": "Gerber to SVG",
+      "category": "files",
+      "path": "/gerber/index.html"
     },
     {
       "id": "sensitivity",

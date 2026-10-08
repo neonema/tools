@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerber to SVG — Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Convert a Gerber layer to SVG in your browser. Solder paste, copper, mask, silk, and outline. Nothing is uploaded."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/gerber/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Gerber to SVG</h1>
+        <p class="hero-copy">
+          Upload one Gerber layer and download an SVG. Solder paste, copper, mask, silk, and
+          outline all work.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Convert a Gerber layer</h2>
+
+        <label class="file-drop" id="file-drop" for="gerber-file">
+          <span class="file-drop-title" id="file-label">Choose a Gerber file</span>
+          <span class="file-drop-hint">One layer at a time. Drag a file here, or click to browse.</span>
+          <input id="gerber-file" type="file" />
+        </label>
+
+        <p id="status" class="status" aria-live="polite"></p>
+
+        <div id="preview" class="preview" aria-label="Gerber preview">
+          <p class="preview-empty">The layer appears here.</p>
+        </div>
+
+        <div class="actions">
+          <button id="download-btn" type="button" disabled>Download SVG</button>
+          <button id="clear-btn" type="button" class="ghost-btn" disabled>Clear</button>
+        </div>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Conversion happens on your device. NeoNema never sees the file you upload.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="https://neonema.com/request.html">Request a feature</a>
+    </footer>
+
+    <script src="./vendor/gerber-to-svg.min.js"></script>
+    <script src="./gerber.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
