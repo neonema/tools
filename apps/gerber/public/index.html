@@ -55,6 +55,23 @@
           <input id="gerber-file" type="file" />
         </label>
 
+        <fieldset class="choice-fieldset">
+          <legend>Shapes</legend>
+          <div class="choice-row">
+            <label class="choice">
+              <input type="radio" name="shape" value="outline" checked />
+              <span>Outlines</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="shape" value="fill" />
+              <span>Filled</span>
+            </label>
+          </div>
+          <p class="choice-hint" id="shape-hint">
+            LightBurn follows the line around each pad, including the corners.
+          </p>
+        </fieldset>
+
         <p id="status" class="status" aria-live="polite"></p>
 
         <div id="preview" class="preview" aria-label="Gerber preview">

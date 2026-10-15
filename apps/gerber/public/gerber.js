@@ -294,10 +294,21 @@ function strokeMm(tag, size) {
   return mapLength(width, size, "x");
 }
 
+function pathIsClosed(d) {
+  return /Z$/i.test(d);
+}
+
+function paintPath(path, fillShapes) {
+  if (fillShapes && pathIsClosed(path.d)) {
+    return `<path d="${path.d}" fill="#000000" fill-rule="evenodd" stroke="none"/>`;
+  }
+  return `<path d="${path.d}" stroke="#000000" stroke-width="${fmt(path.stroke)}"/>`;
+}
+
 // gerber-to-svg draws in 1000× file units, flips Y, and clones pads with <use>.
 // LightBurn skips that: it wants one user unit per millimetre, a real stroke, and
 // ordinary paths. Rewrite the drawing into that form.
-function normalizeSvg(svg) {
+function normalizeSvg(svg, options) {
   if (isEmptySvg(svg)) return svg;
   const size = documentSize(svg);
   if (!size) return svg;
@@ -331,18 +342,20 @@ function normalizeSvg(svg) {
 
   if (!paths.length) return svg;
 
-  const body = paths
-    .map((path) => `<path d="${path.d}" stroke="#000000" stroke-width="${fmt(path.stroke)}"/>`)
-    .join("");
+  const fillShapes = Boolean(options && options.fill);
+  const body = paths.map((path) => paintPath(path, fillShapes)).join("");
+  const rootPaint = fillShapes
+    ? `fill="none" fill-rule="evenodd"`
+    : `fill="none" stroke-linecap="round" stroke-linejoin="round"`;
 
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke-linecap="round" stroke-linejoin="round" ` +
+    `<svg xmlns="http://www.w3.org/2000/svg" ${rootPaint} ` +
     `width="${fmt(size.width)}${size.unit}" height="${fmt(size.height)}${size.unit}" ` +
     `viewBox="0 0 ${fmt(size.width)} ${fmt(size.height)}">${body}</svg>`
   );
 }
 
-function convertGerber(text, id) {
+function convertGerber(text, id, options) {
   const source = stripBom(text);
   return new Promise((resolve, reject) => {
     if (typeof gerberToSvg !== "function") {
@@ -352,7 +365,7 @@ function convertGerber(text, id) {
     try {
       gerberToSvg(source, { id: id || "layer" }, (error, svg) => {
         if (error) reject(error);
-        else resolve(normalizeSvg(padSvg(svg)));
+        else resolve(normalizeSvg(padSvg(svg), options));
       });
     } catch (error) {
       reject(error);

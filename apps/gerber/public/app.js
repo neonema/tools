@@ -5,12 +5,27 @@ const statusEl = document.getElementById("status");
 const previewEl = document.getElementById("preview");
 const downloadBtn = document.getElementById("download-btn");
 const clearBtn = document.getElementById("clear-btn");
+const shapeHint = document.getElementById("shape-hint");
 
 const EMPTY_PREVIEW = '<p class="preview-empty">The layer appears here.</p>';
+const SHAPE_HINTS = {
+  outline: "LightBurn follows the line around each pad, including the corners.",
+  fill: "Closed pads are solid. In LightBurn, set the layer to Fill or Offset Fill so it cuts the inside instead of the corners.",
+};
 
 let requestId = 0;
 let svgText = "";
 let downloadName = "gerber.svg";
+let currentFile = null;
+
+function shapeMode() {
+  const selected = document.querySelector('input[name="shape"]:checked');
+  return selected && selected.value === "fill" ? "fill" : "outline";
+}
+
+function updateShapeHint() {
+  shapeHint.textContent = SHAPE_HINTS[shapeMode()];
+}
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -23,6 +38,7 @@ function showEmptyPreview() {
 }
 
 function resetOutput() {
+  currentFile = null;
   svgText = "";
   downloadName = "gerber.svg";
   downloadBtn.disabled = true;
@@ -49,6 +65,7 @@ function mountSvg(markup) {
 
 async function convertFile(file) {
   const id = ++requestId;
+  currentFile = file;
   svgText = "";
   downloadBtn.disabled = true;
   clearBtn.disabled = false;
@@ -89,7 +106,7 @@ async function convertFile(file) {
 
   let svg = "";
   try {
-    svg = await Gerber.convertGerber(text, "layer");
+    svg = await Gerber.convertGerber(text, "layer", { fill: shapeMode() === "fill" });
   } catch {
     if (id !== requestId) return;
     showEmptyPreview();
@@ -130,6 +147,13 @@ fileInput.addEventListener("change", () => {
   if (file) convertFile(file);
 });
 
+document.querySelectorAll('input[name="shape"]').forEach((input) => {
+  input.addEventListener("change", () => {
+    updateShapeHint();
+    if (currentFile) convertFile(currentFile);
+  });
+});
+
 clearBtn.addEventListener("click", () => {
   requestId += 1;
   fileInput.value = "";
@@ -155,4 +179,5 @@ fileDrop.addEventListener("drop", (event) => {
   if (file) convertFile(file);
 });
 
+updateShapeHint();
 resetOutput();
