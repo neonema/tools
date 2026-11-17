@@ -12,31 +12,31 @@
   "tools": [
     {
       "id": "revealip",
-      "label": "RevealIP",
+      "label": "My IP Address",
       "category": "network",
       "path": "/revealip/index.html"
     },
     {
       "id": "utc",
-      "label": "UTC",
+      "label": "UTC Clock",
       "category": "time",
       "path": "/utc/index.html"
     },
     {
       "id": "epoch",
-      "label": "Epoch",
+      "label": "Unix Timestamp",
       "category": "time",
       "path": "/epoch/index.html"
     },
     {
       "id": "cron",
-      "label": "Cron",
+      "label": "Cron Schedule",
       "category": "time",
       "path": "/cron/index.html"
     },
     {
       "id": "password",
-      "label": "Password",
+      "label": "Password Generator",
       "category": "network",
       "path": "/password/index.html"
     },
@@ -48,7 +48,7 @@
     },
     {
       "id": "column-to-list",
-      "label": "Column to List",
+      "label": "Column to Comma List",
       "category": "text",
       "path": "/column-to-list/index.html"
     },
@@ -66,7 +66,7 @@
     },
     {
       "id": "base64",
-      "label": "Base64",
+      "label": "Base64 Encode",
       "category": "encoding",
       "path": "/base64/index.html"
     },
@@ -84,7 +84,7 @@
     },
     {
       "id": "dice",
-      "label": "Dice",
+      "label": "Dice Roller",
       "category": "generators",
       "path": "/dice/index.html"
     },
@@ -102,7 +102,7 @@
     },
     {
       "id": "sensitivity",
-      "label": "Sensitivity",
+      "label": "Aim Sensitivity",
       "category": "play",
       "path": "/sensitivity/index.html"
     },
@@ -114,13 +114,13 @@
     },
     {
       "id": "click-speed",
-      "label": "Click Speed",
+      "label": "Click Speed Test",
       "category": "play",
       "path": "/click-speed/index.html"
     },
     {
       "id": "refresh-rate",
-      "label": "Refresh Rate",
+      "label": "Refresh Rate Test",
       "category": "play",
       "path": "/refresh-rate/index.html"
     }

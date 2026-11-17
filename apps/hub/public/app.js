@@ -1,12 +1,11 @@
 const toolPanel = document.getElementById("tool-panel");
 
 /**
- * The category nav (`.tool-nav`) is baked into this page at build time by
+ * The tool sidebar (`.tool-nav`) is baked into this page at build time by
  * scripts/lib/tool-nav.mjs, so its links work without JS. This script only
  * intercepts clicks to swap iframes in place and keeps the active state in sync.
  */
 const navLinks = Array.from(document.querySelectorAll(".tool-nav-link[data-tool-id]"));
-const navGroups = Array.from(document.querySelectorAll(".tool-nav-group"));
 
 /** @type {{ defaultTool: string; tools: { id: string; label: string; category: string; path: string }[] } | null} */
 let hubConfig = null;
@@ -51,16 +50,10 @@ function setActiveTab(toolId) {
   for (const link of navLinks) {
     if (link.dataset.toolId === toolId) {
       link.setAttribute("aria-current", "page");
+      link.scrollIntoView({ block: "nearest" });
     } else {
       link.removeAttribute("aria-current");
     }
-  }
-
-  for (const group of navGroups) {
-    const isActive = group.dataset.category === tool.category;
-    group.classList.toggle("is-active", isActive);
-    const current = group.querySelector(".tool-nav-tab-current");
-    if (current) current.textContent = isActive ? tool.label : "";
   }
 
   showToolFrame(toolId);
@@ -237,7 +230,7 @@ async function initHub() {
     // The nav links still work as ordinary page loads; only in-place switching is lost.
     const message = document.createElement("p");
     message.className = "hub-error";
-    message.textContent = "Could not load the tool list. Pick a tool from the menu above, or refresh.";
+    message.textContent = "Could not load the tool list. Pick a tool from the sidebar, or refresh.";
     toolPanel.replaceChildren(message);
     console.error("hub init failed:", error);
   }
