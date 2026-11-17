@@ -41,6 +41,12 @@
       "path": "/password/index.html"
     },
     {
+      "id": "encrypt",
+      "label": "Text Encrypt & Decrypt",
+      "category": "network",
+      "path": "/encrypt/index.html"
+    },
+    {
       "id": "json",
       "label": "JSON Toolkit",
       "category": "text",
@@ -66,13 +72,13 @@
     },
     {
       "id": "base64",
-      "label": "Base64 Encode",
+      "label": "Base64 Encode & Decode",
       "category": "encoding",
       "path": "/base64/index.html"
     },
     {
       "id": "url-encode",
-      "label": "URL Encode",
+      "label": "URL Encode & Decode",
       "category": "encoding",
       "path": "/url-encode/index.html"
     },

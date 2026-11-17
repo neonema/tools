@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Encrypt &amp; Decrypt Text — Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Encrypt text with a passphrase and decrypt it later. AES-GCM runs in your browser. NeoNema never sees the text or the passphrase. Free, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/encrypt/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Encrypt &amp; Decrypt Text</h1>
+        <p class="hero-copy">
+          Lock a note with a passphrase, or unlock a note you locked on this page. A lost passphrase
+          cannot be recovered, and messages from other sites will not open here.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Text encryption</h2>
+
+        <label for="source-input">Text</label>
+        <textarea
+          id="source-input"
+          placeholder="Paste text to encrypt, or a message that starts with neonenc1 to decrypt…"
+          spellcheck="false"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+        ></textarea>
+
+        <label for="passphrase-input">Passphrase</label>
+        <div class="passphrase-row">
+          <input
+            id="passphrase-input"
+            type="password"
+            autocomplete="off"
+            spellcheck="false"
+            autocapitalize="off"
+            autocorrect="off"
+          />
+          <button id="toggle-passphrase" type="button" class="ghost-btn" aria-pressed="false">
+            Show
+          </button>
+        </div>
+        <p class="field-note">Spaces count. The passphrase stays in this tab and is never stored.</p>
+
+        <div class="actions">
+          <button id="encrypt-btn" type="button">Encrypt</button>
+          <button id="decrypt-btn" type="button">Decrypt</button>
+          <button id="copy-btn" type="button" class="ghost-btn">Copy Result</button>
+          <button id="swap-btn" type="button" class="ghost-btn">Use Result as Input</button>
+          <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+
+        <label for="result-output">Result</label>
+        <textarea
+          id="result-output"
+          readonly
+          placeholder="Result appears here"
+          spellcheck="false"
+        ></textarea>
+        <p id="status" class="status" aria-live="polite"></p>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Encryption and decryption happen on your device. NeoNema never sees what you paste or the
+        passphrase.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="https://neonema.com/request.html">Request a feature</a>
+    </footer>
+
+    <script src="./crypto.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
