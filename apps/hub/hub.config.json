@@ -89,6 +89,12 @@
       "path": "/jwt/index.html"
     },
     {
+      "id": "cipher",
+      "label": "Cipher Encode & Decode",
+      "category": "encoding",
+      "path": "/cipher/index.html"
+    },
+    {
       "id": "dice",
       "label": "Dice Roller",
       "category": "generators",

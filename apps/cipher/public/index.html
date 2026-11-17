@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cipher Encode &amp; Decode — Caesar, ROT13, Vigenère, Atbash | NeoNema</title>
+    <meta
+      name="description"
+      content="Decode and encode Caesar, ROT13, Vigenère, and Atbash ciphers in your browser, or try every Caesar shift. Nothing is uploaded. Free, private, no signup."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/cipher/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Cipher Encode &amp; Decode</h1>
+        <p class="hero-copy">
+          Decode or encode Caesar, ROT13, Vigenère, and Atbash, or scan every Caesar shift at once.
+          Letters change on your device — nothing is uploaded.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Cipher encode and decode</h2>
+
+        <label for="source-input">Text</label>
+        <textarea
+          id="source-input"
+          placeholder="Paste text to decode or encode…"
+          spellcheck="false"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+        ></textarea>
+
+        <fieldset class="option-fieldset">
+          <legend>Cipher</legend>
+          <div class="mode-row">
+            <label class="mode-option">
+              <input type="radio" name="cipher" value="caesar" checked />
+              Caesar
+            </label>
+            <label class="mode-option">
+              <input type="radio" name="cipher" value="rot13" />
+              ROT13
+            </label>
+            <label class="mode-option">
+              <input type="radio" name="cipher" value="vigenere" />
+              Vigenère
+            </label>
+            <label class="mode-option">
+              <input type="radio" name="cipher" value="atbash" />
+              Atbash
+            </label>
+            <label class="mode-option">
+              <input type="radio" name="cipher" value="shifts" />
+              All shifts
+            </label>
+          </div>
+          <p id="cipher-note" class="field-note"></p>
+        </fieldset>
+
+        <div id="shift-options">
+          <label for="shift-number">Shift</label>
+          <div class="shift-controls">
+            <input id="shift-slider" type="range" min="0" max="25" value="3" aria-label="Caesar shift" />
+            <input
+              id="shift-number"
+              type="number"
+              min="0"
+              max="25"
+              value="3"
+              inputmode="numeric"
+            />
+          </div>
+        </div>
+
+        <div id="key-options" hidden>
+          <label for="key-input">Key</label>
+          <input
+            id="key-input"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            autocapitalize="off"
+            autocorrect="off"
+            placeholder="Keyword"
+          />
+        </div>
+
+        <div class="actions">
+          <button id="example-btn" type="button" class="ghost-btn">Load Example</button>
+          <div id="direction-group" class="direction-group" role="group" aria-label="Direction">
+            <button id="decode-btn" type="button" class="is-selected" aria-pressed="true">Decode</button>
+            <button id="encode-btn" type="button" class="ghost-btn" aria-pressed="false">Encode</button>
+          </div>
+          <button id="copy-btn" type="button" class="ghost-btn">Copy Result</button>
+          <button id="use-result-btn" type="button" class="ghost-btn">Use Result as Input</button>
+          <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+
+        <div id="single-result">
+          <label for="result-output">Result</label>
+          <textarea
+            id="result-output"
+            readonly
+            placeholder="Result appears here"
+            spellcheck="false"
+          ></textarea>
+        </div>
+
+        <div id="shift-results" hidden>
+          <h3 id="shift-heading">Every Caesar shift</h3>
+          <ul id="shift-list" class="shift-list" aria-labelledby="shift-heading"></ul>
+        </div>
+
+        <p id="status" class="status" aria-live="polite"></p>
+      </section>
+
+      <p class="also-try">
+        Also try
+        <a href="/encrypt/" target="_top">Encrypt &amp; Decrypt Text</a>
+        to lock a note with a passphrase.
+      </p>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Decoding and encoding happen on your device. NeoNema never sees what you paste.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="https://neonema.com/request.html">Request a feature</a>
+    </footer>
+
+    <script src="./cipher.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -236,6 +236,25 @@ button:disabled {
   color: #f07178;
 }
 
+.also-try {
+  width: 100%;
+  max-width: 760px;
+  margin: 16px 0 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.55;
+  text-align: center;
+}
+
+.also-try a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.also-try a:hover {
+  text-decoration: underline;
+}
+
 .privacy-note {
   width: 100%;
   max-width: 760px;
