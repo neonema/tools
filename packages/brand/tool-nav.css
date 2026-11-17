@@ -12,27 +12,34 @@
 
 :root {
   --tool-nav-width: 248px;
+  --tool-nav-offset: 58px;
 }
 
+/* Content shifts right for the list. The header pulls back across the
+   full window and stays above the sidebar. */
 body {
-  margin-left: var(--tool-nav-width);
-  transition: margin-left 0.18s ease;
+  padding-left: var(--tool-nav-width);
+  transition: padding-left 0.18s ease;
 }
 
 .header {
-  z-index: 10;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  width: calc(100% + var(--tool-nav-width));
+  margin-left: calc(var(--tool-nav-width) * -1);
+  transition: margin-left 0.18s ease, width 0.18s ease;
 }
 
-/* The lock centers a 1120px header. Next to this sidebar the bar should
-   span the content column so the logo stays at the left edge. */
+/* The lock centers a 1120px header. This bar spans the window. */
 .header-inner {
   max-width: none;
 }
 
 .tool-nav {
   position: fixed;
-  z-index: 30;
-  top: 0;
+  z-index: 15;
+  top: var(--tool-nav-offset);
   left: 0;
   bottom: 0;
   display: flex;
@@ -154,8 +161,8 @@ body {
 .tool-nav-reopen {
   display: inline-flex;
   position: fixed;
-  z-index: 40;
-  top: 10px;
+  z-index: 30;
+  top: calc((var(--tool-nav-offset) - 36px) / 2);
   left: 10px;
   opacity: 0;
   pointer-events: none;
@@ -167,6 +174,11 @@ body {
 }
 
 html.tool-nav-collapsed body {
+  padding-left: 0;
+}
+
+html.tool-nav-collapsed .header {
+  width: 100%;
   margin-left: 0;
 }
 
@@ -187,16 +199,29 @@ html.tool-nav-collapsed .tool-nav-reopen {
 }
 
 @media (max-width: 768px) {
+  :root {
+    --tool-nav-offset: 48px;
+  }
+
   body,
   html.tool-nav-collapsed body {
+    padding-left: 0;
+  }
+
+  .header,
+  html.tool-nav-collapsed .header {
+    width: 100%;
     margin-left: 0;
   }
 
   html:not(.tool-nav-collapsed) .tool-nav-backdrop {
     display: block;
     position: fixed;
-    z-index: 25;
-    inset: 0;
+    z-index: 14;
+    top: var(--tool-nav-offset);
+    right: 0;
+    bottom: 0;
+    left: 0;
     padding: 0;
     border: 0;
     background: rgba(0, 0, 0, 0.5);
@@ -209,6 +234,11 @@ html.tool-nav-collapsed .tool-nav-reopen {
 }
 
 html.hub-embed body {
+  padding-left: 0;
+}
+
+html.hub-embed .header {
+  width: 100%;
   margin-left: 0;
 }
 

@@ -16,6 +16,15 @@
   var backdrop = document.querySelector(".tool-nav-backdrop");
   var links = Array.prototype.slice.call(nav.querySelectorAll("a.tool-nav-link"));
   var root = document.documentElement;
+  var header = document.querySelector(".header");
+
+  function syncHeaderOffset() {
+    var height = header ? header.getBoundingClientRect().height : 0;
+    root.style.setProperty("--tool-nav-offset", Math.round(height) + "px");
+  }
+
+  syncHeaderOffset();
+  window.addEventListener("resize", syncHeaderOffset);
 
   function isCollapsed() {
     return root.classList.contains("tool-nav-collapsed");
