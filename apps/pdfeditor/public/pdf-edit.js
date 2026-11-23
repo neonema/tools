@@ -343,7 +343,10 @@
     const results = new Map();
     const colors = new Map();
     const borrowed = new Set();
+    const standardLetters = new Set();
     const byPage = new Map();
+    // A letter no font of the run's typeface has is drawn in the closest standard font.
+    const pageOptions = { ...options, standardFontName };
     for (const edit of changedTextEdits(textEdits)) {
       if (!pages[edit.pageIndex]) throw editError("That text is on a page this PDF doesn't have.", "range");
       if (!byPage.has(edit.pageIndex)) byPage.set(edit.pageIndex, []);
@@ -353,7 +356,7 @@
       let outcome;
       try {
         outcome = globalThis.PdfText
-          ? globalThis.PdfText.editPage(pdfLib, doc, pages[index], edits, options)
+          ? globalThis.PdfText.editPage(pdfLib, doc, pages[index], edits, pageOptions)
           : { results: new Map(edits.map((edit) => [edit, "missing"])) };
       } catch {
         outcome = { results: new Map(edits.map((edit) => [edit, "missing"])) };
@@ -361,9 +364,11 @@
       for (const [edit, result] of outcome.results) results.set(edit, result);
       if (outcome.colors) for (const [edit, color] of outcome.colors) colors.set(edit, color);
       if (outcome.borrowed) for (const edit of outcome.borrowed) borrowed.add(edit);
+      if (outcome.standardLetters) for (const edit of outcome.standardLetters) standardLetters.add(edit);
     }
     results.colors = colors;
     results.borrowed = borrowed;
+    results.standardLetters = standardLetters;
     return results;
   }
 
@@ -457,8 +462,9 @@
     }
     for (const edit of edits) {
       let result = (edit.text || "") === (edit.original || "") ? "replaced" : results.get(edit) || "missing";
-      if (result === "replaced" && results.borrowed && results.borrowed.has(edit)) result = "borrowed";
-      if (result !== "replaced") {
+      if (result === "replaced" && results.standardLetters && results.standardLetters.has(edit)) result = "mixed";
+      else if (result === "replaced" && results.borrowed && results.borrowed.has(edit)) result = "borrowed";
+      if (result === "removed" || result === "missing") {
         try {
           pdfLib.StandardFontEmbedder.for(pdfLib.StandardFonts[standardFontName(edit)]).encodeText(edit.text || "");
         } catch {
@@ -699,7 +705,8 @@
       if (report) {
         report.replaced = 0;
         report.standardFont = 0;
-        report.borrowed = results.borrowed.size;
+        report.borrowed = [...results.borrowed].filter((edit) => !results.standardLetters.has(edit)).length;
+        report.standardLetters = results.standardLetters.size;
         for (const edit of changedTextEdits(textEdits)) report[results.get(edit) === "replaced" ? "replaced" : "standardFont"] += 1;
       }
       await drawInStandardFonts(pdfLib, doc, pages, textEdits, results);

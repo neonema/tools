@@ -901,57 +901,107 @@
     return parts;
   }
 
-  // A letter missing from a run's font can exist in another subset of the same typeface (PDF
-  // makers embed only the letters each style uses). Same weight: the letter is used as it is.
-  // Only a lighter weight: the letter is drawn thicker (outline stroked by the stem difference)
-  // and wider (scaled by the measured width ratio) to match. Heavier weights are not used.
+  // Letters of a kind (digits, capitals, small letters, the rest) share proportions, so a width
+  // ratio between two fonts is measured on letters of the same kind where there are enough.
+  function letterKind(ch) {
+    if (/\p{Nd}/u.test(ch)) return "digit";
+    if (/\p{Lu}/u.test(ch)) return "upper";
+    if (/\p{Ll}/u.test(ch)) return "lower";
+    return "other";
+  }
+
+  function median(values) {
+    const sorted = [...values].sort((a, b) => a - b);
+    return sorted.length ? sorted[(sorted.length - 1) >> 1] : NaN;
+  }
+
+  // How much wider the run's font draws a letter than another font does, from the letters both
+  // have: { all, digit, upper, lower, other } medians. widthOf(ch) is the other font's width.
+  function widthRatios(font, encoder, widthOf) {
+    const byKind = { all: [] };
+    for (const [ch, code] of encoder) {
+      if (ch === " " || ch === "\u00a0") continue;
+      const mine = glyphWidth(font, code);
+      const theirs = widthOf(ch);
+      if (!(mine > 0 && theirs > 0)) continue;
+      const kind = letterKind(ch);
+      (byKind[kind] = byKind[kind] || []).push(mine / theirs);
+      byKind.all.push(mine / theirs);
+    }
+    const ratios = {};
+    for (const [kind, values] of Object.entries(byKind)) ratios[kind] = median(values);
+    ratios.count = byKind.all.length;
+    ratios.for = (ch) => {
+      const kind = byKind[letterKind(ch)];
+      const value = kind && kind.length >= 2 ? ratios[letterKind(ch)] : ratios.all;
+      return Math.min(1.25, Math.max(0.8, value));
+    };
+    return ratios;
+  }
+
+  // PDF makers embed only the letters each style uses, so a letter missing from a run's font is
+  // often in another subset of the same typeface: another weight, or the same one. Each such font
+  // is a candidate if its widths agree with the run's (the same design), and if it is lighter, the
+  // same, or at most 15% heavier. A lighter letter is drawn thicker, its outline stroked by the
+  // stem difference; every borrowed letter is scaled by the width ratio for its kind of letter.
+  // Closest weight first.
   function siblingsOf(level, font, encoder, seenCodes) {
     if (!level || !level.fontKeys || !font.typeface) return [];
     const out = [];
     for (const key of level.fontKeys()) {
       const other = level.fontFor(key);
-      if (!other || other === font || !other.usable || other.typeface !== font.typeface || other.twoByte !== font.twoByte) continue;
+      if (!other || other === font || !other.usable || other.typeface !== font.typeface) continue;
       const otherEncoder = encoderFor(other, seenCodes.get(other));
-      const ratios = [];
-      for (const [ch, code] of encoder) {
-        if (!otherEncoder.has(ch) || ch === " ") continue;
-        const mine = glyphWidth(font, code);
-        const theirs = glyphWidth(other, otherEncoder.get(ch));
-        if (mine > 0 && theirs > 0) ratios.push(mine / theirs);
-      }
-      if (ratios.length < 2) continue;
-      ratios.sort((a, b) => a - b);
-      const ratio = ratios[ratios.length >> 1];
-      const sameStem = !font.stemV || !other.stemV || Math.abs(font.stemV - other.stemV) <= 0.15 * font.stemV;
-      const sameWeight = Math.abs(ratio - 1) < 0.02 && sameStem;
-      const lighter = font.stemV > 0 && other.stemV > 0 && other.stemV < font.stemV && !sameStem;
-      if (!sameWeight && !lighter) continue;
+      const ratios = widthRatios(font, encoder, (ch) => (otherEncoder.has(ch) ? glyphWidth(other, otherEncoder.get(ch)) : 0));
+      if (ratios.count < 2 || ratios.all < 0.8 || ratios.all > 1.25) continue;
+      const stemDelta = font.stemV > 0 && other.stemV > 0 ? font.stemV - other.stemV : 0;
+      if (stemDelta < -0.15 * font.stemV) continue;
+      const exact = Math.abs(stemDelta) <= 0.05 * (font.stemV || 1) && Math.abs(ratios.all - 1) < 0.02;
       out.push({
         key,
         font: other,
         encoder: otherEncoder,
-        ratio: sameWeight ? 1 : Math.min(1.3, Math.max(0.8, ratio)),
-        extraStem: sameWeight ? 0 : font.stemV - other.stemV,
+        ratios,
+        exact,
+        extraStem: exact ? 0 : Math.max(0, stemDelta),
+        distance: Math.abs(stemDelta),
       });
     }
-    return out.sort((a, b) => a.extraStem - b.extraStem);
+    return out.sort((a, b) => a.distance - b.distance);
   }
 
-  // Like encodeText, with missing letters taken from a sibling subset when one has them.
-  // Like encodeText, for letters the run's font doesn't have. In order: the same letter from a
-  // sibling of the same weight, the font's own upside-down twin (see twinFor), then the letter
-  // from a lighter sibling, thickened.
-  function encodeWithSiblings(font, encoder, text, siblings, twinOf) {
+  // A letter taken from another font, drawn by rewriteOp between the run's own letters.
+  function borrowedPart(sibling, ch) {
+    const code = sibling.encoder.get(ch);
+    return {
+      borrow: {
+        key: sibling.key,
+        bytes: codeBytes(sibling.font, code),
+        width: glyphWidth(sibling.font, code),
+        ratio: sibling.exact ? 1 : sibling.ratios.for(ch),
+        extraStem: sibling.extraStem,
+        borrowed: true,
+      },
+    };
+  }
+
+  // Like encodeText, for letters the run's font doesn't have. Each missing letter is taken from,
+  // in order: a subset of the same weight; the font's own upside-down twin (twinFor); the closest
+  // weight of the same typeface, adjusted; a standard font, scaled to the run's proportions
+  // (standardFor). Only the missing letters change; the rest stay in the run's font.
+  function encodeWithSiblings(font, encoder, text, siblings, twinOf, standardFor) {
     const parts = [];
     for (const ch of text) {
       if (encoder.has(ch)) parts.push({ code: encoder.get(ch) });
-      else if (ch === " ") parts.push({ gap: font.twoByte ? 250 : glyphWidth(font, 32) || 250 });
+      else if (ch === " " || (ch === "\u00a0" && !encoder.has(ch))) parts.push({ gap: font.twoByte ? 250 : glyphWidth(font, 32) || 250 });
       else {
-        const same = siblings.find((candidate) => !candidate.extraStem && candidate.encoder.has(ch));
-        const twin = same ? null : twinOf(ch);
-        const sibling = same || (twin ? null : siblings.find((candidate) => candidate.encoder.has(ch)));
-        if (twin) parts.push({ code: twin.code, twin: { ...twin, letter: ch } });
-        else if (sibling) parts.push({ code: sibling.encoder.get(ch), sibling });
+        const exact = siblings.find((candidate) => candidate.exact && candidate.encoder.has(ch));
+        const twin = exact ? null : twinOf(ch);
+        const nearest = exact || twin ? null : siblings.find((candidate) => candidate.encoder.has(ch));
+        const standard = exact || twin || nearest ? null : standardFor(ch);
+        if (exact || nearest) parts.push(borrowedPart(exact || nearest, ch));
+        else if (twin) parts.push({ code: twin.code, twin: { ...twin, letter: ch } });
+        else if (standard) parts.push(standard);
         else return null;
       }
     }
@@ -1021,27 +1071,30 @@
                 flushText();
                 out.push(formatNumber(-part.gap));
                 pending -= (part.gap / 1000) * size * Th;
-              } else if (part.sibling) {
+              } else if (part.borrow) {
                 // Close the main TJ, draw the borrowed letter, then restore the run's state.
                 flushText();
                 segments.push(`[${out.join(" ")}] TJ`);
                 out.length = 0;
-                const sibling = part.sibling;
+                const borrow = part.borrow;
                 const state = first.state;
-                const scaled = Th * sibling.ratio;
-                let draw = `/${sibling.key} ${formatNumber(size)} Tf`;
+                const scaled = Th * borrow.ratio;
+                let draw = `/${borrow.key} ${formatNumber(size)} Tf`;
                 let restore = `/${state.fontKey} ${formatNumber(size)} Tf`;
-                if (sibling.ratio !== 1) {
+                if (borrow.ratio !== 1) {
                   draw += ` ${formatNumber(scaled * 100)} Tz`;
                   restore += ` ${formatNumber(Th * 100)} Tz`;
                 }
-                if (sibling.extraStem) {
-                  const width = (sibling.extraStem / 1000) * size * state.textScale;
+                if (borrow.extraStem) {
+                  const width = (borrow.extraStem / 1000) * size * state.textScale;
                   draw += ` 2 Tr ${formatNumber(width)} w ${strokeFromFill(state.fillOps)}`;
                   restore += ` ${formatNumber(state.Tr)} Tr ${formatNumber(state.lineWidth)} w ${state.strokeOps || "0 G"}`;
                 }
-                segments.push(`${draw} [${hexString(codeBytes(sibling.font, part.code))}] TJ ${restore}`);
-                pending -= ((glyphWidth(sibling.font, part.code) / 1000) * size + Tc) * scaled;
+                segments.push(`${draw} [${hexString(borrow.bytes)}] TJ ${restore}`);
+                const drawn = ((borrow.width / 1000) * size + Tc) * scaled;
+                // A kept letter moves on by its original advance, not its drawn width.
+                if (part.advance !== undefined && Math.abs(part.advance - drawn) > 1e-6) out.push(formatNumber((-(part.advance - drawn) * 1000) / unit));
+                pending -= part.advance ?? drawn;
               } else if (part.twin) {
                 // Close the main TJ and draw the twin turned half a turn about the centre of its
                 // box, with a text matrix. Setting the text matrix also sets the line matrix, so
@@ -1060,7 +1113,13 @@
                 pending -= advance;
               } else {
                 current += codeBytes(font, part.code);
-                pending -= (glyphWidth(font, part.code) / 1000 * size + Tc + (!font.twoByte && part.code === 32 ? Tw : 0)) * Th;
+                const drawn = (glyphWidth(font, part.code) / 1000 * size + Tc + (!font.twoByte && part.code === 32 ? Tw : 0)) * Th;
+                // A kept letter moves on by its original advance, not its drawn width.
+                if (part.advance !== undefined && Math.abs(part.advance - drawn) > 1e-6) {
+                  flushText();
+                  out.push(formatNumber((-(part.advance - drawn) * 1000) / unit));
+                }
+                pending -= part.advance ?? drawn;
               }
             }
             flushText();
@@ -1195,14 +1254,110 @@
     page.node.set(L.PDFName.of("Contents"), doc.context.register(doc.context.flateStream(stringToBytes(text))));
   }
 
-  function freshName(L, dict, taken) {
+  function freshName(L, dict, taken, prefix = "Fm") {
     for (let n = 1; ; n += 1) {
-      const name = `Fm${n}`;
+      const name = `${prefix}${n}`;
       if (!taken.has(name) && !(dict && dict.has(L.PDFName.of(name)))) {
         taken.add(name);
         return name;
       }
     }
+  }
+
+  // The letter a glyph draws, or null when that isn't known.
+  function glyphLetter(glyph) {
+    const font = glyph.state.font;
+    if (font.toUnicode && font.toUnicode.has(glyph.code)) return font.toUnicode.get(glyph.code);
+    return font.twoByte ? null : charForCode(font, glyph.code) || null;
+  }
+
+  const sameLetter = (a, b) => a === b || (/\s/.test(a) && /\s/.test(b));
+
+  // Only the part of a run that changed is laid out again. The run's glyphs are paired with the
+  // letters of its original text (spaces between glyphs are often only a move, with no glyph);
+  // the letters the old and new text share at the start and the end keep their glyphs and their
+  // exact original advances, gaps included, so they stay where they were, and only the middle is
+  // written fresh. The letters after it move by however much wider or narrower the middle is.
+  // Returns { before, middle, after, anchor }, where before and after are parts and middle is the
+  // new text between them, or null when the glyphs can't be paired with the text (the whole run is
+  // then written fresh).
+  function keepUnchanged(matched, original, text, first) {
+    if (typeof original !== "string") return null;
+    const old = Array.from(original);
+    const now = Array.from(text);
+    const letters = matched.map(glyphLetter);
+    const owner = [];
+    let next = 0;
+    for (const ch of old) {
+      if (next < matched.length && letters[next] !== null && sameLetter(letters[next], ch)) owner.push(next++);
+      else if (/\s/.test(ch)) owner.push(-1);
+      else return null;
+    }
+    if (next !== matched.length) return null;
+    const { size, rise } = first.state;
+    if (matched.some((glyph) => glyph.state.size !== size || glyph.state.rise !== rise)) return null;
+
+    let start = 0;
+    while (start < old.length && start < now.length && old[start] === now[start]) start += 1;
+    let tail = 0;
+    while (tail < old.length - start && tail < now.length - start && old[old.length - 1 - tail] === now[now.length - 1 - tail]) tail += 1;
+    if (start === old.length && start === now.length) return null;
+
+    // Text-space units per unit of page space along the line, from the glyphs' own advances.
+    const scales = matched.filter((glyph) => glyph.tx > 0 && glyph.end > glyph.x).map((glyph) => glyph.tx / (glyph.end - glyph.x));
+    const toText = median(scales);
+    if (!(toText > 0)) return null;
+    const unit = size * first.state.Th;
+    const glyphAt = (index) => (index >= 0 && index < old.length && owner[index] >= 0 ? matched[owner[index]] : null);
+    const nextGlyphIndex = (index) => {
+      for (let k = index + 1; k < old.length; k += 1) if (owner[k] >= 0) return k;
+      return -1;
+    };
+    // A kept glyph, with its advance to the next glyph when everything up to that glyph is kept
+    // too (the gap after it belongs to the kept text), or else its own width.
+    const keep = (index, keptUpTo) => {
+      const glyph = glyphAt(index);
+      const following = nextGlyphIndex(index);
+      const advance = following >= 0 && following <= keptUpTo ? (glyphAt(following).x - glyph.x) * toText : glyph.tx;
+      const font = glyph.state.font;
+      if (font === first.state.font) return { code: glyph.code, advance };
+      return { borrow: { key: glyph.state.fontKey, bytes: codeBytes(font, glyph.code), width: glyphWidth(font, glyph.code), ratio: 1, extraStem: 0 }, advance };
+    };
+    const before = [];
+    for (let index = 0; index < start; index += 1) {
+      if (owner[index] >= 0) before.push(keep(index, start));
+      else {
+        // A space with no glyph: covered by the advance of the glyph before it, unless that glyph
+        // only advanced by its own width.
+        let previous = index - 1;
+        while (previous >= 0 && owner[previous] < 0) previous -= 1;
+        const following = nextGlyphIndex(index);
+        if (previous < 0 || !(following >= 0 && following <= start)) before.push({ gap: 250 });
+      }
+    }
+    const after = [];
+    const from = old.length - tail;
+    for (let index = from; index < old.length; index += 1) {
+      if (owner[index] >= 0) after.push(keep(index, old.length));
+      else {
+        let previous = index - 1;
+        while (previous >= 0 && owner[previous] < 0) previous -= 1;
+        if (previous >= from) continue;
+        // A gap right after the changed middle keeps its original size.
+        const following = nextGlyphIndex(index);
+        const left = previous >= 0 ? matched[owner[previous]] : null;
+        if (left && following >= 0) {
+          const gapText = (glyphAt(following).x - left.end) * toText;
+          if (gapText > 0) after.push({ gap: (gapText * 1000) / unit });
+        }
+      }
+    }
+    // The middle is written in the font of the first changed glyph, or of the last kept one.
+    let anchor = null;
+    for (let index = start; index < old.length - tail && !anchor; index += 1) anchor = glyphAt(index);
+    for (let index = start - 1; index >= 0 && !anchor; index -= 1) anchor = glyphAt(index);
+    if (!anchor) anchor = first;
+    return { before, middle: now.slice(start, now.length - tail).join(""), after, anchor };
   }
 
   // Applies text edits to one page. The edited glyphs are deleted from whichever stream holds them:
@@ -1215,8 +1370,9 @@
     const results = new Map(edits.map((edit) => [edit, "missing"]));
     const colors = new Map();
     const borrowed = new Set();
+    const standardLetters = new Set();
     const source = pageContentString(L, doc, page);
-    if (!source) return { results, colors, borrowed, changed: false };
+    if (!source) return { results, colors, borrowed, standardLetters, changed: false };
     const ops = parseOps(source);
     let resources = page.node.Resources();
     if (!resources) {
@@ -1227,6 +1383,56 @@
     const context = resourceContext(L, doc, resources, cache);
     const root = { depth: 0, ops, source, parent: null, extra: [], adds: [], resources, fontFor: context.fontFor, fontKeys: context.fontKeys };
     const { glyphs, seenCodes } = layoutGlyphs(ops, context.fontFor, { xobjectFor: context.xobjectFor, level: root });
+    const dryRun = Boolean(options && options.dryRun);
+
+    // The last resort for one letter no font of the run's typeface has: the closest standard font
+    // (options.standardFontName(edit), a pdf-lib StandardFonts key), its width scaled to the run's
+    // proportions for that kind of letter. It is added to the resources of the stream it is drawn
+    // in. Letters outside the standard fonts' character set return null.
+    const standardFonts = new Map();
+    const standardLetter = (level, font, encoder, ch, edit) => {
+      const fontName = options && options.standardFontName ? options.standardFontName(edit) : null;
+      if (!fontName || !L.StandardFonts[fontName]) return null;
+      let embedder;
+      let bytes;
+      try {
+        embedder = L.StandardFontEmbedder.for(L.StandardFonts[fontName]);
+        bytes = String.fromCharCode(...embedder.encodeText(ch).asBytes());
+      } catch {
+        return null;
+      }
+      if (!bytes) return null;
+      const widthOf = (letter) => {
+        try {
+          return embedder.widthOfTextAtSize(letter, 1000);
+        } catch {
+          return 0;
+        }
+      };
+      const ratios = widthRatios(font, encoder, widthOf);
+      if (!level.standardKeys) level.standardKeys = new Map();
+      if (!level.standardKeys.has(fontName)) {
+        const dict = lookup(L, level.depth === 0 ? resources : level.form.resources, "Font");
+        if (!level.takenFonts) level.takenFonts = new Set(level.fontKeys ? level.fontKeys() : []);
+        const key = freshName(L, dict, level.takenFonts, "StdF");
+        let ref = null;
+        if (!dryRun) {
+          if (!standardFonts.has(fontName)) standardFonts.set(fontName, doc.embedStandardFont(L.StandardFonts[fontName]).ref);
+          ref = standardFonts.get(fontName);
+        }
+        level.standardKeys.set(fontName, { key, ref });
+      }
+      return {
+        borrow: {
+          key: level.standardKeys.get(fontName).key,
+          bytes,
+          width: widthOf(ch),
+          ratio: ratios.count >= 2 ? ratios.for(ch) : 1,
+          extraStem: 0,
+          standard: true,
+        },
+      };
+    };
     const removed = new Set();
     const inserts = [];
     for (const edit of edits) {
@@ -1235,15 +1441,37 @@
       matched.forEach((glyph) => removed.add(glyph));
       const first = matched[0];
       colors.set(edit, first.state.fill.map((value) => Math.min(1, Math.max(0, value))));
-      const font = first.state.font;
       const text = (edit.text || "").replace(/[\r\n]+/g, " ");
-      const encoder = encoderFor(font, seenCodes.get(font));
-      let parts = text ? encodeText(font, encoder, text) : [];
-      if (!parts) {
-        const twinOf = (ch) => twinFor(first.level, font, encoder, ch, seenCodes);
-        parts = encodeWithSiblings(font, encoder, text, siblingsOf(first.level, font, encoder, seenCodes), twinOf);
-        if (parts && parts.some((part) => part.sibling)) borrowed.add(edit);
+      // New letters are written in the font of the first changed letter. Letters missing from it
+      // come from elsewhere (see encodeWithSiblings).
+      const encodeIn = (anchor, letters) => {
+        const font = anchor.state.font;
+        const encoder = encoderFor(font, seenCodes.get(font));
+        let encoded = letters ? encodeText(font, encoder, letters) : [];
+        if (!encoded) {
+          // A turned twin is drawn in the operator's own font, so only when that is this font.
+          const twinOf = (ch) => (font === first.state.font ? twinFor(anchor.level, font, encoder, ch, seenCodes) : null);
+          const standardFor = (ch) => standardLetter(anchor.level, font, encoder, ch, edit);
+          encoded = encodeWithSiblings(font, encoder, letters, siblingsOf(anchor.level, font, encoder, seenCodes), twinOf, standardFor);
+        }
+        if (!encoded || font === first.state.font) return encoded;
+        // Another font than the operator's: its letters are drawn like borrowed ones.
+        return encoded.map((part) =>
+          part.code === undefined || part.borrow
+            ? part
+            : { borrow: { key: anchor.state.fontKey, bytes: codeBytes(font, part.code), width: glyphWidth(font, part.code), ratio: 1, extraStem: 0 } },
+        );
+      };
+      const plan = keepUnchanged(matched, edit.original, text, first);
+      let parts = null;
+      if (plan) {
+        const middle = encodeIn(plan.anchor, plan.middle);
+        if (middle) parts = [...plan.before, ...middle, ...plan.after];
+      } else {
+        parts = encodeIn(first, text);
       }
+      if (parts && parts.some((part) => part.borrow && part.borrow.borrowed)) borrowed.add(edit);
+      if (parts && parts.some((part) => part.borrow && part.borrow.standard)) standardLetters.add(edit);
       if (parts) {
         if (parts.length) inserts.push({ at: first, parts });
         results.set(edit, "replaced");
@@ -1251,7 +1479,7 @@
         results.set(edit, "removed");
       }
     }
-    if (!removed.size || (options && options.dryRun)) return { results, colors, borrowed, changed: false };
+    if (!removed.size || dryRun) return { results, colors, borrowed, standardLetters, changed: false };
 
     // Every stream that held an edited glyph is rewritten, and so is each stream above it, which
     // has to point at the rewritten copy. Deepest first.
@@ -1282,8 +1510,14 @@
       // being referenced and are deleted on save. The resources are copied first, because they
       // can be shared with other pages that still draw the originals.
       const ownResourcesFor = (base) => {
-        if (!level.adds.length) return null;
+        if (!level.adds.length && !level.standardKeys) return null;
         const own = base.clone(doc.context);
+        if (level.standardKeys) {
+          const existingFonts = lookup(L, own, "Font");
+          const fonts = existingFonts ? existingFonts.clone(doc.context) : doc.context.obj({});
+          for (const { key, ref } of level.standardKeys.values()) fonts.set(L.PDFName.of(key), ref);
+          own.set(L.PDFName.of("Font"), fonts);
+        }
         const existing = lookup(L, own, "XObject");
         const xobjects = existing ? existing.clone(doc.context) : doc.context.obj({});
         for (const [name, ref] of level.adds) xobjects.set(L.PDFName.of(name), ref);
@@ -1321,7 +1555,7 @@
       const call = parent.ops[level.parentOpIndex];
       parent.extra.push({ start: call.start, end: call.end, text: `/${name} Do` });
     }
-    return { results, colors, borrowed, changed: true };
+    return { results, colors, borrowed, standardLetters, changed: true };
   }
 
   // Rewrites accessibility text (ActualText, Alt) in a page's own stream, for pages whose visible
@@ -1335,5 +1569,15 @@
     return true;
   }
 
-  globalThis.PdfText = { lex, parseOps, parseToUnicode, layoutGlyphs, editPage, scrubPage, decodePdfText, winAnsiChar };
+  // The glyphs a page draws, in drawing order: { letter, x, end, y, fontKey } in page space.
+  function pageGlyphs(L, doc, page) {
+    const source = pageContentString(L, doc, page);
+    if (!source) return [];
+    const ops = parseOps(source);
+    const context = resourceContext(L, doc, page.node.Resources() || doc.context.obj({}), { fonts: new Map(), forms: new Map() });
+    const { glyphs } = layoutGlyphs(ops, context.fontFor, { xobjectFor: context.xobjectFor, level: { depth: 0, ops, source } });
+    return glyphs.map((glyph) => ({ letter: glyphLetter(glyph), x: glyph.x, end: glyph.end, y: glyph.y, fontKey: glyph.state.fontKey }));
+  }
+
+  globalThis.PdfText = { lex, parseOps, parseToUnicode, layoutGlyphs, pageGlyphs, editPage, scrubPage, decodePdfText, winAnsiChar };
 })();
