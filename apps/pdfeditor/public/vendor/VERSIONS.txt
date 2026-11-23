@@ -1,0 +1,15 @@
+pdf-lib 1.17.1
+https://github.com/Hopding/pdf-lib
+License: MIT. See pdf-lib.LICENSE.md.
+The sourceMappingURL comment was removed so the page does not request a map file.
+
+pdfjs-dist 6.5.438, legacy build
+https://github.com/mozilla/pdf.js
+License: Apache-2.0. See pdfjs-6.5.438/LICENSE.
+pdfjs-6.5.438/pdf.min.js and pdf.worker.min.js are the official legacy/build/pdf.min.mjs and
+legacy/build/pdf.worker.min.mjs, renamed so they are served as JavaScript. The legacy build adds the
+newest JavaScript built-ins when a browser lacks them. The modern build/ files assume every browser
+has them and fail to draw pages in browsers that are a release or two behind.
+cmaps/, standard_fonts/, wasm/, and iccs/ are the matching files from the same release.
+The folder is named for the version so a browser never pairs a cached viewer with a newer worker.
+To upgrade, add the new pdfjs-<version>/ folder, point PDFJS_DIR in app.js at it, and remove the old one.
