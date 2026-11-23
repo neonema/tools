@@ -177,7 +177,6 @@ function cssFont(run, sizePx) {
 
 const SAVE_NOTES = {
   borrowed: "This PDF's font for this text doesn't include every letter you typed. Those letters come from the same typeface elsewhere in the file, matched to this weight and width.",
-  mixed: "Some letters you typed aren't in this PDF's fonts. Only those letters use a similar standard font; the rest keep the original font.",
   removed: "Some of these letters aren't in this PDF's font, so this change uses a similar standard font.",
   missing: "This text can't be removed from the file, so it can't be changed here. Revert it to download.",
   unsupported: "Some of these characters aren't in this PDF's font or in any standard PDF font, so this change can't be saved. Remove them to download.",
@@ -879,7 +878,7 @@ async function replaceMatches(results, replacement, allowSimilarFont) {
     let changed = false;
     for (const edit of plan.edits) {
       const mode = modes.get(edit);
-      const acceptable = mode === "replaced" || mode === "borrowed" || (allowSimilarFont && (mode === "removed" || mode === "mixed"));
+      const acceptable = mode === "replaced" || mode === "borrowed" || (allowSimilarFont && mode === "removed");
       if (!acceptable && !skip.has(edit.key)) {
         skip.add(edit.key);
         if (mode === "unsupported" || mode === "missing") blocked.add(edit.key);
@@ -1583,9 +1582,6 @@ async function downloadPdf() {
     let message = changed ? "Downloaded. The PDF has no watermark." : "Downloaded the original file. Nothing was changed.";
     if (report.borrowed) {
       message += ` ${report.borrowed === 1 ? "One text change uses" : `${report.borrowed} text changes use`} letters taken from the same typeface elsewhere in the PDF, matched to the original weight.`;
-    }
-    if (report.standardLetters) {
-      message += ` ${report.standardLetters === 1 ? "One text change has" : `${report.standardLetters} text changes have`} a few letters in a similar standard font because no font in the PDF has them.`;
     }
     if (report.standardFont) {
       message += ` ${report.standardFont === 1 ? "One text change uses" : `${report.standardFont} text changes use`} a similar standard font because the PDF's font doesn't have all of those letters.`;
