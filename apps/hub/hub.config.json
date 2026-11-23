@@ -113,6 +113,12 @@
       "path": "/gerber/index.html"
     },
     {
+      "id": "pdfeditor",
+      "label": "PDF Editor",
+      "category": "files",
+      "path": "/pdfeditor/index.html"
+    },
+    {
       "id": "sensitivity",
       "label": "Aim Sensitivity",
       "category": "play",

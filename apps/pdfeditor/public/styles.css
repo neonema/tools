@@ -1,0 +1,714 @@
+@import url("./brand-tokens.css");
+
+* {
+  box-sizing: border-box;
+}
+
+/* Keep room for the window scrollbar, so it appearing when a tall page loads doesn't narrow the
+   preview and redraw the page at a new size. Inside the hub the frame grows to fit instead. */
+html:not(.hub-embed) {
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Outfit", system-ui, -apple-system, sans-serif;
+}
+
+/* BRAND_LOCK_START: Keep this section identical across all NeoNema properties. */
+.header {
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--header-bg) 84%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 4px 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand img {
+  display: block;
+  width: auto;
+  max-width: none;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.brand img.brand-main {
+  height: 50px;
+}
+
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 4px 12px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand img.brand-main {
+    height: 40px;
+  }
+}
+/* BRAND_LOCK_END */
+
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 36px 16px 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero {
+  max-width: 760px;
+  width: 100%;
+  text-align: center;
+}
+
+.kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.82rem;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+}
+
+.hero-copy {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.tool-card {
+  margin-top: 28px;
+  width: 100%;
+  max-width: 960px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  padding: 20px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.file-drop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 28px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: #101713;
+  text-align: center;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.file-drop.is-dragover,
+.file-drop:hover,
+.file-drop:focus-within {
+  border-color: var(--primary);
+}
+
+.file-drop-title {
+  font-weight: 700;
+}
+
+.file-drop-hint {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.file-drop input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+}
+
+.file-drop input:focus {
+  outline: none;
+}
+
+.viewer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.page-label {
+  margin: 0;
+  min-width: 8.5rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* The preview shows the whole PDF page at full height, so only the window scrolls. A box with
+   its own scrollbar inside the scrolling page made the wheel jump between two scroll areas. */
+.stage-scroll {
+  width: 100%;
+  margin-top: 12px;
+  overflow: visible;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0e1511;
+}
+
+.stage {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 34px 12px 16px;
+}
+
+.stage canvas {
+  display: block;
+  background: #ffffff;
+}
+
+.overlays {
+  position: absolute;
+}
+
+.pdf-mask {
+  position: absolute;
+  background: #ffffff;
+  pointer-events: none;
+}
+
+.pdf-box {
+  position: absolute;
+  z-index: 2;
+}
+
+.pdf-box-bar {
+  position: absolute;
+  left: 0;
+  top: -30px;
+  display: flex;
+  gap: 4px;
+}
+
+.pdf-box-input {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 2px 4px;
+  border: 1px solid #111815;
+  border-radius: 2px;
+  background: #ffffff;
+  color: #141414;
+  font-family: Helvetica, Arial, sans-serif;
+  line-height: 1.2;
+  resize: none;
+}
+
+.pdf-box-input:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.pdf-box button {
+  padding: 2px 8px;
+  min-height: 26px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
+
+.pdf-box-move,
+.pdf-box-remove {
+  background: #18211d;
+  color: #ffffff;
+  border: 1px solid #25322d;
+}
+
+.pdf-box-resize {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 4px;
+  background: var(--primary);
+  cursor: nwse-resize;
+}
+
+.pdf-box-move {
+  touch-action: none;
+  cursor: move;
+}
+
+/* Page text. Each run is a transparent button over the drawn page; clicking it opens an
+   editor that covers the run with its own background so the change shows as you type. */
+.text-hit {
+  position: absolute;
+  z-index: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  cursor: text;
+}
+
+.text-hit:hover,
+.text-hit:focus-visible {
+  outline: 1px dashed var(--primary);
+  outline-offset: 0;
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.text-edit {
+  position: absolute;
+  z-index: 2;
+}
+
+.text-edit-input {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  white-space: pre;
+  background: transparent;
+  outline: 1px dashed color-mix(in srgb, var(--primary) 70%, transparent);
+}
+
+/* The page under a live edit is drawn as it will be saved, so the input only shows its caret
+   and selection; the covering background and the browser's rendering of the text are hidden. */
+.text-edit[data-live] {
+  background: transparent !important;
+}
+
+.text-edit[data-live] .text-edit-input,
+.text-edit[data-live] .text-edit-input::selection {
+  -webkit-text-fill-color: transparent;
+}
+
+.text-edit[data-save="removed"] .text-edit-input,
+.text-edit[data-save="missing"] .text-edit-input,
+.text-edit[data-save="unsupported"] .text-edit-input {
+  outline-color: #f07178;
+}
+
+.text-edit:not(:hover):not(:focus-within) .text-edit-note {
+  display: none;
+}
+
+.text-edit-note {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 3;
+  width: max-content;
+  max-width: 320px;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.text-edit-input:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.text-edit .pdf-box-bar {
+  display: none;
+}
+
+.text-edit:hover .pdf-box-bar,
+.text-edit:focus-within .pdf-box-bar {
+  display: flex;
+}
+
+.text-edit button {
+  padding: 2px 8px;
+  min-height: 26px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  background: #18211d;
+  color: #ffffff;
+  border: 1px solid #25322d;
+}
+
+/* Shortcut guide under the toolbar: a quiet line, each item also clickable. */
+.shortcut-guide {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 14px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.shortcut-guide .shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.shortcut-guide .shortcut:hover {
+  color: var(--foreground);
+}
+
+.shortcut-guide .shortcut[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.shortcut-guide kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 600;
+}
+
+.shortcut-tip {
+  padding: 2px 8px;
+}
+
+/* Find and replace. The bar stays in view below the page header while the PDF scrolls. */
+.find-bar {
+  position: sticky;
+  top: 66px;
+  z-index: 20;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  display: grid;
+  gap: 8px;
+}
+
+.find-bar[hidden] {
+  display: none;
+}
+
+html.hub-embed .find-bar {
+  top: 8px;
+}
+
+.find-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.find-bar input[type="search"],
+.find-bar input[type="text"] {
+  flex: 1 1 200px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+}
+
+.find-bar input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.find-bar button {
+  min-height: 40px;
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.find-bar button:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+.find-count {
+  min-width: 6.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.find-options {
+  color: var(--muted);
+  font-size: 0.9rem;
+  gap: 16px;
+}
+
+.find-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.find-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.find-note:empty {
+  display: none;
+}
+
+.find-hit {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.find-hit.is-active {
+  background: color-mix(in srgb, var(--primary) 55%, transparent);
+  outline: 2px solid var(--primary);
+}
+
+.find-hit.is-mixed {
+  outline: 1px dashed #f07178;
+}
+
+/* Placed images. The outline shows the picture's edges; its controls appear on hover or focus. */
+.pdf-image {
+  z-index: 3;
+  outline: 1px dashed color-mix(in srgb, var(--primary) 70%, transparent);
+}
+
+.pdf-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  pointer-events: none;
+}
+
+.pdf-image .pdf-box-bar {
+  display: none;
+}
+
+.pdf-image:hover .pdf-box-bar,
+.pdf-image:focus-within .pdf-box-bar {
+  display: flex;
+}
+
+.edit-hint {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+button {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 18px;
+  min-height: 44px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: 2px;
+}
+
+#download-btn {
+  background: var(--primary);
+  color: #062012;
+}
+
+#download-btn:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.ghost-btn,
+#prev-page,
+#next-page {
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.ghost-btn:hover:not(:disabled),
+#prev-page:hover:not(:disabled),
+#next-page:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.status {
+  min-height: 1.4em;
+  margin: 14px 0 0;
+  color: var(--primary);
+}
+
+.status[data-state="error"] {
+  color: #f07178;
+}
+
+.privacy-note {
+  width: 100%;
+  max-width: 960px;
+  margin: 16px auto 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.55;
+  text-align: center;
+}
+
+.privacy-bold {
+  display: block;
+  font-weight: 800;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 22px 16px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: var(--foreground);
+}
+
+.policy {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 16px 72px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.policy h1 {
+  color: var(--foreground);
+}
+
+.policy a {
+  color: var(--primary);
+}
+
+.policy a:hover {
+  color: var(--foreground);
+}
+
+@media (max-width: 640px) {
+  .tool-card {
+    padding: 14px;
+  }
+
+  .viewer-bar button {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
+
+/* Hub-embed mode: the hub loads this page in a tab and hides page chrome.
+   The privacy note must stay visible — never add it to this hide list. */
+html.hub-embed body {
+  min-height: auto;
+}
+
+html.hub-embed .header,
+html.hub-embed .hero,
+html.hub-embed .footer {
+  display: none;
+}
+
+html.hub-embed .container {
+  padding: 0 16px 24px;
+}
+
+html.hub-embed .tool-card {
+  margin-top: 0;
+}
