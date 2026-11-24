@@ -340,6 +340,18 @@
         }
       }
     }
+    // What the font library matches on when a letter has to come from a free font (see libraryInfo).
+    const descendantsForInfo = font.twoByte ? lookup(L, dict, "DescendantFonts") : null;
+    const descriptorOwner = font.twoByte
+      ? descendantsForInfo && typeof descendantsForInfo.lookup === "function"
+        ? descendantsForInfo.lookup(0)
+        : null
+      : dict;
+    const descriptorDict = lookup(L, descriptorOwner, "FontDescriptor");
+    font.flags = numberOf(L, lookup(L, descriptorDict, "Flags")) || 0;
+    font.italicAngle = numberOf(L, lookup(L, descriptorDict, "ItalicAngle")) || 0;
+    font.capHeight = numberOf(L, lookup(L, descriptorDict, "CapHeight")) || 0;
+    font.xHeight = numberOf(L, lookup(L, descriptorDict, "XHeight")) || 0;
     const toUnicode = streamText(L, lookup(L, dict, "ToUnicode"));
     if (toUnicode) font.toUnicode = parseToUnicode(toUnicode);
     // The embedded TrueType program, read only when a glyph outline is needed.
@@ -482,10 +494,12 @@
       }
       return 0;
     };
-    return { outline, simpleGid };
+    // Embedding permissions (OS/2 fsType): 2 Restricted, 4 Preview & Print, 8 Editable, 0 Installable.
+    const fsType = tables["OS/2"] && tables["OS/2"].length >= 10 ? view.getUint16(tables["OS/2"].offset + 8) : null;
+    return { outline, simpleGid, fsType };
   }
 
-  function glyphOutline(font, code) {
+  function programOf(font) {
     if (font.program === undefined) {
       try {
         const source = font.programSource ? font.programSource() : null;
@@ -495,6 +509,23 @@
         font.program = null;
       }
     }
+    return font.program;
+  }
+
+  // A font whose maker allows it only for viewing and printing (or not to be embedded at all) is
+  // not used to write new text: the letters an edit adds come from a free font instead. When more
+  // than one bit is set, the least restrictive applies. Fonts without the field are not restricted.
+  function editingRestricted(font) {
+    if (font.restricted === undefined) {
+      const program = programOf(font);
+      const fsType = program && program.ttf.fsType;
+      font.restricted = fsType !== null && fsType !== undefined && (fsType & 8) === 0 && (fsType & 6) !== 0;
+    }
+    return font.restricted;
+  }
+
+  function glyphOutline(font, code) {
+    programOf(font);
     if (!font.program) return null;
     try {
       const { ttf, cidToGid } = font.program;
@@ -987,9 +1018,10 @@
 
   // Like encodeText, for letters the run's font doesn't have. Each missing letter is taken from,
   // in order: a subset of the same weight; the font's own upside-down twin (twinFor); the closest
-  // weight of the same typeface, adjusted; a standard font, scaled to the run's proportions
-  // (standardFor). Only the missing letters change; the rest stay in the run's font.
-  function encodeWithSiblings(font, encoder, text, siblings, twinOf, standardFor) {
+  // weight of the same typeface, adjusted; a free font from the site's library matched to this one
+  // (libraryFor); a standard font, scaled to the run's proportions (standardFor). Only the missing
+  // letters change; the rest stay in the run's font.
+  function encodeWithSiblings(font, encoder, text, siblings, twinOf, libraryFor, standardFor) {
     const parts = [];
     for (const ch of text) {
       if (encoder.has(ch)) parts.push({ code: encoder.get(ch) });
@@ -998,14 +1030,53 @@
         const exact = siblings.find((candidate) => candidate.exact && candidate.encoder.has(ch));
         const twin = exact ? null : twinOf(ch);
         const nearest = exact || twin ? null : siblings.find((candidate) => candidate.encoder.has(ch));
-        const standard = exact || twin || nearest ? null : standardFor(ch);
+        const library = exact || twin || nearest ? null : libraryFor(ch);
+        const standard = exact || twin || nearest || library ? null : standardFor(ch);
         if (exact || nearest) parts.push(borrowedPart(exact || nearest, ch));
         else if (twin) parts.push({ code: twin.code, twin: { ...twin, letter: ch } });
+        else if (library) parts.push(library);
         else if (standard) parts.push(standard);
         else return null;
       }
     }
     return parts;
+  }
+
+  // For a font that doesn't allow editing: every letter an edit adds comes from the library or a
+  // standard font, none from the font itself or its other subsets.
+  function encodeElsewhere(font, text, libraryFor, standardFor) {
+    const parts = [];
+    for (const ch of text) {
+      if (ch === " " || ch === "\u00a0") parts.push({ gap: font.twoByte ? 250 : glyphWidth(font, 32) || 250 });
+      else {
+        const part = libraryFor(ch) || standardFor(ch);
+        if (!part) return null;
+        parts.push(part);
+      }
+    }
+    return parts;
+  }
+
+  // What the font library sees of a PDF font: its name, descriptor, and the widths of the letters
+  // it has (in 1000-unit glyph space, the same as the library's). Subsets of one typeface share
+  // a key, so their letters are matched together.
+  function libraryInfo(font, encoder) {
+    const widths = {};
+    for (const [ch, code] of encoder) {
+      const width = glyphWidth(font, code);
+      if (width > 0 && [...ch].length === 1) widths[ch] = width;
+    }
+    return {
+      key: `${font.typeface}|${font.flags & (1 | 2 | 8 | 64)}`,
+      typeface: font.typeface,
+      baseFont: font.baseFont,
+      flags: font.flags || 0,
+      italicAngle: font.italicAngle || 0,
+      capHeight: font.capHeight || 0,
+      xHeight: font.xHeight || 0,
+      stemV: font.stemV || 0,
+      widths,
+    };
   }
 
   // The fill colour operators, turned into the matching stroke colour operators.
@@ -1371,8 +1442,16 @@
     const colors = new Map();
     const borrowed = new Set();
     const standardLetters = new Set();
+    // Edits with letters from the font library; of those, the ones from another family (a font with
+    // the same widths, or the closest match) rather than a free copy of the same one; the families
+    // used; and edits in a font whose embedding permissions don't allow writing new text with it.
+    const libraryLetters = new Set();
+    const librarySimilar = new Set();
+    const libraryFamilies = new Map();
+    const restricted = new Set();
+    const outcome = (changed) => ({ results, colors, borrowed, standardLetters, libraryLetters, librarySimilar, libraryFamilies, restricted, changed });
     const source = pageContentString(L, doc, page);
-    if (!source) return { results, colors, borrowed, standardLetters, changed: false };
+    if (!source) return outcome(false);
     const ops = parseOps(source);
     let resources = page.node.Resources();
     if (!resources) {
@@ -1433,6 +1512,42 @@
         },
       };
     };
+    // A letter from the site's font library (options.library, see font-library.js), matched to the
+    // run's font: the same family by name, a free font with the same widths, or the closest one.
+    // Scaled by the width ratio like a standard letter, so it fits the run's proportions. In a dry
+    // run the library may be a collector that only records which letters are needed.
+    const library = options && options.library;
+    const libraryLetter = (level, font, encoder, ch, edit) => {
+      if (!library) return null;
+      if (!font.libraryInfo) font.libraryInfo = libraryInfo(font, encoder);
+      const info = font.libraryInfo;
+      const glyph = library.glyph(info, ch);
+      if (!glyph) return null;
+      const id = `library:${glyph.file ? glyph.file.url : "pending"}`;
+      if (!level.standardKeys) level.standardKeys = new Map();
+      if (!level.standardKeys.has(id)) {
+        const dict = lookup(L, level.depth === 0 ? resources : level.form.resources, "Font");
+        if (!level.takenFonts) level.takenFonts = new Set(level.fontKeys ? level.fontKeys() : []);
+        const key = freshName(L, dict, level.takenFonts, "LibF");
+        const ref = !dryRun && glyph.file ? library.embed(L, doc, glyph.file) : null;
+        level.standardKeys.set(id, { key, ref });
+      }
+      const ratios = widthRatios(font, encoder, (letter) => library.widthOf(info, letter));
+      if (glyph.family) {
+        if (!libraryFamilies.has(edit)) libraryFamilies.set(edit, new Set());
+        libraryFamilies.get(edit).add(glyph.family);
+      }
+      return {
+        borrow: {
+          key: level.standardKeys.get(id).key,
+          bytes: String.fromCharCode((glyph.gid >> 8) & 255, glyph.gid & 255),
+          width: glyph.width,
+          ratio: ratios.count >= 2 ? ratios.for(ch) : 1,
+          extraStem: 0,
+          library: glyph.kind,
+        },
+      };
+    };
     const removed = new Set();
     const inserts = [];
     for (const edit of edits) {
@@ -1447,12 +1562,19 @@
       const encodeIn = (anchor, letters) => {
         const font = anchor.state.font;
         const encoder = encoderFor(font, seenCodes.get(font));
-        let encoded = letters ? encodeText(font, encoder, letters) : [];
-        if (!encoded) {
+        const libraryFor = (ch) => libraryLetter(anchor.level, font, encoder, ch, edit);
+        const standardFor = (ch) => standardLetter(anchor.level, font, encoder, ch, edit);
+        let encoded;
+        if (letters && editingRestricted(font)) {
+          restricted.add(edit);
+          encoded = encodeElsewhere(font, letters, libraryFor, standardFor);
+        } else {
+          encoded = letters ? encodeText(font, encoder, letters) : [];
+        }
+        if (!encoded && !restricted.has(edit)) {
           // A turned twin is drawn in the operator's own font, so only when that is this font.
           const twinOf = (ch) => (font === first.state.font ? twinFor(anchor.level, font, encoder, ch, seenCodes) : null);
-          const standardFor = (ch) => standardLetter(anchor.level, font, encoder, ch, edit);
-          encoded = encodeWithSiblings(font, encoder, letters, siblingsOf(anchor.level, font, encoder, seenCodes), twinOf, standardFor);
+          encoded = encodeWithSiblings(font, encoder, letters, siblingsOf(anchor.level, font, encoder, seenCodes), twinOf, libraryFor, standardFor);
         }
         if (!encoded || font === first.state.font) return encoded;
         // Another font than the operator's: its letters are drawn like borrowed ones.
@@ -1472,6 +1594,8 @@
       }
       if (parts && parts.some((part) => part.borrow && part.borrow.borrowed)) borrowed.add(edit);
       if (parts && parts.some((part) => part.borrow && part.borrow.standard)) standardLetters.add(edit);
+      if (parts && parts.some((part) => part.borrow && part.borrow.library)) libraryLetters.add(edit);
+      if (parts && parts.some((part) => part.borrow && part.borrow.library && part.borrow.library !== "same")) librarySimilar.add(edit);
       if (parts) {
         if (parts.length) inserts.push({ at: first, parts });
         results.set(edit, "replaced");
@@ -1479,7 +1603,7 @@
         results.set(edit, "removed");
       }
     }
-    if (!removed.size || dryRun) return { results, colors, borrowed, standardLetters, changed: false };
+    if (!removed.size || dryRun) return outcome(false);
 
     // Every stream that held an edited glyph is rewritten, and so is each stream above it, which
     // has to point at the rewritten copy. Deepest first.
@@ -1555,7 +1679,7 @@
       const call = parent.ops[level.parentOpIndex];
       parent.extra.push({ start: call.start, end: call.end, text: `/${name} Do` });
     }
-    return { results, colors, borrowed, standardLetters, changed: true };
+    return outcome(true);
   }
 
   // Rewrites accessibility text (ActualText, Alt) in a page's own stream, for pages whose visible

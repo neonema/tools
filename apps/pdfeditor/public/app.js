@@ -177,6 +177,9 @@ function cssFont(run, sizePx) {
 
 const SAVE_NOTES = {
   borrowed: "This PDF's font for this text doesn't include every letter you typed. Those letters come from the same typeface elsewhere in the file, matched to this weight and width.",
+  library: "Some letters you typed aren't in this PDF's copy of the font. Those letters come from a free copy of the same typeface; the rest keep the original.",
+  similar: "Some letters you typed aren't in this PDF's font. Only those letters come from a free font matched to its shape and widths; the rest keep the original font.",
+  protected: "This PDF's font doesn't allow new text to be written with it, so the letters you typed come from a free font matched to it.",
   mixed: "Some letters you typed aren't in this PDF's fonts. Only those letters use a similar standard font; the rest keep the original font.",
   removed: "Some of these letters aren't in this PDF's font, so this change uses a similar standard font.",
   missing: "This text can't be removed from the file, so it can't be changed here. Revert it to download.",
@@ -879,7 +882,11 @@ async function replaceMatches(results, replacement, allowSimilarFont) {
     let changed = false;
     for (const edit of plan.edits) {
       const mode = modes.get(edit);
-      const acceptable = mode === "replaced" || mode === "borrowed" || (allowSimilarFont && (mode === "removed" || mode === "mixed"));
+      const acceptable =
+        mode === "replaced" ||
+        mode === "borrowed" ||
+        mode === "library" ||
+        (allowSimilarFont && (mode === "removed" || mode === "mixed" || mode === "similar" || mode === "protected"));
       if (!acceptable && !skip.has(edit.key)) {
         skip.add(edit.key);
         if (mode === "unsupported" || mode === "missing") blocked.add(edit.key);
@@ -1583,6 +1590,13 @@ async function downloadPdf() {
     let message = changed ? "Downloaded. The PDF has no watermark." : "Downloaded the original file. Nothing was changed.";
     if (report.borrowed) {
       message += ` ${report.borrowed === 1 ? "One text change uses" : `${report.borrowed} text changes use`} letters taken from the same typeface elsewhere in the PDF, matched to the original weight.`;
+    }
+    if (report.libraryLetters) {
+      const names = report.libraryFamilies && report.libraryFamilies.length ? ` (based on ${report.libraryFamilies.slice(0, 3).join(", ")})` : "";
+      message += ` ${report.libraryLetters === 1 ? "One text change has" : `${report.libraryLetters} text changes have`} letters from a free font${names} because the PDF's font doesn't have them.`;
+    }
+    if (report.restricted) {
+      message += ` ${report.restricted === 1 ? "One text change is" : `${report.restricted} text changes are`} in a font that doesn't allow new text, so the new letters use a free font.`;
     }
     if (report.standardLetters) {
       message += ` ${report.standardLetters === 1 ? "One text change has" : `${report.standardLetters} text changes have`} a few letters in a similar standard font because no font in the PDF has them.`;

@@ -22,8 +22,11 @@
       <p>
         You can change a line or word of text that is part of the page. The original text is removed
         from the file and your text is written in its place, in the PDF's own font, size, and colour.
-        If the PDF's font doesn't include a letter you type, that change uses the closest standard PDF
-        font instead, and the page tells you before you download. If the words you change also appear
+        If the PDF's font doesn't include a letter you type, that letter comes from the same typeface
+        elsewhere in the PDF, or from a free font matched to the original (the same family where one is
+        freely available, otherwise one with the same or the closest letter widths), or as a last resort
+        from the closest standard PDF font. Only those letters change; the page tells you before you
+        download. A font whose maker allows it only for viewing and printing is not used for new text. If the words you change also appear
         in the document's title, bookmarks, comments, form defaults, or accessibility text, they are
         changed there too, and data the document no longer uses is removed when you download, so the
         original wording is not left in the file. Text that can't be removed from the file can't be
@@ -48,8 +51,9 @@
       </p>
       <p>
         Text box changes are written in Helvetica, a standard PDF font. The standard fonts used for
-        page text are Helvetica, Times, and Courier. Characters that neither the PDF's font nor
-        those fonts can draw, including most text outside the Latin alphabet, can't be saved. The download has no
+        page text are Helvetica, Times, and Courier. The free fonts are open-licence fonts served from
+        tools.neonema.com/fonts/, each with its licence there; Chinese, Japanese, and Korean are not
+        included yet. Characters that no available font can draw can't be saved. The download has no
         watermark and no NeoNema credit in the file. If the PDF has a digital signature, saving
         changes the file and the signature will no longer verify.
       </p>

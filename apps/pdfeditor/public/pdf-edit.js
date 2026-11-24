@@ -344,6 +344,10 @@
     const colors = new Map();
     const borrowed = new Set();
     const standardLetters = new Set();
+    const libraryLetters = new Set();
+    const librarySimilar = new Set();
+    const libraryFamilies = new Map();
+    const restricted = new Set();
     const byPage = new Map();
     // A letter no font of the run's typeface has is drawn in the closest standard font.
     const pageOptions = { ...options, standardFontName };
@@ -365,11 +369,42 @@
       if (outcome.colors) for (const [edit, color] of outcome.colors) colors.set(edit, color);
       if (outcome.borrowed) for (const edit of outcome.borrowed) borrowed.add(edit);
       if (outcome.standardLetters) for (const edit of outcome.standardLetters) standardLetters.add(edit);
+      if (outcome.libraryLetters) for (const edit of outcome.libraryLetters) libraryLetters.add(edit);
+      if (outcome.librarySimilar) for (const edit of outcome.librarySimilar) librarySimilar.add(edit);
+      if (outcome.libraryFamilies) for (const [edit, names] of outcome.libraryFamilies) libraryFamilies.set(edit, names);
+      if (outcome.restricted) for (const edit of outcome.restricted) restricted.add(edit);
     }
     results.colors = colors;
     results.borrowed = borrowed;
     results.standardLetters = standardLetters;
+    results.libraryLetters = libraryLetters;
+    results.librarySimilar = librarySimilar;
+    results.libraryFamilies = libraryFamilies;
+    results.restricted = restricted;
     return results;
+  }
+
+  // Letters no font in the PDF has can come from the site's free font library (font-library.js).
+  // The page rewriter is synchronous and the fonts have to be downloaded, so a dry run first
+  // records which letters each PDF font is missing, those fonts are fetched, and the returned
+  // options let the real run use them. Without the library, or offline, the options are unchanged
+  // and those letters use a standard font as before.
+  async function withLibrary(pdfLib, doc, pages, textEdits, options) {
+    const FontLibrary = globalThis.FontLibrary;
+    const library = FontLibrary && FontLibrary.current();
+    if (!library) return options;
+    const collector = FontLibrary.collector();
+    try {
+      rewritePageText(pdfLib, doc, pages, textEdits, { ...options, dryRun: true, library: collector });
+    } catch {
+      return options;
+    }
+    if (!collector.size) return options;
+    try {
+      return { ...options, library: await library.prepare(collector.wants) };
+    } catch {
+      return options;
+    }
   }
 
   // Text edits whose original was removed but whose letters the original font lacks ("removed")
@@ -407,7 +442,7 @@
     doc.addPage(page);
     const pages = doc.getPages();
     const local = new Map(edits.map((edit) => [{ ...edit, pageIndex: 0 }, edit]));
-    const results = rewritePageText(pdfLib, doc, pages, [...local.keys()]);
+    const results = rewritePageText(pdfLib, doc, pages, [...local.keys()], await withLibrary(pdfLib, doc, pages, [...local.keys()]));
     const applied = new Set();
     for (const [copy, edit] of local) {
       const result = (copy.text || "") === (copy.original || "") ? "replaced" : results.get(copy) || "missing";
@@ -447,23 +482,31 @@
   }
 
   // The same check for many edits at once (find and replace): one dry run per page. Returns a Map
-  // from each edit to "replaced" (keeps its original font and look), "removed" (needs a standard
-  // font), "missing" (can't be removed from the file), or "unsupported" (no font can draw it).
+  // from each edit to "replaced" (keeps its original font and look), "borrowed" (some letters from
+  // the same typeface elsewhere in the PDF), "library" (some letters from a free copy of the same
+  // family), "similar" (some letters from a free font matched to it), "protected" (the PDF's font
+  // doesn't allow new text, so the new letters come from a free font), "mixed" (some letters in a
+  // standard font), "removed" (needs a standard font), "missing" (can't be removed from the file),
+  // or "unsupported" (no font can draw it).
   async function previewTextEdits(bytes, edits) {
     const pdfLib = lib();
     const modes = new Map();
     let results;
     try {
       const doc = await previewSource(bytes);
-      results = rewritePageText(pdfLib, doc, doc.getPages(), edits, { dryRun: true });
+      const options = await withLibrary(pdfLib, doc, doc.getPages(), edits, { dryRun: true });
+      results = rewritePageText(pdfLib, doc, doc.getPages(), edits, { ...options, dryRun: true });
     } catch {
       for (const edit of edits) modes.set(edit, "missing");
       return modes;
     }
     for (const edit of edits) {
       let result = (edit.text || "") === (edit.original || "") ? "replaced" : results.get(edit) || "missing";
-      if (result === "replaced" && results.standardLetters && results.standardLetters.has(edit)) result = "mixed";
-      else if (result === "replaced" && results.borrowed && results.borrowed.has(edit)) result = "borrowed";
+      if (result === "replaced" && results.standardLetters.has(edit)) result = "mixed";
+      else if (result === "replaced" && results.restricted.has(edit)) result = "protected";
+      else if (result === "replaced" && results.librarySimilar.has(edit)) result = "similar";
+      else if (result === "replaced" && results.libraryLetters.has(edit)) result = "library";
+      else if (result === "replaced" && results.borrowed.has(edit)) result = "borrowed";
       if (result === "removed" || result === "missing") {
         try {
           pdfLib.StandardFontEmbedder.for(pdfLib.StandardFonts[standardFontName(edit)]).encodeText(edit.text || "");
@@ -694,7 +737,7 @@
       // covering it would leave the original in the file.
       const pairs = changePairs(originalBoxes, boxes, textEdits, extraPairs);
       const scrub = pairs.length ? scrubberFor(pairs) : null;
-      const results = rewritePageText(pdfLib, doc, pages, textEdits, scrub ? { scrub } : undefined);
+      const results = rewritePageText(pdfLib, doc, pages, textEdits, await withLibrary(pdfLib, doc, pages, textEdits, scrub ? { scrub } : undefined));
       const stuck = changedTextEdits(textEdits).filter((edit) => (results.get(edit) || "missing") === "missing");
       if (stuck.length) {
         throw editError(
@@ -705,8 +748,11 @@
       if (report) {
         report.replaced = 0;
         report.standardFont = 0;
-        report.borrowed = [...results.borrowed].filter((edit) => !results.standardLetters.has(edit)).length;
+        report.borrowed = [...results.borrowed].filter((edit) => !results.standardLetters.has(edit) && !results.libraryLetters.has(edit)).length;
         report.standardLetters = results.standardLetters.size;
+        report.libraryLetters = [...results.libraryLetters].filter((edit) => !results.standardLetters.has(edit)).length;
+        report.restricted = results.restricted.size;
+        report.libraryFamilies = [...new Set([...results.libraryFamilies.values()].flatMap((names) => [...names]))];
         for (const edit of changedTextEdits(textEdits)) report[results.get(edit) === "replaced" ? "replaced" : "standardFont"] += 1;
       }
       await drawInStandardFonts(pdfLib, doc, pages, textEdits, results);
