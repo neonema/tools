@@ -175,15 +175,11 @@ function cssFont(run, sizePx) {
   return `${run.italic ? "italic " : ""}${run.bold ? "700 " : "400 "}${sizePx}px ${family}`;
 }
 
+// Fonts are never mentioned: letters a PDF's font lacks are drawn from a matched font without
+// asking. Only edits that can't be saved at all get a note.
 const SAVE_NOTES = {
-  borrowed: "This PDF's font for this text doesn't include every letter you typed. Those letters come from the same typeface elsewhere in the file, matched to this weight and width.",
-  library: "Some letters you typed aren't in this PDF's copy of the font. Those letters come from a free copy of the same typeface; the rest keep the original.",
-  similar: "Some letters you typed aren't in this PDF's font. Only those letters come from a free font matched to its shape and widths; the rest keep the original font.",
-  protected: "This PDF's font doesn't allow new text to be written with it, so the letters you typed come from a free font matched to it.",
-  mixed: "Some letters you typed aren't in this PDF's fonts. Only those letters use a similar standard font; the rest keep the original font.",
-  removed: "Some of these letters aren't in this PDF's font, so this change uses a similar standard font.",
   missing: "This text can't be removed from the file, so it can't be changed here. Revert it to download.",
-  unsupported: "Some of these characters aren't in this PDF's font or in any standard PDF font, so this change can't be saved. Remove them to download.",
+  unsupported: "Some of these characters can't be added to this PDF, so this change can't be saved. Remove them to download.",
 };
 
 // Reads the background and text colour of a run from the drawn page, so the edit covers the
@@ -683,23 +679,19 @@ const findCase = document.getElementById("find-case");
 const findWord = document.getElementById("find-word");
 const findCount = document.getElementById("find-count");
 const findNote = document.getElementById("find-note");
-const replaceAnyway = document.getElementById("replace-anyway");
 
 let findResults = [];
 let findActive = -1;
 let findLoading = null;
 let findTimer = 0;
-let pendingFallback = [];
 
 const textOf = (run) => {
   const edit = textEdits.get(run.key);
   return edit ? edit.text : run.text;
 };
 
-function setFindNote(message, fallback = []) {
+function setFindNote(message) {
   findNote.textContent = message;
-  pendingFallback = fallback;
-  replaceAnyway.hidden = !fallback.length;
 }
 
 // Text for every page, read once per file. Each page's drawing instructions are read too, so
@@ -866,15 +858,15 @@ function plannedEdits(results, replacement, skipRuns) {
   return { edits: [...pending.values()], used };
 }
 
-async function replaceMatches(results, replacement, allowSimilarFont) {
+async function replaceMatches(results, replacement) {
   remember();
   const fields = results.filter((r) => r.kind === "field");
   const textResults = results.filter((r) => r.kind === "text" && !r.match.mixedFormat);
   const mixed = results.filter((r) => r.kind === "text" && r.match.mixedFormat).length;
-  // Each candidate is checked with the save engine. Matches that would lose their look are
-  // dropped and the rest checked again, since one run can hold more than one match.
+  // Each candidate is checked with the save engine. Matches that can't be saved (characters no
+  // font can draw, or text that can't be removed) are dropped and the rest checked again, since
+  // one run can hold more than one match.
   const skip = new Set();
-  const blocked = new Set();
   let plan = plannedEdits(textResults, replacement, skip);
   let modes = new Map();
   for (let pass = 0; pass < 4; pass += 1) {
@@ -882,14 +874,8 @@ async function replaceMatches(results, replacement, allowSimilarFont) {
     let changed = false;
     for (const edit of plan.edits) {
       const mode = modes.get(edit);
-      const acceptable =
-        mode === "replaced" ||
-        mode === "borrowed" ||
-        mode === "library" ||
-        (allowSimilarFont && (mode === "removed" || mode === "mixed" || mode === "similar" || mode === "protected"));
-      if (!acceptable && !skip.has(edit.key)) {
+      if ((mode === "unsupported" || mode === "missing") && !skip.has(edit.key)) {
         skip.add(edit.key);
-        if (mode === "unsupported" || mode === "missing") blocked.add(edit.key);
         changed = true;
       }
     }
@@ -898,10 +884,8 @@ async function replaceMatches(results, replacement, allowSimilarFont) {
   }
   commitEdits(plan.edits, modes);
   for (const field of fields) replaceInField(field, replacement);
-  const left = textResults.filter((r) => !plan.used.includes(r));
-  const unsupported = left.filter((r) => r.match.segments.some((s) => blocked.has(s.run.key)));
-  const needFont = left.filter((r) => !unsupported.includes(r));
-  return { replaced: plan.used.length + fields.length, mixed, needFont, unsupported: unsupported.length };
+  const unsupported = textResults.filter((r) => !plan.used.includes(r)).length;
+  return { replaced: plan.used.length + fields.length, mixed, unsupported };
 }
 
 const plural = (count, one, many) => (count === 1 ? one : many.replace("#", count));
@@ -914,14 +898,8 @@ function describeReplace(outcome) {
   if (outcome.mixed) {
     parts.push(`${plural(outcome.mixed, "1 match mixes", "# matches mix")} two text styles, so ${plural(outcome.mixed, "it was", "they were")} left unchanged.`);
   }
-  if (outcome.needFont.length) {
-    const n = outcome.needFont.length;
-    parts.push(
-      `${plural(n, "1 match was", "# matches were")} left unchanged: this PDF's font doesn't have every letter of the new text there, so ${plural(n, "it", "they")} couldn't keep the same look.`,
-    );
-  }
   if (outcome.unsupported) {
-    parts.push(`${plural(outcome.unsupported, "1 match", "# matches")} can't be changed here (characters no PDF font here can draw, or text that can't be removed from the file), so ${plural(outcome.unsupported, "it was", "they were")} left unchanged.`);
+    parts.push(`${plural(outcome.unsupported, "1 match", "# matches")} can't be changed here (characters that can't be added to this PDF, or text that can't be removed from the file), so ${plural(outcome.unsupported, "it was", "they were")} left unchanged.`);
   }
   return parts.join(" ") || "Nothing was replaced.";
 }
@@ -933,25 +911,15 @@ async function replaceCurrent() {
     setFindNote("This match mixes two text styles, so it isn't replaced: the new text couldn't keep both.");
     return;
   }
-  const outcome = await replaceMatches([result], replaceInput.value, false);
-  setFindNote(describeReplace(outcome), outcome.needFont);
+  const outcome = await replaceMatches([result], replaceInput.value);
+  setFindNote(describeReplace(outcome));
   await runSearch(true);
 }
 
 async function replaceAll() {
   if (!findResults.length || !sourceBytes) return;
-  const outcome = await replaceMatches(findResults, replaceInput.value, false);
-  setFindNote(describeReplace(outcome), outcome.needFont);
-  await runSearch(false);
-}
-
-async function replaceWithSimilarFont() {
-  const results = pendingFallback;
-  if (!results.length) return;
-  const outcome = await replaceMatches(results, replaceInput.value, true);
-  setFindNote(
-    `Replaced ${plural(outcome.replaced, "1 match", "# matches")} in the closest standard font, with the original size and colour.${outcome.unsupported ? ` ${plural(outcome.unsupported, "1 still needs", "# still need")} characters no PDF font here can draw.` : ""}`,
-  );
+  const outcome = await replaceMatches(findResults, replaceInput.value);
+  setFindNote(describeReplace(outcome));
   await runSearch(false);
 }
 
@@ -1564,6 +1532,9 @@ async function openFile(file) {
     if (id !== requestId) return;
     showRenderError(error);
   }
+  // With the first page on screen, the PDF's fonts are read and their closest free fonts fetched
+  // in the background, so letters a font lacks are ready before they are typed.
+  PdfEdit.prepareFonts(bytes).catch(() => {});
 }
 
 function triggerDownload(bytes, filename) {
@@ -1584,27 +1555,9 @@ async function downloadPdf() {
   const placed = images.map(({ pageIndex: page, x, y, width, height, png }) => ({ pageIndex: page, x, y, width, height, png }));
   const changed = PdfEdit.hasChanges(snapshot, boxes, edits, placed);
   try {
-    const report = {};
-    const bytes = await PdfEdit.applyEdits(sourceBytes, snapshot, boxes, edits, report, placed);
+    const bytes = await PdfEdit.applyEdits(sourceBytes, snapshot, boxes, edits, {}, placed);
     triggerDownload(bytes, sourceName);
-    let message = changed ? "Downloaded. The PDF has no watermark." : "Downloaded the original file. Nothing was changed.";
-    if (report.borrowed) {
-      message += ` ${report.borrowed === 1 ? "One text change uses" : `${report.borrowed} text changes use`} letters taken from the same typeface elsewhere in the PDF, matched to the original weight.`;
-    }
-    if (report.libraryLetters) {
-      const names = report.libraryFamilies && report.libraryFamilies.length ? ` (based on ${report.libraryFamilies.slice(0, 3).join(", ")})` : "";
-      message += ` ${report.libraryLetters === 1 ? "One text change has" : `${report.libraryLetters} text changes have`} letters from a free font${names} because the PDF's font doesn't have them.`;
-    }
-    if (report.restricted) {
-      message += ` ${report.restricted === 1 ? "One text change is" : `${report.restricted} text changes are`} in a font that doesn't allow new text, so the new letters use a free font.`;
-    }
-    if (report.standardLetters) {
-      message += ` ${report.standardLetters === 1 ? "One text change has" : `${report.standardLetters} text changes have`} a few letters in a similar standard font because no font in the PDF has them.`;
-    }
-    if (report.standardFont) {
-      message += ` ${report.standardFont === 1 ? "One text change uses" : `${report.standardFont} text changes use`} a similar standard font because the PDF's font doesn't have all of those letters.`;
-    }
-    setStatus(message);
+    setStatus(changed ? "Downloaded. The PDF has no watermark." : "Downloaded the original file. Nothing was changed.");
   } catch (error) {
     setStatus(error.message || "The PDF could not be saved.", true);
   } finally {
@@ -1661,7 +1614,6 @@ document.getElementById("find-next").addEventListener("click", () => stepMatch(1
 document.getElementById("find-prev").addEventListener("click", () => stepMatch(-1));
 document.getElementById("replace-one").addEventListener("click", replaceCurrent);
 document.getElementById("replace-all").addEventListener("click", replaceAll);
-replaceAnyway.addEventListener("click", replaceWithSimilarFont);
 findInput.addEventListener("input", () => {
   clearTimeout(findTimer);
   setFindNote("");

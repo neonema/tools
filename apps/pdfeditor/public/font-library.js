@@ -265,9 +265,14 @@
   }
 
   // PDF FontDescriptor Flags: 1 FixedPitch, 2 Serif, 8 Script, 64 Italic, 1<<18 ForceBold.
+  // Letters all of one width also mean a monospaced font, whatever the flags say.
   function classOf(info, parsed) {
     const name = parsed.name.toLowerCase();
-    if (info.flags & 1 || /mono|courier|consol|typewriter|code/.test(name)) return "mono";
+    const widths = Object.entries(info.widths || {})
+      .filter(([ch]) => /[A-Za-z0-9]/.test(ch))
+      .map(([, width]) => width);
+    const fixed = widths.length >= 5 && Math.max(...widths) - Math.min(...widths) < 1;
+    if (info.flags & 1 || fixed || /mono|courier|consol|typewriter|code/.test(name)) return "mono";
     if (info.flags & 8 || /script|hand|brush/.test(name)) return "handwriting";
     if (/sans|gothic|grotesk|helvet|arial|verdana|tahoma/.test(name)) return "sans";
     if (info.flags & 2 || /serif|roman|times|garamond|georgia|book|antiqua/.test(name)) return "serif";
@@ -296,6 +301,134 @@
     const ratio = median(pairs.map(([mine, theirs]) => mine / theirs));
     return median(pairs.map(([mine, theirs]) => Math.abs(mine - ratio * theirs) / mine)) + 0.5 * Math.abs(Math.log(ratio));
   }
+
+  // True when two width tables are the same design: every letter and digit within 0.5%.
+  // Punctuation is left out; script-specific packagings of one design often redraw it.
+  const LETTERS_AND_DIGITS = [...Array(95).keys()].filter((i) => /[A-Za-z0-9]/.test(String.fromCharCode(32 + i)));
+  function sameWidths(a, b) {
+    for (const i of LETTERS_AND_DIGITS) {
+      if (!a[i] || !b[i]) continue;
+      if (Math.abs(a[i] - b[i]) > 0.005 * Math.max(a[i], b[i]) + 1) return false;
+    }
+    return true;
+  }
+
+  // Families of one class, closest widths first. Families whose names say they slant are left out
+  // for upright text, and families without an italic style for italic text. Families with the same
+  // widths are usually one design packaged for several scripts (Mukta, Mukta Malar, Mukta Vaani…),
+  // so one is kept, under the shortest name. [{ family, distance }], distance null when there are
+  // too few letters to compare.
+  function byWidths(idx, table, info, wanted, italic) {
+    const out = [];
+    const candidates = idx.families
+      .filter((f) => f.category === wanted && f.slices.includes("latin"))
+      .filter((f) => (italic ? f.styles.some((style) => style.endsWith("i")) : !/inclined|italic|slanted|oblique/i.test(f.name)))
+      .map((f) => {
+        const widths = table && table.families ? table.families[f.id] : null;
+        return { family: f, widths, distance: widths ? widthDistance(info.widths, widths) : null };
+      })
+      .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity) || a.family.name.length - b.family.name.length);
+    for (const entry of candidates) {
+      const twin = entry.widths ? out.find((kept) => kept.widths && sameWidths(kept.widths, entry.widths)) : null;
+      if (!twin) out.push(entry);
+      else if (entry.family.name.length < twin.family.name.length) twin.family = entry.family;
+    }
+    return out;
+  }
+
+  // ---- Comparing shapes -------------------------------------------------------------------------
+  // Where the PDF font's program is TrueType, its letters' outlines are compared with a free
+  // font's, so the match looks like the original (weight, proportions, details), not only fits its
+  // widths. Outlines are read with pdf-text.js.
+
+  // Points about every 20 units along an outline, stretched across by scaleX.
+  function samplesOf(outline, scaleX = 1) {
+    const all = globalThis.PdfText.outlineSamples(outline);
+    const out = [];
+    for (let i = 0; i < all.length; i += 2) out.push([all[i][0] * scaleX, all[i][1]]);
+    return out;
+  }
+
+  // The mean distance from each point of one shape to the nearest point of the other, both ways.
+  function meanDistance(a, b) {
+    const oneWay = (from, to) => {
+      let total = 0;
+      for (const [x, y] of from) {
+        let best = Infinity;
+        for (const [u, v] of to) {
+          const d = (u - x) * (u - x) + (v - y) * (v - y);
+          if (d < best) best = d;
+        }
+        total += Math.sqrt(best);
+      }
+      return total / from.length;
+    };
+    return (oneWay(a, b) + oneWay(b, a)) / 2;
+  }
+
+  // Ink thickness of a set of letters: twice the inked area over the outline's length, which for
+  // letters drawn with strokes is about the stroke width, in 1000-unit em. Weight shows here.
+  function strokeOf(sampleSets) {
+    let area = 0;
+    let length = 0;
+    for (const contours of sampleSets) {
+      for (const points of contours) {
+        for (let i = 0; i < points.length; i += 1) {
+          const [x1, y1] = points[i];
+          const [x2, y2] = points[(i + 1) % points.length];
+          area += x1 * y2 - x2 * y1;
+          length += Math.hypot(x2 - x1, y2 - y1);
+        }
+      }
+    }
+    return length > 0 ? Math.abs(area) / length : null;
+  }
+  const contoursOf = (outline) => outline.contours.map((contour) => globalThis.PdfText.outlineSamples({ contours: [contour] }));
+
+  // The PDF font's letters to compare: up to 16 letters and digits it has an outline for, with
+  // their stroke thickness (info.stroke).
+  function pdfSamples(info) {
+    if (!info.samples) {
+      info.samples = new Map();
+      const contours = [];
+      if (globalThis.PdfText && typeof info.outline === "function") {
+        for (const ch of Object.keys(info.widths || {})) {
+          if (info.samples.size >= 16) break;
+          if (!/^[A-Za-z0-9]$/.test(ch)) continue;
+          const outline = info.outline(ch);
+          const samples = outline ? samplesOf(outline) : null;
+          if (!samples || !samples.length) continue;
+          info.samples.set(ch, samples);
+          contours.push(contoursOf(outline));
+        }
+      }
+      info.stroke = strokeOf(contours);
+    }
+    return info.samples;
+  }
+
+  // How a free font file's letters compare with the PDF font's: distance, how different they look
+  // in 1000-unit em (lower is closer), each free letter first stretched to the PDF letter's width
+  // as it will be drawn; stroke, their thickness. Null with fewer than 3 letters to compare.
+  function compareFile(info, file) {
+    if (!file || !file.outline) return null;
+    let total = 0;
+    const contours = [];
+    for (const [ch, mine] of pdfSamples(info)) {
+      const gid = file.cmap.get(ch.codePointAt(0));
+      const theirs = gid ? file.outline(gid) : null;
+      if (!theirs) continue;
+      const advance = file.advance(gid);
+      const ratio = advance > 0 ? Math.min(1.25, Math.max(0.8, info.widths[ch] / advance)) : 1;
+      total += meanDistance(mine, samplesOf(theirs, ratio));
+      contours.push(contoursOf(theirs));
+    }
+    return contours.length >= 3 ? { distance: total / contours.length, stroke: strokeOf(contours) } : null;
+  }
+
+  // About how much thicker strokes get per unit of weight (13 units of stroke per 100 of weight,
+  // measured across sans and serif families).
+  const STROKE_PER_WEIGHT = 0.13;
 
   function createLibrary({ baseUrl, fetch: fetchImpl }) {
     const base = String(baseUrl).endsWith("/") ? String(baseUrl) : `${baseUrl}/`;
@@ -341,7 +474,8 @@
           getBytes(url).then((bytes) => {
             if (!bytes) return null;
             try {
-              return { ...parseTrueType(bytes), url, ranges: entry.ranges };
+              const outlines = globalThis.PdfText && globalThis.PdfText.readTrueType ? globalThis.PdfText.readTrueType(bytes) : null;
+              return { ...parseTrueType(bytes), url, ranges: entry.ranges, outline: outlines ? (gid) => outlines.outline(gid) : null };
             } catch {
               return null;
             }
@@ -362,15 +496,18 @@
       return out;
     }
 
-    // { family, meta, style, kind: "same" | "alias" | "closest" } or null.
+    // { family, meta, style, kind: "same" | "alias" | "closest" } or null. The weight and slant are
+    // the PDF font's own (info.weight, info.italic, read from its program and descriptor), falling
+    // back to its name; where outlines can be compared, the weight next to it is taken instead when
+    // that looks closer.
     async function choose(info) {
       if (choices.has(info.key)) return choices.get(info.key);
       const promise = (async () => {
         const idx = await index();
         if (!idx || !Array.isArray(idx.families)) return null;
         const parsed = parseName(info.typeface || info.baseFont);
-        let weight = parsed.weight || (info.flags & (1 << 18) ? 700 : 400);
-        const italic = parsed.italic || Boolean(info.flags & 64) || Math.abs(info.italicAngle || 0) > 1;
+        const weight = info.weight || parsed.weight || (info.flags & (1 << 18) ? 700 : 400);
+        const italic = info.italic ?? (parsed.italic || Boolean(info.flags & 64) || Math.abs(info.italicAngle || 0) > 1);
         const byId = new Map(idx.families.map((f) => [f.id, f]));
         const settle = async (family, kind, forcedStyle) => {
           const meta = await familyMeta(family);
@@ -378,19 +515,47 @@
           let wantWeight = weight;
           let wantItalic = italic;
           if (forcedStyle) {
-            wantWeight = parsed.weight || Number(forcedStyle.replace("i", ""));
+            wantWeight = info.weight || parsed.weight || Number(forcedStyle.replace("i", ""));
             wantItalic = italic || forcedStyle.endsWith("i");
           }
           const style = pickStyle(meta.styles, wantWeight, wantItalic);
           return style ? { family, meta, style, kind } : null;
         };
+        // One style compared with the PDF font by outline, from its Latin file (downloaded here and
+        // kept for the edit): { ...found, style, distance, stroke }, or null.
+        const comparable = pdfSamples(info).size >= 3 && info.stroke > 0;
+        // How well a measured style fits: its shape distance, plus half the difference in stroke
+        // thickness, which a family with only one weight can't correct.
+        const fit = (measured) => measured.distance + 0.5 * Math.abs(measured.stroke - info.stroke);
+        const measure = async (found, style = found.style) => {
+          if (!found || !comparable) return null;
+          const entry = found.meta.styles[style].files.find((f) => f.slice === "latin");
+          const compared = entry ? compareFile(info, await getFile(found.family.id, entry)) : null;
+          return compared ? { ...found, style, ...compared } : null;
+        };
+        // A stated weight can be off, and one family's 400 is another's 500, so the weight is
+        // corrected by stroke thickness: from the measured style, the weight whose strokes should
+        // match the PDF font's, and the nearest style of the same slant to it is measured too. The
+        // closer shape wins.
+        const adjust = async (measured) => {
+          if (!measured) return null;
+          const styles = measured.meta.styles;
+          const slant = styles[measured.style].italic;
+          const sameSlant = Object.fromEntries(Object.entries(styles).filter(([, style]) => style.italic === slant));
+          const target = styles[measured.style].weight + (info.stroke - measured.stroke) / STROKE_PER_WEIGHT;
+          const next = pickStyle(sameSlant, target, slant);
+          if (!next || next === measured.style) return measured;
+          const other = await measure(measured, next);
+          return other && fit(other) < fit(measured) ? other : measured;
+        };
+        const refine = async (found) => (await adjust(await measure(found))) || found;
 
         // 1. The same family, by name.
         for (const key of parsed.keys) {
           const family = idx.families.find((f) => f.key === key);
           if (family) {
             const found = await settle(family, "same");
-            if (found) return found;
+            if (found) return refine(found);
           }
         }
         // 2. A free font with the same widths, from the alias table.
@@ -399,12 +564,15 @@
           const family = byId.get(id);
           if (!family) continue;
           const found = await settle(family, "alias", forced);
-          if (found) return found;
+          if (found) return refine(found);
         }
-        // 3. The closest family of the same class, by the widths of the letters the PDF font has,
-        //    compared with every family's regular widths from one table (widths.<hash>.json), with
-        //    cap height and x-height as a smaller term where the PDF states them. The best three are
-        //    then compared again in the style that would be used, and only they fetch metadata.
+        // 3. The closest family, by the widths of the letters the PDF font has, compared with every
+        //    family's regular widths from one table (widths.<hash>.json), with cap height and
+        //    x-height as a smaller term where the PDF states them. Where the PDF font's outlines can
+        //    be read, the best few of its class and of the other text classes (PDFs from browsers
+        //    don't mark serif fonts) are then compared by shape, in the style that would be used,
+        //    and the closest shape wins. Otherwise the best three are compared again by widths in
+        //    that style. Only these candidates fetch metadata and files.
         const wanted = classOf(info, parsed);
         const table = idx.widths ? await getJson(idx.widths) : null;
         const shape = (f) => {
@@ -414,24 +582,33 @@
           if (info.xHeight > 0 && xHeight > 0) score += Math.abs(info.xHeight - xHeight) / xHeight;
           return score;
         };
-        const ranked = idx.families
-          .filter((f) => f.category === wanted && f.slices.includes("latin"))
-          .map((f) => {
-            const distance = table && table.families ? widthDistance(info.widths, table.families[f.id]) : null;
-            return { family: f, distance, score: (distance === null ? 1 : distance * 2) + shape(f) * 0.25 };
-          })
-          .sort((a, b) => a.score - b.score)
-          .slice(0, 3);
-        let best = null;
-        for (const { family, score } of ranked) {
-          const found = await settle(family, "closest");
-          if (!found) continue;
-          const style = found.meta.styles[found.style];
-          const distance = widthDistance(info.widths, style.metrics && style.metrics.widths);
-          const total = distance === null ? score : distance * 2 + shape(family) * 0.25;
-          if (!best || total < best.total) best = { ...found, total };
+        const ranked = (category, count) =>
+          byWidths(idx, table, info, category, italic)
+            .map(({ family, distance }) => ({ family, score: (distance === null ? 1 : distance * 2) + shape(family) * 0.25 }))
+            .sort((a, b) => a.score - b.score)
+            .slice(0, count);
+        const textClasses = ["sans", "serif"].filter((category) => category !== wanted);
+        const candidates = comparable && wanted !== "mono" && wanted !== "handwriting"
+          ? [...ranked(wanted, 6), ...textClasses.flatMap((category) => ranked(category, 2))]
+          : ranked(wanted, 3);
+        const scored = await Promise.all(
+          candidates.map(async ({ family, score }) => {
+            const found = await settle(family, "closest");
+            if (!found) return null;
+            const style = found.meta.styles[found.style];
+            const widths = widthDistance(info.widths, style.metrics && style.metrics.widths);
+            const entry = { ...found, total: widths === null ? score : widths * 2 + shape(family) * 0.25 };
+            return (await measure(entry)) || entry;
+          }),
+        );
+        const found = scored.filter(Boolean);
+        // The three best fits get their weight corrected, then the best of those wins.
+        const byShape = found.filter((entry) => entry.distance !== undefined).sort((a, b) => fit(a) - fit(b));
+        if (byShape.length) {
+          const adjusted = (await Promise.all(byShape.slice(0, 3).map(adjust))).sort((a, b) => fit(a) - fit(b));
+          return adjusted[0];
         }
-        return best;
+        return found.sort((a, b) => a.total - b.total)[0] || null;
       })().catch(() => null);
       choices.set(info.key, promise);
       return promise;
@@ -461,7 +638,17 @@
       return resolverFor(resolved);
     }
 
-    return { index, choose, prepare };
+    // Chooses the free font for a PDF font and downloads its Latin file, ahead of any edit, so
+    // typing a letter the PDF font lacks draws at once. Called for each font when a PDF is opened.
+    async function warm(info) {
+      const choice = await choose(info);
+      if (!choice) return null;
+      const entry = choice.meta.styles[choice.style].files.find((f) => f.slice === "latin");
+      if (entry) await getFile(choice.family.id, entry);
+      return choice;
+    }
+
+    return { index, choose, prepare, warm };
   }
 
   function resolverFor(resolved) {

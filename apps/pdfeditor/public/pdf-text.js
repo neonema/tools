@@ -352,6 +352,7 @@
     font.italicAngle = numberOf(L, lookup(L, descriptorDict, "ItalicAngle")) || 0;
     font.capHeight = numberOf(L, lookup(L, descriptorDict, "CapHeight")) || 0;
     font.xHeight = numberOf(L, lookup(L, descriptorDict, "XHeight")) || 0;
+    font.fontWeight = numberOf(L, lookup(L, descriptorDict, "FontWeight")) || 0;
     const toUnicode = streamText(L, lookup(L, dict, "ToUnicode"));
     if (toUnicode) font.toUnicode = parseToUnicode(toUnicode);
     // The embedded TrueType program, read only when a glyph outline is needed.
@@ -495,8 +496,14 @@
       return 0;
     };
     // Embedding permissions (OS/2 fsType): 2 Restricted, 4 Preview & Print, 8 Editable, 0 Installable.
-    const fsType = tables["OS/2"] && tables["OS/2"].length >= 10 ? view.getUint16(tables["OS/2"].offset + 8) : null;
-    return { outline, simpleGid, fsType };
+    const os2 = tables["OS/2"];
+    const fsType = os2 && os2.length >= 10 ? view.getUint16(os2.offset + 8) : null;
+    // What the font says about its own style: OS/2 weight class (100-900) and fsSelection bits
+    // (1 italic, 32 bold, 512 oblique), and the post table's italic angle.
+    const weightClass = os2 && os2.length >= 6 ? view.getUint16(os2.offset + 4) : null;
+    const fsSelection = os2 && os2.length >= 64 ? view.getUint16(os2.offset + 62) : 0;
+    const italicAngle = tables.post && tables.post.length >= 8 ? view.getInt32(tables.post.offset + 4) / 65536 : 0;
+    return { outline, simpleGid, fsType, weightClass, fsSelection, italicAngle };
   }
 
   function programOf(font) {
@@ -522,6 +529,31 @@
       font.restricted = fsType !== null && fsType !== undefined && (fsType & 8) === 0 && (fsType & 6) !== 0;
     }
     return font.restricted;
+  }
+
+  // A PDF font's weight (100-900) and slant, from what it says about itself, strongest first: a
+  // weight word in its name ("Arial-BoldMT"), the embedded program's OS/2 weight class, the
+  // descriptor's FontWeight and ForceBold flag, OS/2's bold bit. Italic from the name, the
+  // descriptor's Italic flag or angle, or the program's own italic bits or angle. Fonts saved from
+  // web pages often have no usable name, so the program's own fields matter.
+  function fontStyle(font) {
+    if (font.style) return font.style;
+    const parse = globalThis.FontLibrary && globalThis.FontLibrary.parseName;
+    const named = parse ? parse(font.typeface) : { weight: /bold|black|heavy/i.test(font.typeface) ? 700 : null, italic: /italic|oblique/i.test(font.typeface) };
+    const program = programOf(font);
+    const ttf = program && program.ttf;
+    const rounded = (value) => Math.min(900, Math.max(100, Math.round(value / 100) * 100));
+    let weight = named.weight || null;
+    if (!weight && ttf && ttf.weightClass >= 100 && ttf.weightClass <= 1000) weight = rounded(ttf.weightClass);
+    if (!weight && font.fontWeight >= 100) weight = rounded(font.fontWeight);
+    if (!weight && font.flags & (1 << 18)) weight = 700;
+    if (!weight && ttf && ttf.fsSelection & 32) weight = 700;
+    weight = weight || 400;
+    const italic = Boolean(
+      named.italic || font.flags & 64 || Math.abs(font.italicAngle || 0) > 1 || (ttf && (ttf.fsSelection & 513 || Math.abs(ttf.italicAngle) > 1)),
+    );
+    font.style = { weight, italic, bold: weight >= 600 };
+    return font.style;
   }
 
   function glyphOutline(font, code) {
@@ -705,6 +737,7 @@
   function layoutGlyphs(ops, fontFor, options = {}) {
     const glyphs = options.glyphs || [];
     const seenCodes = options.seenCodes || new Map();
+    const shapes = options.shapes || [];
     const level = options.level || { depth: 0, ops };
     const depth = options.depth || 0;
     let gs = options.startState
@@ -716,7 +749,35 @@
     let tlm = [1, 0, 0, 1, 0, 0];
     // How far the text matrix has moved along the line since the line matrix was last set.
     let lineX = 0;
+    // The path being built: straight-edged paths are kept as shapes when painted (see addShape).
+    let path = null;
     const nums = (args) => args.map((a) => (a.t === "num" ? a.v : NaN));
+    // A painted path made only of straight lines and rectangles whose corners all sit on its
+    // bounding box, drawn without rotation or a left-right flip (an upside-down y axis, as browsers
+    // write, is fine): the lines and boxes that underline, strike through, or highlight text. Kept
+    // with the operators that drew it, so they can be lengthened.
+    const addShape = (stroked) => {
+      const ctm = gs.ctm;
+      if (!path || path.curved || !(ctm[0] > 0) || !ctm[3] || Math.abs(ctm[1]) > 1e-6 || Math.abs(ctm[2]) > 1e-6) return;
+      const corners = [...path.points];
+      for (const r of path.rects) corners.push({ x: r.x, y: r.y }, { x: r.x + r.w, y: r.y + r.h });
+      if (!corners.length || !corners.every((c) => Number.isFinite(c.x) && Number.isFinite(c.y))) return;
+      const xs = corners.map((c) => c.x);
+      const ys = corners.map((c) => c.y);
+      const [minX, maxX, minY, maxY] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+      const near = (value, a, b) => Math.abs(value - a) < 1e-3 || Math.abs(value - b) < 1e-3;
+      if (!corners.every((c) => near(c.x, minX, maxX) && near(c.y, minY, maxY))) return;
+      const half = stroked ? (gs.lineWidth * Math.abs(ctm[3])) / 2 : 0;
+      const [y0, y1] = [ctm[3] * minY + ctm[5], ctm[3] * maxY + ctm[5]].sort((a, b) => a - b);
+      shapes.push({
+        level,
+        points: path.points,
+        rects: path.rects,
+        ctm,
+        user: { minX, maxX },
+        box: [ctm[0] * minX + ctm[4], y0 - half, ctm[0] * maxX + ctm[4], y1 + half],
+      });
+    };
     const newLine = () => {
       tlm = multiply([1, 0, 0, 1, 0, -gs.TL], tlm);
       tm = tlm;
@@ -881,6 +942,43 @@
         case "TJ":
           show(a[0] && a[0].t === "arr" ? a[0].v : [], opIndex);
           break;
+        case "m":
+        case "l": {
+          const [x, y] = nums(a);
+          if (!path) path = { points: [], rects: [], curved: false };
+          path.points.push({ x, y, opIndex, op: op.op });
+          break;
+        }
+        case "re": {
+          const [x, y, w, h] = nums(a);
+          if (!path) path = { points: [], rects: [], curved: false };
+          path.rects.push({ x, y, w, h, opIndex });
+          break;
+        }
+        case "c":
+        case "v":
+        case "y":
+          if (!path) path = { points: [], rects: [], curved: false };
+          path.curved = true;
+          break;
+        case "n":
+          path = null;
+          break;
+        case "f":
+        case "F":
+        case "f*":
+          addShape(false);
+          path = null;
+          break;
+        case "S":
+        case "s":
+        case "B":
+        case "B*":
+        case "b":
+        case "b*":
+          addShape(true);
+          path = null;
+          break;
         case "Do": {
           const form = options.xobjectFor && a[0] && a[0].t === "name" && depth < 8 ? options.xobjectFor(a[0].v) : null;
           if (form) {
@@ -892,6 +990,7 @@
               startState: { ...gs, ctm: multiply(form.matrix, gs.ctm) },
               glyphs,
               seenCodes,
+              shapes,
             });
           }
           break;
@@ -900,7 +999,7 @@
           break;
       }
     });
-    return { glyphs, seenCodes };
+    return { glyphs, seenCodes, shapes };
   }
 
   // ---- Rewriting -----------------------------------------------------------------------------
@@ -982,6 +1081,8 @@
     for (const key of level.fontKeys()) {
       const other = level.fontFor(key);
       if (!other || other === font || !other.usable || other.typeface !== font.typeface) continue;
+      // A font that doesn't allow new text doesn't lend letters either.
+      if (editingRestricted(other)) continue;
       const otherEncoder = encoderFor(other, seenCodes.get(other));
       const ratios = widthRatios(font, encoder, (ch) => (otherEncoder.has(ch) ? glyphWidth(other, otherEncoder.get(ch)) : 0));
       if (ratios.count < 2 || ratios.all < 0.8 || ratios.all > 1.25) continue;
@@ -1057,17 +1158,20 @@
     return parts;
   }
 
-  // What the font library sees of a PDF font: its name, descriptor, and the widths of the letters
-  // it has (in 1000-unit glyph space, the same as the library's). Subsets of one typeface share
-  // a key, so their letters are matched together.
+  // What the font library sees of a PDF font: its name, descriptor, weight and slant, the widths of
+  // the letters it has (in 1000-unit glyph space, the same as the library's), and their outlines
+  // where the program is TrueType, so a free font can be matched by shape. Subsets of one typeface
+  // in one style share a key, so their letters are matched together; another weight of the same
+  // typeface gets its own match.
   function libraryInfo(font, encoder) {
     const widths = {};
     for (const [ch, code] of encoder) {
       const width = glyphWidth(font, code);
       if (width > 0 && [...ch].length === 1) widths[ch] = width;
     }
+    const style = fontStyle(font);
     return {
-      key: `${font.typeface}|${font.flags & (1 | 2 | 8 | 64)}`,
+      key: `${font.typeface}|${font.flags & (1 | 2 | 8 | 64)}|${style.weight}${style.italic ? "i" : ""}`,
       typeface: font.typeface,
       baseFont: font.baseFont,
       flags: font.flags || 0,
@@ -1075,7 +1179,10 @@
       capHeight: font.capHeight || 0,
       xHeight: font.xHeight || 0,
       stemV: font.stemV || 0,
+      weight: style.weight,
+      italic: style.italic,
       widths,
+      outline: (ch) => (encoder.has(ch) ? glyphOutline(font, encoder.get(ch)) : null),
     };
   }
 
@@ -1094,6 +1201,61 @@
       const center = (glyph.x + glyph.end) / 2;
       return center >= run.x - 0.5 && center <= run.x + run.width + 0.5;
     });
+  }
+
+  // How far one inserted part moves the text position along the line, in text space, as
+  // rewriteOp draws it with the operator's text state.
+  function partAdvance(part, state) {
+    const { size, Th, Tc, Tw, font } = state;
+    if (part.gap) return (part.gap / 1000) * size * Th;
+    if (part.advance !== undefined) return part.advance;
+    if (part.borrow && part.borrow.advanceWidth !== undefined) return ((part.borrow.advanceWidth / 1000) * size + Tc) * Th;
+    if (part.borrow) return ((part.borrow.width / 1000) * size + Tc) * Th * part.borrow.ratio;
+    return ((glyphWidth(font, part.code) / 1000) * size + Tc + (!font.twoByte && part.code === 32 ? Tw : 0)) * Th;
+  }
+
+  // Underlines, strikethroughs, and highlights are separate lines and boxes in a PDF, so when an
+  // edit makes a run longer or shorter they follow it: a straight-edged shape in the same stream
+  // that starts at or before the run, ends where the run ended, and lies under, through, or behind
+  // its line, gets its right edge moved by the same amount. Shapes that extend past the run (table
+  // rules, cell backgrounds) don't end where it ends, so they are left alone. Each shape moves once.
+  function resizeDecorations(inserts, shapes) {
+    const moved = new Set();
+    for (const { at: first, parts, matched, edit } of inserts) {
+      const sample = matched.find((glyph) => Math.abs(glyph.tx) > 1e-9);
+      if (!sample) continue;
+      const perUnit = (sample.end - sample.x) / sample.tx;
+      const oldEnd = Math.max(...matched.map((glyph) => glyph.end));
+      const newEnd = first.x + perUnit * parts.reduce((sum, part) => sum + partAdvance(part, first.state), 0);
+      const delta = newEnd - oldEnd;
+      const size = edit.fontSize || first.state.size;
+      const baseline = Number.isFinite(edit.baseline) ? edit.baseline : first.y;
+      if (Math.abs(delta) < 0.01 || !(size > 0)) continue;
+      for (const shape of shapes) {
+        if (shape.level !== first.level || moved.has(shape)) continue;
+        const [x0, y0, x1, y1] = shape.box;
+        if (Math.abs(x1 - oldEnd) > 0.25 * size || x0 > first.x + 0.25 * size || x1 - x0 < 0.3 * size) continue;
+        const middle = (y0 + y1) / 2;
+        const line = y1 - y0 <= 0.2 * size && middle >= baseline - 0.45 * size && middle <= baseline + 0.6 * size;
+        const box = y1 - y0 >= 0.6 * size && y1 - y0 <= 2 * size && y0 <= baseline + 0.05 * size && y1 >= baseline + 0.5 * size && x0 >= first.x - 0.6 * size;
+        if (!line && !box) continue;
+        moved.add(shape);
+        const shift = delta / shape.ctm[0];
+        const right = shape.user.maxX;
+        const ops = shape.level.ops;
+        for (const r of shape.rects) {
+          if (Math.abs(Math.max(r.x, r.x + r.w) - right) > 1e-3) continue;
+          const [x, w] = r.w >= 0 ? [r.x, r.w + shift] : [r.x + shift, r.w - shift];
+          const op = ops[r.opIndex];
+          shape.level.extra.push({ start: op.start, end: op.end, text: `${[x, r.y, w, r.h].map(formatNumber).join(" ")} re` });
+        }
+        for (const p of shape.points) {
+          if (Math.abs(p.x - right) > 1e-3) continue;
+          const op = ops[p.opIndex];
+          shape.level.extra.push({ start: op.start, end: op.end, text: `${formatNumber(p.x + shift)} ${formatNumber(p.y)} ${p.op}` });
+        }
+      }
+    }
   }
 
   // Rewrites one text-showing operator. `removed` holds the glyph keys to drop; `insert` puts the
@@ -1163,9 +1325,11 @@
                 }
                 segments.push(`${draw} [${hexString(borrow.bytes)}] TJ ${restore}`);
                 const drawn = ((borrow.width / 1000) * size + Tc) * scaled;
-                // A kept letter moves on by its original advance, not its drawn width.
-                if (part.advance !== undefined && Math.abs(part.advance - drawn) > 1e-6) out.push(formatNumber((-(part.advance - drawn) * 1000) / unit));
-                pending -= part.advance ?? drawn;
+                // A kept letter moves on by its original advance, not its drawn width; a letter with
+                // a set width (advanceWidth), by that.
+                const advance = part.advance ?? (borrow.advanceWidth !== undefined ? ((borrow.advanceWidth / 1000) * size + Tc) * Th : undefined);
+                if (advance !== undefined && Math.abs(advance - drawn) > 1e-6) out.push(formatNumber((-(advance - drawn) * 1000) / unit));
+                pending -= advance ?? drawn;
               } else if (part.twin) {
                 // Close the main TJ and draw the twin turned half a turn about the centre of its
                 // box, with a text matrix. Setting the text matrix also sets the line matrix, so
@@ -1449,7 +1613,9 @@
     const librarySimilar = new Set();
     const libraryFamilies = new Map();
     const restricted = new Set();
-    const outcome = (changed) => ({ results, colors, borrowed, standardLetters, libraryLetters, librarySimilar, libraryFamilies, restricted, changed });
+    // Per edit, the weight and slant of the run's font, for drawing it in a standard font.
+    const styles = new Map();
+    const outcome = (changed) => ({ results, colors, styles, borrowed, standardLetters, libraryLetters, librarySimilar, libraryFamilies, restricted, changed });
     const source = pageContentString(L, doc, page);
     if (!source) return outcome(false);
     const ops = parseOps(source);
@@ -1461,16 +1627,16 @@
     const cache = { fonts: new Map(), forms: new Map() };
     const context = resourceContext(L, doc, resources, cache);
     const root = { depth: 0, ops, source, parent: null, extra: [], adds: [], resources, fontFor: context.fontFor, fontKeys: context.fontKeys };
-    const { glyphs, seenCodes } = layoutGlyphs(ops, context.fontFor, { xobjectFor: context.xobjectFor, level: root });
+    const { glyphs, seenCodes, shapes } = layoutGlyphs(ops, context.fontFor, { xobjectFor: context.xobjectFor, level: root });
     const dryRun = Boolean(options && options.dryRun);
 
     // The last resort for one letter no font of the run's typeface has: the closest standard font
-    // (options.standardFontName(edit), a pdf-lib StandardFonts key), its width scaled to the run's
-    // proportions for that kind of letter. It is added to the resources of the stream it is drawn
+    // (options.standardFontName(edit, style), a pdf-lib StandardFonts key, in the weight and slant
+    // of the run's font), its width scaled to the run's proportions for that kind of letter. It is added to the resources of the stream it is drawn
     // in. Letters outside the standard fonts' character set return null.
     const standardFonts = new Map();
     const standardLetter = (level, font, encoder, ch, edit) => {
-      const fontName = options && options.standardFontName ? options.standardFontName(edit) : null;
+      const fontName = options && options.standardFontName ? options.standardFontName(edit, fontStyle(font)) : null;
       if (!fontName || !L.StandardFonts[fontName]) return null;
       let embedder;
       let bytes;
@@ -1533,6 +1699,9 @@
         level.standardKeys.set(id, { key, ref });
       }
       const ratios = widthRatios(font, encoder, (letter) => library.widthOf(info, letter));
+      // A letter the run's font has (but may not be used for, see editingRestricted) takes its
+      // width there, so the line spaces out exactly as it would have in the original font.
+      const own = encoder.has(ch) ? glyphWidth(font, encoder.get(ch)) : 0;
       if (glyph.family) {
         if (!libraryFamilies.has(edit)) libraryFamilies.set(edit, new Set());
         libraryFamilies.get(edit).add(glyph.family);
@@ -1542,7 +1711,8 @@
           key: level.standardKeys.get(id).key,
           bytes: String.fromCharCode((glyph.gid >> 8) & 255, glyph.gid & 255),
           width: glyph.width,
-          ratio: ratios.count >= 2 ? ratios.for(ch) : 1,
+          ratio: own > 0 && glyph.width > 0 ? Math.min(1.25, Math.max(0.8, own / glyph.width)) : ratios.count >= 2 ? ratios.for(ch) : 1,
+          advanceWidth: own > 0 ? own : undefined,
           extraStem: 0,
           library: glyph.kind,
         },
@@ -1556,6 +1726,7 @@
       matched.forEach((glyph) => removed.add(glyph));
       const first = matched[0];
       colors.set(edit, first.state.fill.map((value) => Math.min(1, Math.max(0, value))));
+      styles.set(edit, fontStyle(first.state.font));
       const text = (edit.text || "").replace(/[\r\n]+/g, " ");
       // New letters are written in the font of the first changed letter. Letters missing from it
       // come from elsewhere (see encodeWithSiblings).
@@ -1597,13 +1768,14 @@
       if (parts && parts.some((part) => part.borrow && part.borrow.library)) libraryLetters.add(edit);
       if (parts && parts.some((part) => part.borrow && part.borrow.library && part.borrow.library !== "same")) librarySimilar.add(edit);
       if (parts) {
-        if (parts.length) inserts.push({ at: first, parts });
+        if (parts.length) inserts.push({ at: first, parts, matched, edit });
         results.set(edit, "replaced");
       } else {
         results.set(edit, "removed");
       }
     }
     if (!removed.size || dryRun) return outcome(false);
+    resizeDecorations(inserts, shapes);
 
     // Every stream that held an edited glyph is rewritten, and so is each stream above it, which
     // has to point at the rewritten copy. Deepest first.
@@ -1703,5 +1875,35 @@
     return glyphs.map((glyph) => ({ letter: glyphLetter(glyph), x: glyph.x, end: glyph.end, y: glyph.y, fontKey: glyph.state.fontKey }));
   }
 
-  globalThis.PdfText = { lex, parseOps, parseToUnicode, layoutGlyphs, pageGlyphs, editPage, scrubPage, decodePdfText, winAnsiChar };
+  // The fonts a page draws text in whose letters can run out (subsets, and fonts that don't allow
+  // new text), as the font library sees them (libraryInfo), so their free fonts can be chosen and
+  // downloaded as soon as the PDF is opened.
+  function pageFontInfos(L, doc, page) {
+    const source = pageContentString(L, doc, page);
+    if (!source) return [];
+    const ops = parseOps(source);
+    const context = resourceContext(L, doc, page.node.Resources() || doc.context.obj({}), { fonts: new Map(), forms: new Map() });
+    const { seenCodes } = layoutGlyphs(ops, context.fontFor, { xobjectFor: context.xobjectFor, level: { depth: 0, ops, source } });
+    const out = [];
+    for (const [font, codes] of seenCodes) {
+      if (!font.usable || !(font.subset || editingRestricted(font))) continue;
+      out.push(libraryInfo(font, encoderFor(font, codes)));
+    }
+    return out;
+  }
+
+  globalThis.PdfText = {
+    lex,
+    parseOps,
+    parseToUnicode,
+    layoutGlyphs,
+    pageGlyphs,
+    pageFontInfos,
+    editPage,
+    scrubPage,
+    decodePdfText,
+    winAnsiChar,
+    readTrueType,
+    outlineSamples,
+  };
 })();

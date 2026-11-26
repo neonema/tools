@@ -22,11 +22,14 @@
       <p>
         You can change a line or word of text that is part of the page. The original text is removed
         from the file and your text is written in its place, in the PDF's own font, size, and colour.
-        If the PDF's font doesn't include a letter you type, that letter comes from the same typeface
-        elsewhere in the PDF, or from a free font matched to the original (the same family where one is
-        freely available, otherwise one with the same or the closest letter widths), or as a last resort
-        from the closest standard PDF font. Only those letters change; the page tells you before you
-        download. A font whose maker allows it only for viewing and printing is not used for new text. If the words you change also appear
+        When a PDF is opened, its fonts are read, and for each one a free font is matched to it in
+        advance: the same family where one is freely available, otherwise the closest in letter widths,
+        weight, slant, and shape. If the PDF's font doesn't include a letter you type, that letter comes
+        from the same typeface elsewhere in the PDF, or from the matched free font, or as a last resort
+        from the closest standard PDF font, in the same weight and slant. Only those letters change. A
+        font whose maker allows it only for viewing and printing is not used for new text; the matched
+        free font is used for the letters you type instead. Underlines, strikethroughs, and highlights
+        are lengthened or shortened with the text they mark. If the words you change also appear
         in the document's title, bookmarks, comments, form defaults, or accessibility text, they are
         changed there too, and data the document no longer uses is removed when you download, so the
         original wording is not left in the file. Text that can't be removed from the file can't be
@@ -34,9 +37,9 @@
       </p>
       <p>
         Find and replace changes each match in its own font, size, and colour, so text set in more
-        than one style keeps each style. A match whose new text the PDF's font can't draw, or that
-        spans two text styles, is left unchanged; you can choose to replace the first kind in the
-        closest standard font. Text inside images, such as scanned pages, can't be found.
+        than one style keeps each style. A match whose new text no available font can draw, or that
+        spans two text styles, is left unchanged. Text inside images, such as scanned pages, can't be
+        found.
       </p>
       <p>
         A text box is a fillable text field already in the PDF. You can edit, move, resize, or remove

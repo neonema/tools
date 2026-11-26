@@ -146,9 +146,11 @@
     };
   }
 
-  function standardFontName(run) {
-    const bold = Boolean(run.bold);
-    const italic = Boolean(run.italic);
+  // style: the weight and slant read from the PDF font itself (PdfText), when known; otherwise the
+  // run's font name decides.
+  function standardFontName(run, style) {
+    const bold = Boolean(style ? style.bold : run.bold);
+    const italic = Boolean(style ? style.italic : run.italic);
     if (run.family === "serif") {
       return bold && italic ? "TimesRomanBoldItalic" : bold ? "TimesRomanBold" : italic ? "TimesRomanItalic" : "TimesRoman";
     }
@@ -348,6 +350,7 @@
     const librarySimilar = new Set();
     const libraryFamilies = new Map();
     const restricted = new Set();
+    const styles = new Map();
     const byPage = new Map();
     // A letter no font of the run's typeface has is drawn in the closest standard font.
     const pageOptions = { ...options, standardFontName };
@@ -367,6 +370,7 @@
       }
       for (const [edit, result] of outcome.results) results.set(edit, result);
       if (outcome.colors) for (const [edit, color] of outcome.colors) colors.set(edit, color);
+      if (outcome.styles) for (const [edit, style] of outcome.styles) styles.set(edit, style);
       if (outcome.borrowed) for (const edit of outcome.borrowed) borrowed.add(edit);
       if (outcome.standardLetters) for (const edit of outcome.standardLetters) standardLetters.add(edit);
       if (outcome.libraryLetters) for (const edit of outcome.libraryLetters) libraryLetters.add(edit);
@@ -375,6 +379,7 @@
       if (outcome.restricted) for (const edit of outcome.restricted) restricted.add(edit);
     }
     results.colors = colors;
+    results.styles = styles;
     results.borrowed = borrowed;
     results.standardLetters = standardLetters;
     results.libraryLetters = libraryLetters;
@@ -414,7 +419,7 @@
     const fonts = new Map();
     for (const edit of changedTextEdits(textEdits)) {
       if (results.get(edit) !== "removed") continue;
-      const fontName = standardFontName(edit);
+      const fontName = standardFontName(edit, results.styles && results.styles.get(edit));
       if (!fonts.has(fontName)) fonts.set(fontName, await doc.embedFont(pdfLib.StandardFonts[fontName]));
       // The colour read from the PDF itself comes first; the colour sampled from the screen is a fallback.
       const fg = results.colors.get(edit) || edit.color || [0, 0, 0];
@@ -449,7 +454,7 @@
       if (result === "missing") continue;
       if (result === "removed") {
         try {
-          pdfLib.StandardFontEmbedder.for(pdfLib.StandardFonts[standardFontName(copy)]).encodeText(copy.text || "");
+          pdfLib.StandardFontEmbedder.for(pdfLib.StandardFonts[standardFontName(copy, results.styles.get(copy))]).encodeText(copy.text || "");
         } catch {
           // No font can draw it: the original is put back by leaving the edit out of the copy.
           results.set(copy, "missing");
@@ -464,6 +469,36 @@
     }
     await drawInStandardFonts(pdfLib, doc, pages, [...local.keys()], results);
     return { bytes: await doc.save(), applied };
+  }
+
+  // When a PDF is opened, its fonts are read once: for each font whose letters can run out (a
+  // subset of a font, or one that doesn't allow new text), the closest free font is chosen, by
+  // name, widths, weight, and outline shape, and its Latin file downloaded in the background. Edits
+  // then find it ready and draw straight away. Pages are read one at a time, yielding between them.
+  async function prepareFonts(bytes) {
+    const FontLibrary = globalThis.FontLibrary;
+    const library = FontLibrary && FontLibrary.current();
+    if (!library || !library.warm || !globalThis.PdfText) return 0;
+    const pdfLib = lib();
+    const doc = await previewSource(bytes);
+    const keys = new Set();
+    const warming = [];
+    for (const page of doc.getPages()) {
+      let infos = [];
+      try {
+        infos = globalThis.PdfText.pageFontInfos(pdfLib, doc, page);
+      } catch {
+        infos = [];
+      }
+      for (const info of infos) {
+        if (keys.has(info.key)) continue;
+        keys.add(info.key);
+        warming.push(library.warm(info).catch(() => null));
+      }
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+    await Promise.all(warming);
+    return keys.size;
   }
 
   // Cached read-only copy of the open PDF, for checking and drawing edits while they are typed.
@@ -509,7 +544,7 @@
       else if (result === "replaced" && results.borrowed.has(edit)) result = "borrowed";
       if (result === "removed" || result === "missing") {
         try {
-          pdfLib.StandardFontEmbedder.for(pdfLib.StandardFonts[standardFontName(edit)]).encodeText(edit.text || "");
+          pdfLib.StandardFontEmbedder.for(pdfLib.StandardFonts[standardFontName(edit, results.styles.get(edit))]).encodeText(edit.text || "");
         } catch {
           result = "unsupported";
         }
@@ -804,6 +839,7 @@
     changedTextEdits,
     previewTextEdit,
     previewTextEdits,
+    prepareFonts,
     previewPage,
     changePairs,
     scrubberFor,

@@ -337,7 +337,6 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-.text-edit[data-save="removed"] .text-edit-input,
 .text-edit[data-save="missing"] .text-edit-input,
 .text-edit[data-save="unsupported"] .text-edit-input {
   outline-color: #f07178;
