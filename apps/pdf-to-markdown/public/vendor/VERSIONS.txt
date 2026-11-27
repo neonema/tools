@@ -1,0 +1,7 @@
+pdfjs-dist 6.5.438, legacy build
+https://github.com/mozilla/pdf.js
+License: Apache-2.0. See pdfjs-6.5.438/LICENSE.
+
+pdfjs-6.5.438/pdf.min.js, pdf.worker.min.js, cmaps/, and standard_fonts/ are the same files the
+PDF editor vendors. This tool reads text and does not draw pages, so the image decoders in wasm/
+and the ICC profiles in iccs/ are not included.

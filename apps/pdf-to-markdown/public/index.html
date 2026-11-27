@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF to Markdown — Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Convert a PDF to Markdown in your browser. Files up to 80 MB stay on your device. Nothing is uploaded."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/pdf-to-markdown/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>PDF to Markdown</h1>
+        <p class="hero-copy">
+          Turn the text of a PDF into Markdown. Headings, lists, and columns are inferred from the
+          page. The file stays on your device.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Convert a PDF to Markdown</h2>
+
+        <label class="file-drop" id="file-drop" for="pdf-file">
+          <span class="file-drop-title" id="file-label">Choose a PDF</span>
+          <span class="file-drop-hint">Up to 80 MB and 400 pages. Drag a PDF here, or click to browse. Nothing is uploaded.</span>
+          <input id="pdf-file" type="file" accept="application/pdf,.pdf" />
+        </label>
+
+        <label class="layout-option">
+          <input id="layout-check" type="checkbox" />
+          <span>Match the layout</span>
+          <span class="layout-option-note">Line up columns from the text that was read.</span>
+        </label>
+
+        <p class="limit-note">
+          Tables, equations, and text inside images are left out. Rotated text is skipped.
+        </p>
+
+        <p id="status" class="status" aria-live="polite"></p>
+
+        <div id="result" hidden>
+          <label for="markdown-output">Markdown</label>
+          <textarea id="markdown-output" spellcheck="false"></textarea>
+          <div class="actions">
+            <button id="copy-btn" type="button">Copy</button>
+            <button id="download-btn" type="button" class="ghost-btn">Download</button>
+            <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+          </div>
+        </div>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Converting happens on your device. NeoNema never sees the PDF you choose.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="https://neonema.com/request.html">Request a feature</a>
+    </footer>
+
+    <script src="./markdown.js"></script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

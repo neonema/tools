@@ -1,0 +1,412 @@
+@import url("./brand-tokens.css");
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Outfit", system-ui, -apple-system, sans-serif;
+}
+
+/* BRAND_LOCK_START: Keep this section identical across all NeoNema properties. */
+.header {
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--header-bg) 84%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 4px 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand img {
+  display: block;
+  width: auto;
+  max-width: none;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.brand img.brand-main {
+  height: 50px;
+}
+
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 4px 12px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand img.brand-main {
+    height: 40px;
+  }
+}
+/* BRAND_LOCK_END */
+
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 36px 16px 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero {
+  max-width: 840px;
+  width: 100%;
+  text-align: center;
+}
+
+.kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.82rem;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+}
+
+.hero-copy {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tool-card {
+  margin-top: 28px;
+  width: 100%;
+  max-width: 840px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  padding: 20px;
+}
+
+label {
+  display: block;
+  margin-top: 4px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #101713;
+  color: var(--foreground);
+  padding: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  min-height: min(36vh, 240px);
+  resize: vertical;
+}
+
+textarea:focus,
+button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, transparent);
+  outline-offset: 1px;
+}
+
+.hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghost-btn {
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--border);
+}
+
+.ghost-btn:hover {
+  border-color: var(--primary);
+}
+
+.status {
+  min-height: 1.4em;
+  margin: 10px 0 0;
+  color: var(--primary);
+}
+
+.status[data-state="error"] {
+  color: #f07178;
+}
+
+.preview-heading {
+  margin: 16px 0 8px;
+  font-size: 1rem;
+}
+
+.preview {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #101713;
+  padding: 16px 18px;
+  min-height: 180px;
+  overflow-wrap: anywhere;
+}
+
+.preview-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+.md-body {
+  text-align: left;
+  line-height: 1.55;
+}
+
+.md-body > :first-child {
+  margin-top: 0;
+}
+
+.md-body > :last-child {
+  margin-bottom: 0;
+}
+
+.md-body h1,
+.md-body h2,
+.md-body h3,
+.md-body h4,
+.md-body h5,
+.md-body h6 {
+  margin: 1em 0 0.35em;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.md-body h1 {
+  font-size: 1.7rem;
+}
+
+.md-body h2 {
+  font-size: 1.35rem;
+}
+
+.md-body h3 {
+  font-size: 1.15rem;
+}
+
+.md-body p {
+  margin: 0.55em 0;
+}
+
+.md-body a {
+  color: var(--primary);
+}
+
+.md-body ul,
+.md-body ol {
+  margin: 0.4em 0;
+  padding-left: 1.3em;
+}
+
+.md-body li {
+  margin: 0.2em 0;
+}
+
+.md-body li > ul,
+.md-body li > ol {
+  margin: 0.2em 0;
+}
+
+.md-body input[type="checkbox"] {
+  width: auto;
+  height: auto;
+  margin: 0 0.4em 0 0;
+  vertical-align: middle;
+  accent-color: var(--primary);
+}
+
+.md-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  background: #0b0f0d;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+.md-body pre {
+  margin: 0.8em 0;
+  padding: 12px 14px;
+  overflow: auto;
+  background: #0b0f0d;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.md-body pre code {
+  background: none;
+  padding: 0;
+  white-space: pre;
+}
+
+.md-body blockquote {
+  margin: 0.8em 0;
+  padding: 0.2em 0 0.2em 14px;
+  border-left: 3px solid var(--primary);
+}
+
+.md-body blockquote p {
+  margin: 0.3em 0;
+}
+
+.md-body hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 1.2em 0;
+}
+
+.md-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0;
+}
+
+.md-body th,
+.md-body td {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.md-body th {
+  font-weight: 700;
+}
+
+.md-body del {
+  color: var(--muted);
+}
+
+.privacy-note {
+  width: 100%;
+  max-width: 840px;
+  margin: 16px auto 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.55;
+  text-align: center;
+}
+
+.privacy-bold {
+  display: block;
+  font-weight: 800;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 22px 16px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: var(--foreground);
+}
+
+.policy {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 16px 72px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.policy h1 {
+  color: var(--foreground);
+}
+
+.policy a {
+  color: var(--primary);
+}
+
+.policy a:hover {
+  color: var(--foreground);
+}
+
+@media (max-width: 768px) {
+}
+
+/* Hub-embed mode: the hub loads this page in a tab and hides page chrome.
+   The privacy note must stay visible — never add it to this hide list. */
+html.hub-embed body {
+  min-height: auto;
+}
+
+html.hub-embed .header,
+html.hub-embed .hero,
+html.hub-embed .footer {
+  display: none;
+}
+
+html.hub-embed .container {
+  padding: 0 16px 24px;
+}
+
+html.hub-embed .tool-card {
+  margin-top: 0;
+}

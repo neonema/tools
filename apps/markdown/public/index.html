@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Markdown Preview — Private, In-Browser | NeoNema</title>
+    <meta
+      name="description"
+      content="Paste Markdown and read it in your browser. Nothing is uploaded, and images are not downloaded."
+    />
+    <link rel="canonical" href="https://tools.neonema.com/markdown/" />
+    <link rel="icon" type="image/png" href="./NeoNema.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("hub-embed");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a href="https://neonema.com/">
+            <img src="./NeoNema.png" alt="NeoNema" class="brand-main" />
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <p class="kicker">Fast. Private. Useful.</p>
+        <h1>Markdown Preview</h1>
+        <p class="hero-copy">
+          Paste Markdown and read it on the page. The text stays in your browser.
+        </p>
+      </section>
+
+      <section class="tool-card" aria-labelledby="tool-title">
+        <h2 id="tool-title" class="visually-hidden">Markdown preview</h2>
+
+        <label for="source-input">Markdown</label>
+        <textarea
+          id="source-input"
+          placeholder="Paste Markdown…"
+          spellcheck="false"
+          autocomplete="off"
+        ></textarea>
+        <p class="hint">
+          Headings, lists, tables, code, quotes, and links. Images stay as links and are not
+          downloaded.
+        </p>
+
+        <div class="actions">
+          <button id="clear-btn" type="button" class="ghost-btn">Clear</button>
+        </div>
+
+        <p id="status" class="status" aria-live="polite"></p>
+
+        <h2 class="preview-heading">Preview</h2>
+        <div id="preview" class="preview">
+          <p class="preview-empty">The preview appears here.</p>
+        </div>
+      </section>
+
+      <p class="privacy-note">
+        <span class="privacy-bold">Private by design.</span>
+        Previewing happens on your device. NeoNema never sees what you paste.
+      </p>
+    </main>
+
+    <footer class="footer">
+      <a href="./privacy-policy.html">Privacy Policy</a>
+      <a href="./terms.html">Terms of Service</a>
+      <a href="https://neonema.com/request.html">Request a feature</a>
+    </footer>
+
+    <script src="./markdown.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

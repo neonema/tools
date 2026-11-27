@@ -65,6 +65,12 @@
       "path": "/mermaid/index.html"
     },
     {
+      "id": "markdown",
+      "label": "Markdown Preview",
+      "category": "text",
+      "path": "/markdown/index.html"
+    },
+    {
       "id": "word-token-counter",
       "label": "Word/Token Counter",
       "category": "text",
@@ -117,6 +123,12 @@
       "label": "PDF Editor",
       "category": "files",
       "path": "/pdfeditor/index.html"
+    },
+    {
+      "id": "pdf-to-markdown",
+      "label": "PDF to Markdown",
+      "category": "files",
+      "path": "/pdf-to-markdown/index.html"
     },
     {
       "id": "sensitivity",

@@ -57,6 +57,15 @@ function showEmpty() {
   previewEl.innerHTML = `<p class="preview-empty">Diagrams appear here after you paste source.</p>`;
 }
 
+// A failed render used to leave Mermaid's error diagram on document.body, below the page,
+// and the preview repeated the whole source. Drop only nodes Mermaid attached to the body.
+function removeStrayDiagram(id) {
+  for (const elId of [id, `d${id}`, `i${id}`]) {
+    const el = document.getElementById(elId);
+    if (el && el.parentElement === document.body) el.remove();
+  }
+}
+
 async function renderPreview() {
   const seq = ++renderSeq;
   const diagrams = extractDiagrams(sourceInput.value);
@@ -81,17 +90,20 @@ async function renderPreview() {
       wrap.appendChild(caption);
     }
 
+    const id = `mermaid-preview-${seq}-${i}`;
     try {
-      const { svg } = await mermaid.render(`mermaid-preview-${seq}-${i}`, diagrams[i]);
+      const { svg } = await mermaid.render(id, diagrams[i]);
       if (seq !== renderSeq) return;
+      removeStrayDiagram(id);
       wrap.insertAdjacentHTML("beforeend", svg);
       if (!lastSvg) lastSvg = svg;
     } catch (error) {
       if (seq !== renderSeq) return;
+      removeStrayDiagram(id);
       wrap.classList.add("preview-frame-error");
-      const err = document.createElement("pre");
+      const err = document.createElement("p");
       err.className = "preview-error";
-      err.textContent = error?.message || String(error);
+      err.textContent = "This isn't a valid Mermaid diagram.";
       wrap.appendChild(err);
       errors.push(i + 1);
     }
